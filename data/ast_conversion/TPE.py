@@ -34,7 +34,6 @@ def learn_vocabulary(graphs, vocab_size):
         best_key = best_key + (average_frequency, average_graph_length)
 
         vocab.append(best_key)
-        print_vocab(vocab)
 
         merged_before = set()
         for graph, parent, child in best_key_locations:
@@ -45,6 +44,7 @@ def learn_vocabulary(graphs, vocab_size):
             # merge_nodes_efficient(graph, parent, child)
             merge_nodes(graph, parent, child)
             merged_before.add((graph, child))
+    print_vocab(vocab)
     return vocab
 
 
