@@ -32,7 +32,7 @@ data_dir = Path(args.data_dir)
 def test_compressing_then_reading():
     limit = 10
     # limit = 0
-    evals = __collect_asts(data_dir / 'python50k_eval.json', limit=limit)
+    evals = ast_to_graph.__collect_asts(data_dir / 'python50k_eval.json', limit=limit)
 
     graphs_eval = ast_to_graph.__collect_all_ast_graphs(evals, args)
 
@@ -87,7 +87,7 @@ def test_read_flat_into_c2s():
     compressed_graphs_file = data_dir / 'python50k_eval_flat_temp.json'
     flatten(__collect_asts(data_dir / 'python50k_eval.json', limit=limit), compressed_graphs_file)
 
-    #create c2s for flattened
+    # create c2s for flattened
     flat_evals = __collect_asts(compressed_graphs_file, limit=0)
     py_extractor.__collect_all_and_save(flat_evals, args, './new/train.c2s', para=para)
 
