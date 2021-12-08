@@ -1,5 +1,5 @@
 import collections
-
+import concurrent.futures as futures
 import networkx as nx
 from tqdm import tqdm
 
@@ -21,9 +21,11 @@ def learn_vocabulary(graphs, vocab_size):
     for i in tqdm(range(vocab_size)):
         # dict[str] -> list of (graph,parent index, child index)
         counter = collections.defaultdict(list)
-        for graph in graphs:
-            count_pairs(graph, counter)
-            # count_pairs_efficient(graph, counter)
+
+        with futures.ThreadPoolExecutor() as executor:
+            for graph in graphs:
+                executor.submit(count_pairs, graph, counter)
+                # count_pairs_efficient(graph, counter)
 
         sorted_counter = sorted(counter.items(), key=lambda item: -len(item[1]))
         best_key = sorted_counter[0][0]
@@ -45,7 +47,7 @@ def learn_vocabulary(graphs, vocab_size):
             merge_nodes(graph, parent, child)
             merged_before.add((graph, child))
     print_vocab(vocab)
-    return [(r1,r2) for r1, r2, freq, size in vocab]
+    return [(r1, r2) for r1, r2, freq, size in vocab]
 
 
 def count_pairs(g: nx.DiGraph, counter):
