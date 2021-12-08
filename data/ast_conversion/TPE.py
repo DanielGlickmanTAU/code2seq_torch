@@ -45,7 +45,7 @@ def learn_vocabulary(graphs, vocab_size):
             merge_nodes(graph, parent, child)
             merged_before.add((graph, child))
     print_vocab(vocab)
-    return vocab
+    return [(r1,r2) for r1, r2, freq, size in vocab]
 
 
 def count_pairs(g: nx.DiGraph, counter):
