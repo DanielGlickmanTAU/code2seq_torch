@@ -25,6 +25,7 @@ class PathContextDataModule(LightningDataModule):
         self._name = basename(data_dir)
         self._is_class = is_class
 
+        self.prepare_data()
         self._vocabulary = self.setup_vocabulary()
 
     @property

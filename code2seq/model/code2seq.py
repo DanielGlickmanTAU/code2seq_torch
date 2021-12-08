@@ -10,7 +10,7 @@ from pytorch_lightning import LightningModule
 from pytorch_lightning.utilities.types import EPOCH_OUTPUT
 from torch import nn
 from torch.optim import Optimizer
-from torch.optim.lr_scheduler import _LRScheduler
+from torch.optim.lr_scheduler import LambdaLR
 from torchmetrics import MetricCollection, Metric
 
 from code2seq.data.path_context import BatchedLabeledPathContext
@@ -71,7 +71,7 @@ class Code2Seq(LightningModule):
 
     # ========== Main PyTorch-Lightning hooks ==========
 
-    def configure_optimizers(self) -> Tuple[List[Optimizer], List[_LRScheduler]]:
+    def configure_optimizers(self) -> Tuple[List[Optimizer], List[LambdaLR]]:
         return configure_optimizers_alon(self._optim_config, self.parameters())
 
     def forward(  # type: ignore

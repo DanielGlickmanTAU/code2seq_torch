@@ -1,5 +1,5 @@
 #data_folder: ../data/code2seq/java-small
-data_folder: ../data/java-small
+data_folder: ../data/python
 
 checkpoint: null
 
@@ -9,13 +9,13 @@ progress_bar_refresh_rate: 1
 print_config: true
 
 wandb:
-  project: Code2Seq -- java-small
+  project: Code2Seq -- py150k
   group: null
 #  offline: false
   offline: true
 
 data:
-  url: https://s3.eu-west-1.amazonaws.com/datasets.ml.labs.aws.intellij.net/java-paths-methods/java-small.tar.gz
+  url: https://s3.eu-west-1.amazonaws.com/
   num_workers: 4
 
   # Each token appears at least 10 times (98.5% coverage)

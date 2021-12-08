@@ -1,0 +1,39 @@
+asts:list[dict]
+each dict has: type, children(optional list), value(optinal string)
+for method declaraction:
+type is FunctionDef value is the function name
+
+
+todo:
+- parralel append
+- add @ add name starts makes it like bfs:
+    v->(a1->(b1, b2) , a2 , a3) ....-> v@a1[?0?]-> (a2, a3, !b1, !b2)
+    ?0? is for the index of a1, if i want to use it...
+    ! is if I want to keep distance from original node
+
+- limit distance(count @)
+
+-consider triming low count entries out of vocabulary to keep memory sane
+-remove limit=
+- be mindful of __delim_name when merging nodes
+
+- find out if terminals with both value and children are changed somehow--
+
+                if v_type.startswith('Name'):
+                    paths.append((stack.copy(), v_node['value']))
+                elif args.use_nums and v_type == 'Num':
+                    paths.append((stack.copy(), NUM))
+
+not doing anything special for now if parent and child both have value:
+    print(f'something strange.. value in both {g.nodes[n]} and {g.nodes[child]}')
+
+if i want to add index add here:counter[(g.nodes[n]['type'], g.nodes[child]['type'])].append((g, n, child))
+#consider ignoring childs with no children - terminals
+
+-if it is slow, consider changing regex:re.finditer
+
+
+changed to run code2seq:
+data_folder: ../data/java-small
+javasmall wanddb in yaml
+

@@ -3,12 +3,12 @@ from typing import List, Tuple, Iterable
 import torch
 from omegaconf import DictConfig
 from torch.optim import Adam, Optimizer, SGD
-from torch.optim.lr_scheduler import _LRScheduler, LambdaLR
+from torch.optim.lr_scheduler import LambdaLR
 
 
 def configure_optimizers_alon(
     optim_config: DictConfig, parameters: Iterable[torch.Tensor]
-) -> Tuple[List[Optimizer], List[_LRScheduler]]:
+) -> Tuple[List[Optimizer], List[LambdaLR]]:
     """Create optimizers like in original Alon work
     https://github.com/tech-srl/code2seq/blob/a01076ef649d298e5f90ac2ce1f6a42f4ff49cc2/model.py#L386-L397
     :param optim_config: hyper parameters
