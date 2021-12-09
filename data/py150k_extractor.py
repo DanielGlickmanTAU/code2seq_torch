@@ -1,4 +1,5 @@
 import argparse
+import os
 import re
 import json
 import multiprocessing
@@ -184,17 +185,19 @@ def main():
     # evals = __collect_asts(data_dir / 'python50k_eval.json', limit=limit)
 
     # trains = __collect_asts(data_dir / 'python100k_train.json')
-    trains = __collect_asts(data_dir / 'python100k_train_compressed_20.json')
+    compressed_vocab_size = 'compressed_20'
+    trains = __collect_asts(data_dir / ('python100k_train_%s.json' % compressed_vocab_size))
     train, valid = model_selection.train_test_split(
         trains,
         test_size=args.valid_p,
     )
 
-    evals = __collect_asts(data_dir / 'python50k_eval_compressed_20.json', limit=limit)
+    evals = __collect_asts(data_dir / ('python50k_eval_%s.json' % compressed_vocab_size), limit=limit)
     test = evals
 
     output_dir = Path(args.output_dir)
     output_dir.mkdir(exist_ok=True)
+    out_files = []
     for split_name, split in zip(
             ('train', 'valid', 'test'),
             # ('test',),
@@ -204,6 +207,11 @@ def main():
     ):
         output_file = output_dir / f'{split_name}.c2s'
         __collect_all_and_save(split, args, output_file, para=True)
+        out_files.append(str(out_files))
+
+    os.system(f'zip python_{compressed_vocab_size}_c2s.zip {" ".join(out_files)}')
+
+
 
 
 if __name__ == '__main__':
