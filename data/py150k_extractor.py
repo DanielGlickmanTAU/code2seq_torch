@@ -116,7 +116,7 @@ def __delim_name(name):
 # returns strings
 def __collect_sample(ast, fd_index, args):
     root = ast[fd_index]
-    if root['type'] != 'FunctionDef':
+    if not root['type'].startswith('FunctionDef'):
         raise ValueError('Wrong node type.')
 
     target = root['value']
@@ -164,7 +164,9 @@ def __collect_all_and_save(asts, args, output_file, para=True):
 
 
 def collect_all(asts, args, para):
-    parallel = joblib.Parallel(n_jobs=args.n_jobs)
+    parallel = joblib.Parallel(n_jobs=args.n_jobs,max_nbytes='3M')
+    # backend = multiprocessing
+    # max_nbytes = '3M'
     func = joblib.delayed(__collect_samples)
     if para:
         samples = parallel(func(ast, args) for ast in tqdm.tqdm(asts))
@@ -180,8 +182,8 @@ def main():
     np.random.seed(args.seed)
 
     data_dir = Path(args.data_dir)
-    limit = 100
-    # limit = 0
+    # limit = 100
+    limit = 0
     # evals = __collect_asts(data_dir / 'python50k_eval.json', limit=limit)
 
     # trains = __collect_asts(data_dir / 'python100k_train.json')
