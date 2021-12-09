@@ -8,7 +8,7 @@ from pathlib import Path
 import tqdm
 import joblib
 import numpy as np
-import sklearn
+import sklearn.model_selection as model_selection
 
 from data.ast_conversion.ast_to_graph import create_graph, __collect_asts
 
@@ -112,7 +112,7 @@ def __delim_name(name):
     return '|'.join(block.lower() for block in blocks)
 
 
-#returns strings
+# returns strings
 def __collect_sample(ast, fd_index, args):
     root = ast[fd_index]
     if root['type'] != 'FunctionDef':
@@ -141,7 +141,7 @@ def __collect_sample(ast, fd_index, args):
     return f'{target} {context}'
 
 
-#returns list of strings
+# returns list of strings
 def __collect_samples(ast, args):
     samples = []
     for node_index, node in enumerate(ast):
@@ -179,23 +179,27 @@ def main():
     np.random.seed(args.seed)
 
     data_dir = Path(args.data_dir)
-    limit = 100
-    evals = __collect_asts(data_dir / 'python50k_eval.json', limit=limit)
+    # limit = 100
+    limit = 0
+    # evals = __collect_asts(data_dir / 'python50k_eval.json', limit=limit)
 
     # trains = __collect_asts(data_dir / 'python100k_train.json')
-    # train, valid = sklearn.model_selection.train_test_split(
-    #     trains,
-    #     test_size=args.valid_p,
-    # )
+    trains = __collect_asts(data_dir / 'python100k_train_compressed_20.json')
+    train, valid = model_selection.train_test_split(
+        trains,
+        test_size=args.valid_p,
+    )
+
+    evals = __collect_asts(data_dir / 'python50k_eval_compressed_20.json', limit=limit)
     test = evals
 
     output_dir = Path(args.output_dir)
     output_dir.mkdir(exist_ok=True)
     for split_name, split in zip(
-            # ('train', 'valid', 'test'),
-            ('test',),
-            # (train, valid, test),
-            (test,),
+            ('train', 'valid', 'test'),
+            # ('test',),
+            (train, valid, test),
+            # (test,),
 
     ):
         output_file = output_dir / f'{split_name}.c2s'
