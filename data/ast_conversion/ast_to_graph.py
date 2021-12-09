@@ -8,7 +8,7 @@ import tqdm
 
 def create_graph(ast, root_index):
     root = ast[root_index]
-    assert root['type'] == 'FunctionDef'
+    assert root['type'].startswith('FunctionDef')
 
     edges = []
     # value not interesting... only to restore.. need node['type']
@@ -32,7 +32,7 @@ def create_graph(ast, root_index):
 
 def filter_ast(ast, root_index):
     root = ast[root_index]
-    assert root['type'] == 'FunctionDef'
+    assert root['type'].startswith('FunctionDef')
 
     new_ast = {}
     to_visit = [root_index]
@@ -74,10 +74,16 @@ def __collect_asts(json_file, limit=0):
     asts = []
     with open(json_file, 'r', encoding='utf-8') as f:
         for line in tqdm.tqdm(f):
-            ast = json.loads(line.strip())
+            try:
+                ast = json.loads(line.strip())
+            except:
+                print('warning! failed parsing json')
+                continue
             if len(ast) == 0:
                 continue
             asts.append(ast)
+            if len(asts) % 10_000 == 0:
+                print(f'done {len(asts)}')
             if limit and len(asts) > limit:
                 break
 
@@ -87,7 +93,7 @@ def __collect_asts(json_file, limit=0):
 def __collect_ast_graphs(ast, args=None, collection_function=create_graph):
     samples = []
     for node_index, node in enumerate(ast):
-        if node['type'] == 'FunctionDef':
+        if node['type'].startswith('FunctionDef'):
             sample = collection_function(ast, node_index)
             if sample is not None:
                 samples.append(sample)

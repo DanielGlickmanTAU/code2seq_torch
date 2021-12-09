@@ -7,3 +7,4 @@ omegaconf==2.1.1
 commode-utils==0.4.1
 networkx
 matplotlib
+sklearn

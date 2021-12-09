@@ -146,7 +146,7 @@ def __collect_sample(ast, fd_index, args):
 def __collect_samples(ast, args):
     samples = []
     for node_index, node in enumerate(ast):
-        if node['type'] == 'FunctionDef':
+        if node['type'].startswith('FunctionDef'):
             # can be called more than once. if 2 methods in a file.
             sample = __collect_sample(ast, node_index, args)
             if sample:
@@ -180,13 +180,13 @@ def main():
     np.random.seed(args.seed)
 
     data_dir = Path(args.data_dir)
-    # limit = 100
-    limit = 0
+    limit = 100
+    # limit = 0
     # evals = __collect_asts(data_dir / 'python50k_eval.json', limit=limit)
 
     # trains = __collect_asts(data_dir / 'python100k_train.json')
     compressed_vocab_size = 'compressed_20'
-    trains = __collect_asts(data_dir / ('python100k_train_%s.json' % compressed_vocab_size))
+    trains = __collect_asts(data_dir / ('python100k_train_%s.json' % compressed_vocab_size),limit=limit)
     train, valid = model_selection.train_test_split(
         trains,
         test_size=args.valid_p,
