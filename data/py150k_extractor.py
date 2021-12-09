@@ -209,7 +209,7 @@ def main():
         __collect_all_and_save(split, args, output_file, para=True)
         out_files.append(str(out_files))
 
-    os.system(f'zip python_{compressed_vocab_size}_c2s.zip {" ".join(out_files)}')
+    os.system(f'tar cvzf  python_{compressed_vocab_size}_c2s.tar.gz {" ".join(out_files)}')
 
 
 
