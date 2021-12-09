@@ -12,7 +12,7 @@ from data.ast_conversion.ast_to_graph import __collect_asts
 import data.py150k_extractor as py_extractor
 
 parser = argparse.ArgumentParser()
-data_dir = os.getcwd().split('\data')[0] + '\data\python'
+data_dir = os.getcwd().split('/data')[0] + '/data/python'
 parser.add_argument('--data_dir', default=data_dir, type=str)
 parser.add_argument('--valid_p', type=float, default=0.2)
 parser.add_argument('--max_path_length', type=int, default=999)
@@ -23,7 +23,7 @@ parser.add_argument('--output_dir', default='out_python', type=str)
 parser.add_argument('--n_jobs', type=int, default=multiprocessing.cpu_count())
 parser.add_argument('--seed', type=int, default=239)
 parser.add_argument("-c", "--config", help="Path to YAML configuration file", type=str,
-                    default=os.getcwd().split('\code2seq_torch')[0] + '\code2seq_torch\config\code2seq-py150k.yaml')
+                    default=os.getcwd().split('/code2seq_torch')[0] + '/code2seq_torch/config/code2seq-py150k.yaml')
 
 args = parser.parse_args()
 data_dir = Path(args.data_dir)
@@ -49,6 +49,17 @@ def test_compressing_then_reading():
     first_graph = ast_to_graph.create_graph(compressed_graphs[0], 0)
     assert nx.algorithms.isomorphism.is_isomorphic(first_graph, graphs_eval[0])
 
+def test_learning_vocab():
+    limit = 10
+    # limit = 0
+    evals = ast_to_graph.__collect_asts(data_dir / 'python50k_eval.json', limit=limit)
+
+    graphs_eval = ast_to_graph.__collect_all_ast_graphs(evals, args)
+
+    vocab_size = 10
+
+    vocab = TPE.learn_vocabulary(graphs_eval, vocab_size)
+    assert ('AttributeLoad', 'attr') in vocab
 
 def flatten(graphs, filename_to_write):
     graphs_eval = ast_to_graph.__collect_all_ast_graphs(graphs, args)
@@ -97,6 +108,8 @@ def test_read_flat_into_c2s():
     assert 'If' in data_module.vocabulary.node_to_id
     assert 'Call' in data_module.vocabulary.node_to_id
 
+
+test_learning_vocab()
 
 test_read_flat_into_c2s()
 
