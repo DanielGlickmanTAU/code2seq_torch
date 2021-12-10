@@ -1,5 +1,5 @@
 #data_folder: ../data/code2seq/java-small
-data_folder: ../data/out_python
+data_folder: ../data/out_python/compressed_20
 
 checkpoint: null
 

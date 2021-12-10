@@ -20,14 +20,14 @@ def train(model: LightningModule, data_module: LightningDataModule, config: Dict
     )
 
     # define model checkpoint callback
-    # checkpoint_callback = ModelCheckpointWithUploadCallback(
-    #     dirpath=wandb_logger.experiment.dir,
-    #     filename="{epoch:02d}-val_loss={val/loss:.4f}",
-    #     monitor="val/loss",
-    #     every_n_epochs=params.save_every_epoch,
-    #     save_top_k=-1,
-    #     auto_insert_metric_name=False,
-    # )
+    checkpoint_callback = ModelCheckpointWithUploadCallback(
+        dirpath=wandb_logger.experiment.dir,
+        filename="{epoch:02d}-val_loss={val/loss:.4f}",
+        monitor="val/loss",
+        every_n_epochs=params.save_every_epoch,
+        save_top_k=-1,
+        auto_insert_metric_name=False,
+    )
 
     # define early stopping callback
     early_stopping_callback = EarlyStopping(patience=params.patience, monitor="val/loss", verbose=True, mode="min")
@@ -47,7 +47,7 @@ def train(model: LightningModule, data_module: LightningDataModule, config: Dict
         log_every_n_steps=params.log_every_n_steps,
         logger=wandb_logger,
         gpus=gpu,
-        callbacks=[lr_logger, early_stopping_callback, print_epoch_result_callback, progress_bar],
+        callbacks=[lr_logger, early_stopping_callback, checkpoint_callback,print_epoch_result_callback, progress_bar],
         resume_from_checkpoint=config.get("checkpoint", None),
     )
 
