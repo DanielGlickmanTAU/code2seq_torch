@@ -17,6 +17,7 @@ parser.add_argument('--use_nums', type=bool, default=True)
 parser.add_argument('--output_dir', default='out_python', type=str)
 parser.add_argument('--n_jobs', type=int, default=multiprocessing.cpu_count())
 parser.add_argument('--seed', type=int, default=239)
+parser.add_argument('--vocab_size', type=int)
 parser.add_argument("-c", "--config", help="Path to YAML configuration file", type=str,
                     default=os.getcwd().split('/code2seq_torch')[0] + '/code2seq_torch/config/code2seq-py150k.yaml')
 
@@ -25,7 +26,7 @@ data_dir = Path(args.data_dir)
 
 
 limit = 0
-vocab_size = 20
+vocab_size = args.vocab_size
 # limit = 0
 evals = ast_to_graph.__collect_asts(data_dir / 'python50k_eval.json', limit=limit)
 trains = ast_to_graph.__collect_asts(data_dir / 'python100k_train.json', limit=limit)
