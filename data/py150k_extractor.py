@@ -199,7 +199,7 @@ def main():
     output_dir.mkdir(exist_ok=True)
     out_files = []
     for split_name, split in zip(
-            ('train', 'valid', 'test'),
+            ('train', 'val', 'test'),
             # ('test',),
             (train, valid, test),
             # (test,),
