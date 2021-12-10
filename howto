@@ -1,9 +1,15 @@
 run compression:
-run compression_flows.py . change vocav_size
+run compression_flows.py
+    change vocav_size
 will create file with name f'python100k_train_compressed_{len(vocab)}.json' under data-dir(/data/python)
-save to s3..
+
+create c2s files:
+run py150k_extractor.py.
+files are /data/python/python100k_train.json or /data/python/'python100k_train_%s.json' % compressed_vocab_size.
+ will create train/val/test.c2s under /data/out_python % compressed_vocab_size
 
 
+train code2seq:
+    create config pointing to /data/out_python % compressed_vocab_size
 
-todo:
-make script that learn bpe, creates train,val,test.c2s, zips them and uploads to s3
+

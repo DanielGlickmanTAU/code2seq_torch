@@ -2,15 +2,9 @@ import argparse
 import multiprocessing
 from pathlib import Path
 import os
-from typing import cast
-
 import json
-from omegaconf import DictConfig, OmegaConf
-import networkx as nx
-# from code2seq.data.path_context_data_module import PathContextDataModule
+
 from data.ast_conversion import ast_to_graph, TPE
-from data.ast_conversion.ast_to_graph import __collect_asts
-import data.py150k_extractor as py_extractor
 
 parser = argparse.ArgumentParser()
 data_dir = os.getcwd().split('/data')[0] + '/data/python'
@@ -39,15 +33,23 @@ trains = ast_to_graph.__collect_asts(data_dir / 'python100k_train.json', limit=l
 graphs_eval = ast_to_graph.__collect_all_ast_graphs(evals, args)
 graphs_train = ast_to_graph.__collect_all_ast_graphs(trains, args)
 
+del evals
+del trains
+
 
 #notice graphs_eval + graphs_train here
 vocab = TPE.learn_vocabulary(graphs_eval+graphs_train, vocab_size)
-data_eval = [ast_to_graph.graph_to_ast(graph) for graph in graphs_eval]
-data_train = [ast_to_graph.graph_to_ast(graph) for graph in graphs_train]
+# vocab = TPE.learn_vocabulary(graphs_train, vocab_size)
 
+data_eval = [ast_to_graph.graph_to_ast(graph) for graph in graphs_eval]
 eval_compressed_graphs_file = data_dir / f'python50k_eval_compressed_{len(vocab)}.json'
-train_compressed_graphs_file = data_dir / f'python100k_train_compressed_{len(vocab)}.json'
 ast_to_graph.write_asts_to_file(eval_compressed_graphs_file, data_eval)
+
+del data_eval
+del graphs_eval
+
+data_train = [ast_to_graph.graph_to_ast(graph) for graph in graphs_train]
+train_compressed_graphs_file = data_dir / f'python100k_train_compressed_{len(vocab)}.json'
 ast_to_graph.write_asts_to_file(train_compressed_graphs_file, data_train)
 
 vocab_file = data_dir / f'vocab_{len(vocab)}'
