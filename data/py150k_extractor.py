@@ -164,7 +164,7 @@ def __collect_all_and_save(asts, args, output_file, para=True):
 
 
 def collect_all(asts, args, para):
-    parallel = joblib.Parallel(n_jobs=min(args.n_jobs, 8), max_nbytes='3M', backend='multiprocessing')
+    parallel = joblib.Parallel(args.n_jobs, max_nbytes='3M', backend='multiprocessing')
     # backend = multiprocessing
     # max_nbytes = '3M'
     func = joblib.delayed(__collect_samples)
