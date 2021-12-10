@@ -164,7 +164,7 @@ def __collect_all_and_save(asts, args, output_file, para=True):
 
 
 def collect_all(asts, args, para):
-    parallel = joblib.Parallel(n_jobs=args.n_jobs,max_nbytes='3M')
+    parallel = joblib.Parallel(n_jobs=min(args.n_jobs, 8), max_nbytes='3M', backend='multiprocessing')
     # backend = multiprocessing
     # max_nbytes = '3M'
     func = joblib.delayed(__collect_samples)
@@ -184,11 +184,9 @@ def main():
     data_dir = Path(args.data_dir)
     # limit = 100
     limit = 0
-    # evals = __collect_asts(data_dir / 'python50k_eval.json', limit=limit)
 
-    # trains = __collect_asts(data_dir / 'python100k_train.json')
     compressed_vocab_size = 'compressed_20'
-    trains = __collect_asts(data_dir / ('python100k_train_%s.json' % compressed_vocab_size),limit=limit)
+    trains = __collect_asts(data_dir / ('python100k_train_%s.json' % compressed_vocab_size), limit=limit)
     train, valid = model_selection.train_test_split(
         trains,
         test_size=args.valid_p,
@@ -197,7 +195,7 @@ def main():
     evals = __collect_asts(data_dir / ('python50k_eval_%s.json' % compressed_vocab_size), limit=limit)
     test = evals
 
-    output_dir = Path(args.output_dir)
+    output_dir = Path(args.output_dir + '/' + compressed_vocab_size)
     output_dir.mkdir(exist_ok=True)
     out_files = []
     for split_name, split in zip(
@@ -212,8 +210,6 @@ def main():
         out_files.append(str(out_files))
 
     os.system(f'tar cvzf  python_{compressed_vocab_size}_c2s.tar.gz {" ".join(out_files)}')
-
-
 
 
 if __name__ == '__main__':
