@@ -3,7 +3,7 @@ from commode_utils.callbacks import ModelCheckpointWithUploadCallback, PrintEpoc
 from omegaconf import DictConfig, OmegaConf
 from pytorch_lightning import seed_everything, Trainer, LightningModule, LightningDataModule
 from pytorch_lightning.callbacks import EarlyStopping, LearningRateMonitor, TQDMProgressBar
-from pytorch_lightning.loggers import WandbLogger
+from pytorch_lightning.loggers import WandbLogger, CometLogger
 
 
 def train(model: LightningModule, data_module: LightningDataModule, config: DictConfig):
@@ -11,6 +11,11 @@ def train(model: LightningModule, data_module: LightningDataModule, config: Dict
     params = config.train
 
     # define logger
+    comet_logger = CometLogger(
+        project_name=config.wandb.project,
+    )
+
+
     wandb_logger = WandbLogger(
         project=config.wandb.project,
         group=config.wandb.group,
@@ -45,11 +50,12 @@ def train(model: LightningModule, data_module: LightningDataModule, config: Dict
         deterministic=True,
         check_val_every_n_epoch=params.val_every_epoch,
         log_every_n_steps=params.log_every_n_steps,
-        logger=wandb_logger,
+        logger=[wandb_logger,comet_logger],
         gpus=gpu,
-        callbacks=[lr_logger, early_stopping_callback, checkpoint_callback,print_epoch_result_callback, progress_bar],
+        callbacks=[lr_logger, early_stopping_callback, checkpoint_callback, print_epoch_result_callback, progress_bar],
         resume_from_checkpoint=config.get("checkpoint", None),
     )
 
     trainer.fit(model=model, datamodule=data_module)
+    print(config)
     trainer.test(datamodule=data_module, ckpt_path="best")

@@ -39,12 +39,16 @@ def filter_ast(ast, root_index):
     while len(to_visit) > 0:
         index = to_visit.pop()
         node_dict = ast[index].copy()
-        # new_ast.append(node_dict)
+
+        # visit by old index
+        child_start = len(to_visit)
+        to_visit += node_dict['children']
+
         new_ast[index] = node_dict
         if 'children' not in node_dict:
             node_dict['children'] = []
-        # visit by old index
-        to_visit += node_dict['children']
+        # something like this
+        node_dict['children'] += [child_start + i for i in range(len(node_dict['children']))]
         # parent_index = len(new_ast)
         # node_dict['children'] = [parent_index + child_num for child_num in range(len(node_dict['children']))]
         # node_dict['children'] = [ast[i] for i in node_dict['children']]

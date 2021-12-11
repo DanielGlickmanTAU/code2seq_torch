@@ -16,7 +16,7 @@ wandb:
 
 data:
   url: https://s3.eu-west-1.amazonaws.com/
-  num_workers: 4
+  num_workers: 10
 
   # Each token appears at least 10 times (98.5% coverage)
   labels_count: 10

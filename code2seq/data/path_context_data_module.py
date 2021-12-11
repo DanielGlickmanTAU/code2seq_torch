@@ -18,12 +18,13 @@ class PathContextDataModule(LightningDataModule):
     _val = "val"
     _test = "test"
 
-    def __init__(self, data_dir: str, config: DictConfig, is_class: bool = False):
+    def __init__(self, data_dir: str, config: DictConfig, is_class: bool = False, limit=None):
         super().__init__()
         self._config = config
         self._data_dir = data_dir
         self._name = basename(data_dir)
         self._is_class = is_class
+        self.limit = limit
 
         self.prepare_data()
         self._vocabulary = self.setup_vocabulary()
@@ -56,7 +57,10 @@ class PathContextDataModule(LightningDataModule):
     def _create_dataset(self, holdout_file: str, random_context: bool) -> PathContextDataset:
         if self._vocabulary is None:
             raise RuntimeError(f"Setup vocabulary before creating data loaders")
-        return PathContextDataset(holdout_file, self._config, self._vocabulary, random_context)
+        print('starting creat dataset')
+        dataset = PathContextDataset(holdout_file, self._config, self._vocabulary, random_context, self.limit)
+        print('created dataset')
+        return dataset
 
     def _shared_dataloader(self, holdout: str) -> DataLoader:
         if self._vocabulary is None:
@@ -82,7 +86,8 @@ class PathContextDataModule(LightningDataModule):
         return self._shared_dataloader(self._train)
 
     def val_dataloader(self, *args, **kwargs) -> DataLoader:
-        return self._shared_dataloader(self._val)
+        dataloader = self._shared_dataloader(self._val)
+        return dataloader
 
     def test_dataloader(self, *args, **kwargs) -> DataLoader:
         return self._shared_dataloader(self._test)
@@ -91,7 +96,7 @@ class PathContextDataModule(LightningDataModule):
         return self.test_dataloader(*args, **kwargs)
 
     def transfer_batch_to_device(
-        self, batch: BatchedLabeledPathContext, device: torch.device, dataloader_idx: int
+            self, batch: BatchedLabeledPathContext, device: torch.device, dataloader_idx: int
     ) -> BatchedLabeledPathContext:
         batch.move_to_device(device)
         return batch

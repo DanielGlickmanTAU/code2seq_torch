@@ -1,10 +1,14 @@
 import gc
 
-# import comet_ml
+try:
+    import comet_ml
+except:
+    print('failed importing comet ml')
+
 import os
 import time
 
-minimum_free_giga = 5
+minimum_free_giga = 7
 max_num_gpus = 1
 
 last_write = 0

@@ -1,3 +1,6 @@
+from code2seq.utils import compute
+
+torch = compute.get_torch()
 from argparse import ArgumentParser
 from typing import cast
 
@@ -16,17 +19,24 @@ def configure_arg_parser() -> ArgumentParser:
     arg_parser = ArgumentParser()
     arg_parser.add_argument("mode", help="Mode to run script", choices=["train", "test"])
     arg_parser.add_argument("-c", "--config", help="Path to YAML configuration file", type=str)
+    arg_parser.add_argument("-train_on_val", help="Train on validation set for debugging", type=bool, default=False)
+    arg_parser.add_argument("-max_num_examples",
+                            help="Limit the number of training/validaition examples. Mostly used for debugging",
+                            type=int, default=0)
     return arg_parser
 
 
-def train_code2seq(config: DictConfig):
+def train_code2seq(config: DictConfig, args):
     filter_warnings()
 
     if config.print_config:
         print_config(config, fields=["model", "data", "train", "optimizer"])
 
     # Load data module
-    data_module = PathContextDataModule(config.data_folder, config.data)
+    data_module = PathContextDataModule(config.data_folder, config.data,limit = args.max_num_examples)
+
+    if args.train_on_val:
+        data_module._train = 'val'
 
     # Load model
     code2seq = Code2Seq(config.model, config.optimizer, data_module.vocabulary, config.train.teacher_forcing)
@@ -52,6 +62,6 @@ if __name__ == "__main__":
 
     __config = cast(DictConfig, OmegaConf.load(__args.config))
     if __args.mode == "train":
-        train_code2seq(__config)
+        train_code2seq(__config, __args)
     else:
         test_code2seq(__config)

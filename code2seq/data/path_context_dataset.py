@@ -14,7 +14,7 @@ class PathContextDataset(Dataset):
     _log_file = "bad_samples.log"
     _separator = "|"
 
-    def __init__(self, data_file: str, config: DictConfig, vocabulary: Vocabulary, random_context: bool):
+    def __init__(self, data_file: str, config: DictConfig, vocabulary: Vocabulary, random_context: bool, limit=0):
         if not exists(data_file):
             raise ValueError(f"Can't find file with data: {data_file}")
         self._data_file = data_file
@@ -23,6 +23,8 @@ class PathContextDataset(Dataset):
         self._random_context = random_context
 
         self._line_offsets = get_lines_offsets(data_file)
+        if limit:
+            self._line_offsets = self._line_offsets[:limit]
         self._n_samples = len(self._line_offsets)
 
         open(self._log_file, "w").close()
