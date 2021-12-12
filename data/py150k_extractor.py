@@ -1,4 +1,5 @@
 import argparse
+import gc
 import os
 import re
 import json
@@ -207,6 +208,8 @@ def main():
     ):
         output_file = output_dir / f'{split_name}.c2s'
         __collect_all_and_save(split, args, output_file, para=True)
+        del split
+        gc.collect()
         out_files.append(str(out_files))
 
     os.system(f'tar cvzf  python_{compressed_vocab_size}_c2s.tar.gz {" ".join(out_files)}')
