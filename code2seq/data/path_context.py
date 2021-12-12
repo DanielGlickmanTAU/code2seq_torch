@@ -28,7 +28,8 @@ class BatchedLabeledPathContext:
         # [max label parts; batch size]
         self.labels = torch.tensor(transpose([s.label for s in samples]), dtype=torch.long)
         # [batch size]
-        self.contexts_per_label = torch.tensor([len(s.path_contexts) for s in samples])
+        context_per_label = torch.tensor([len(s.path_contexts) for s in samples])
+        self.contexts_per_label = context_per_label
 
         # [max token parts; n contexts]
         self.from_token = torch.tensor(

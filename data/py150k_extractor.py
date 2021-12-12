@@ -185,7 +185,7 @@ def main():
     # limit = 100
     limit = 0
 
-    compressed_vocab_size = 'compressed_20'
+    compressed_vocab_size = 'compressed_50'
     trains = __collect_asts(data_dir / ('python100k_train_%s.json' % compressed_vocab_size), limit=limit)
     train, valid = model_selection.train_test_split(
         trains,

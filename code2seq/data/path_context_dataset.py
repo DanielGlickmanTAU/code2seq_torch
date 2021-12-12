@@ -36,9 +36,12 @@ class PathContextDataset(Dataset):
         raw_sample = get_line_by_offset(self._data_file, self._line_offsets[index])
         try:
             raw_label, *raw_path_contexts = raw_sample.split()
+            if not raw_path_contexts:
+                raise ValueError(str(raw_path_contexts))
         except ValueError as e:
             with open(self._log_file, "a") as f_out:
                 f_out.write(f"Error reading sample from line #{index}: {e}")
+                print(f"Error reading sample from line #{index}: {e}")
             return None
 
         # Choose paths for current data sample
@@ -68,6 +71,8 @@ class PathContextDataset(Dataset):
         return [vocab[raw_class]]
 
     @staticmethod
+    #gets method name(raw_labels)
+    #tokenize it from vocab. add EOS and padding
     def tokenize_label(raw_label: str, vocab: Dict[str, int], max_parts: Optional[int]) -> List[int]:
         sublabels = raw_label.split(PathContextDataset._separator)
         max_parts = max_parts or len(sublabels)

@@ -107,7 +107,8 @@ class Code2Seq(LightningModule):
         target_sequence = batch.labels if step == "train" else None
         # [seq length; batch size; vocab size]
         logits, _ = self.logits_from_batch(batch, target_sequence)
-        result = {f"{step}/loss": self.__loss(logits[1:], batch.labels[1:])}
+        step_loss = self.__loss(logits[1:], batch.labels[1:])
+        result = {f"{step}/loss": step_loss}
 
         with torch.no_grad():
             prediction = logits.argmax(-1)
