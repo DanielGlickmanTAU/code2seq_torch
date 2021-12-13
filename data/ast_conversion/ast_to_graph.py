@@ -39,17 +39,18 @@ def filter_ast(ast, root_index):
     while len(to_visit) > 0:
         index = to_visit.pop()
         node_dict = ast[index].copy()
+        if 'children' not in node_dict:
+            node_dict['children'] = []
+
+        # node_dict = ast[index]
 
         # visit by old index
-        child_start = len(to_visit)
+        # child_start = len(to_visit)
         to_visit += node_dict['children']
 
         new_ast[index] = node_dict
-        if 'children' not in node_dict:
-            node_dict['children'] = []
         # something like this
-        node_dict['children'] += [child_start + i for i in range(len(node_dict['children']))]
-        print(node_dict)
+        # node_dict['children'] += [child_start + i for i in range(len(node_dict['children']))]
         # parent_index = len(new_ast)
         # node_dict['children'] = [parent_index + child_num for child_num in range(len(node_dict['children']))]
         # node_dict['children'] = [ast[i] for i in node_dict['children']]
@@ -95,7 +96,7 @@ def __collect_asts(json_file, limit=0):
     return asts
 
 
-def __collect_ast_graphs(ast, args=None, collection_function=create_graph):
+def __collect_ast_graphs(ast, args=None, collection_function=filter_ast):
     samples = []
     for node_index, node in enumerate(ast):
         if node['type'].startswith('FunctionDef'):
@@ -105,7 +106,7 @@ def __collect_ast_graphs(ast, args=None, collection_function=create_graph):
     return samples
 
 
-def __collect_all_ast_graphs(asts, args, collection_function=create_graph):
+def __collect_all_ast_graphs(asts, args, collection_function=filter_ast):
     parallel = joblib.Parallel(n_jobs=args.n_jobs)
     func = joblib.delayed(lambda ast, args: __collect_ast_graphs(ast, collection_function=collection_function))
 

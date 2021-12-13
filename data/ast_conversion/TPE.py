@@ -4,6 +4,7 @@ import networkx as nx
 from tqdm import tqdm
 
 from data.ast_conversion import config
+from data.ast_conversion.efficent_impl import count_pairs_efficient, merge_nodes_efficient
 
 
 def order_agnostic_name_merge(name1, name2):
@@ -24,8 +25,8 @@ def learn_vocabulary(graphs, vocab_size):
 
         with futures.ThreadPoolExecutor() as executor:
             for graph in graphs:
-                executor.submit(count_pairs, graph, counter)
-                # count_pairs_efficient(graph, counter)
+                # executor.submit(count_pairs, graph, counter)
+                executor.submit(count_pairs_efficient, graph, counter)
 
         sorted_counter = sorted(counter.items(), key=lambda item: -len(item[1]))
         best_key = sorted_counter[0][0]
@@ -41,11 +42,12 @@ def learn_vocabulary(graphs, vocab_size):
         for graph, parent, child in best_key_locations:
             # if we have something like the rule a@a and a graph like (a -> a -> a),
             # we want to skip merging the 2ed and 3ed a(because the second is dead after merging it into the first).
-            if (graph, parent) in merged_before:
+            #can be removed if taking edge into account..
+            if (graphs.index(graph), parent) in merged_before:
                 continue
-            # merge_nodes_efficient(graph, parent, child)
-            merge_nodes(graph, parent, child)
-            merged_before.add((graph, child))
+            merge_nodes_efficient(graph, parent, child)
+            # merge_nodes(graph, parent, child)
+            merged_before.add((graphs.index(graph), child))
     print_vocab(vocab)
     return [(r1, r2) for r1, r2, freq, size in vocab]
 
