@@ -60,6 +60,8 @@ def count_pairs(g: nx.DiGraph, counter):
             if config.skip_if_both_nodes_have_value and 'value' in parent_node and 'value' in child_node:
                 pass
                 # print(f'something strange.. value in both {g.nodes[n]} and {g.nodes[child]}')
+            if not child_node['children']:
+                pass
             else:
                 counter[(parent_node['type'], child_node['type'])].append((g, n, child))
 
