@@ -2,7 +2,6 @@ import argparse
 import gc
 import os
 import re
-import json
 import multiprocessing
 import itertools
 from pathlib import Path
@@ -12,7 +11,7 @@ import joblib
 import numpy as np
 import sklearn.model_selection as model_selection
 
-from data.ast_conversion.ast_to_graph import create_graph, __collect_asts
+from data.ast_conversion.ast_to_graph import __collect_asts
 
 METHOD_NAME, NUM = 'METHODNAME', 'NUM'
 

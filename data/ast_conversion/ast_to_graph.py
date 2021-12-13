@@ -49,6 +49,7 @@ def filter_ast(ast, root_index):
             node_dict['children'] = []
         # something like this
         node_dict['children'] += [child_start + i for i in range(len(node_dict['children']))]
+        print(node_dict)
         # parent_index = len(new_ast)
         # node_dict['children'] = [parent_index + child_num for child_num in range(len(node_dict['children']))]
         # node_dict['children'] = [ast[i] for i in node_dict['children']]
