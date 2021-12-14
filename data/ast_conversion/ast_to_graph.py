@@ -76,7 +76,7 @@ def write_asts_to_file(path, asts):
             f.write('\n')
 
 
-def __collect_asts(json_file, limit=0):
+def collect_asts(json_file, limit=0):
     asts = []
     with open(json_file, 'r', encoding='utf-8') as f:
         for line in tqdm.tqdm(f):
@@ -140,7 +140,7 @@ def __collect_ast_graphs(ast, args=None, collection_function=filter_ast):
     return samples
 
 
-def __collect_all_ast_graphs(asts, args, collection_function=filter_ast):
+def collect_all_ast_graphs(asts, args, collection_function=filter_ast):
     parallel = joblib.Parallel(n_jobs=args.n_jobs)
     func = joblib.delayed(lambda ast, args: __collect_ast_graphs(ast, collection_function=collection_function))
 

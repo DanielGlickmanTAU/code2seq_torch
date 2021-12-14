@@ -11,7 +11,7 @@ import joblib
 import numpy as np
 import sklearn.model_selection as model_selection
 
-from data.ast_conversion.ast_to_graph import __collect_asts
+from data.ast_conversion.ast_to_graph import collect_asts
 
 METHOD_NAME, NUM = 'METHODNAME', 'NUM'
 
@@ -187,13 +187,13 @@ def main():
     limit = 0
 
     compressed_vocab_size = 'compressed_50'
-    trains = __collect_asts(data_dir / ('python100k_train_%s.json' % compressed_vocab_size), limit=limit)
+    trains = collect_asts(data_dir / ('python100k_train_%s.json' % compressed_vocab_size), limit=limit)
     train, valid = model_selection.train_test_split(
         trains,
         test_size=args.valid_p,
     )
 
-    evals = __collect_asts(data_dir / ('python50k_eval_%s.json' % compressed_vocab_size), limit=limit)
+    evals = collect_asts(data_dir / ('python50k_eval_%s.json' % compressed_vocab_size), limit=limit)
     test = evals
 
     output_dir = Path(args.output_dir + '/' + compressed_vocab_size)

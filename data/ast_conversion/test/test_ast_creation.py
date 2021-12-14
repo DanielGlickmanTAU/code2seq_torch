@@ -31,7 +31,7 @@ data_dir = Path(args.data_dir)
 
 
 def flatten(graphs, filename_to_write):
-    graphs_eval = ast_to_graph.__collect_all_ast_graphs(graphs, args)
+    graphs_eval = ast_to_graph.collect_all_ast_graphs(graphs, args)
     # data = [ast_to_graph.graph_to_ast(graph) for graph in graphs_eval]
     data = graphs_eval
     ast_to_graph.write_asts_to_file(filename_to_write, data)
@@ -41,9 +41,9 @@ class TestCompression(unittest.TestCase):
     def test_compressing_then_reading(self):
         limit = 10
         # limit = 0
-        evals = ast_to_graph.__collect_asts(data_dir / 'python50k_eval.json', limit=limit)
+        evals = ast_to_graph.collect_asts(data_dir / 'python50k_eval.json', limit=limit)
 
-        graphs_eval = ast_to_graph.__collect_all_ast_graphs(evals, args)
+        graphs_eval = ast_to_graph.collect_all_ast_graphs(evals, args)
 
         vocab_size = 10
 
@@ -53,7 +53,7 @@ class TestCompression(unittest.TestCase):
         compressed_graphs_file = data_dir / 'python50k_eval_formatted_temp.json'
         ast_to_graph.write_asts_to_file(compressed_graphs_file, data)
 
-        compressed_graphs = ast_to_graph.__collect_asts(compressed_graphs_file, limit=0)
+        compressed_graphs = ast_to_graph.collect_asts(compressed_graphs_file, limit=0)
         assert len(compressed_graphs) == len(graphs_eval)
         first_graph = ast_to_graph.create_graph(compressed_graphs[0], 0)
         assert nx.algorithms.isomorphism.is_isomorphic(first_graph, graphs_eval[0])
@@ -61,9 +61,9 @@ class TestCompression(unittest.TestCase):
     def test_learning_vocab(self):
         limit = 10
         # limit = 0
-        evals = ast_to_graph.__collect_asts(data_dir / 'python50k_eval.json', limit=limit)
+        evals = ast_to_graph.collect_asts(data_dir / 'python50k_eval.json', limit=limit)
 
-        graphs_eval = ast_to_graph.__collect_all_ast_graphs(evals, args)
+        graphs_eval = ast_to_graph.collect_all_ast_graphs(evals, args)
 
         vocab_size = 10
 
@@ -75,15 +75,15 @@ class TestCompression(unittest.TestCase):
         para = True
 
         # create c2s for original
-        evals = ast_to_graph.__collect_asts(data_dir / 'python50k_eval.json', limit=limit)
+        evals = ast_to_graph.collect_asts(data_dir / 'python50k_eval.json', limit=limit)
         # py_extractor.__collect_all_and_save(evals, args, './train.c2s', para=para)
 
         # flatten files
         compressed_graphs_file = data_dir / 'python50k_eval_flat_temp.json'
-        flatten(ast_to_graph.__collect_asts(data_dir / 'python50k_eval.json', limit=limit), compressed_graphs_file)
+        flatten(ast_to_graph.collect_asts(data_dir / 'python50k_eval.json', limit=limit), compressed_graphs_file)
 
         # create c2s for flattened
-        flat_evals = ast_to_graph.__collect_asts(compressed_graphs_file, limit=0)
+        flat_evals = ast_to_graph.collect_asts(compressed_graphs_file, limit=0)
         # py_extractor.__collect_all_and_save(flat_evals, args, './new/train.c2s', para=para)
 
         c2s = py_extractor.collect_all(evals, args, para=para)
@@ -98,11 +98,11 @@ class TestCompression(unittest.TestCase):
 
         # flatten original
         compressed_graphs_file = data_dir / 'python50k_eval_flat_temp.json'
-        asts = ast_to_graph.__collect_asts(data_dir / 'python50k_eval.json', limit=limit)
+        asts = ast_to_graph.collect_asts(data_dir / 'python50k_eval.json', limit=limit)
         flatten(asts, compressed_graphs_file)
 
         # create c2s for flattened
-        flat_evals = ast_to_graph.__collect_asts(compressed_graphs_file, limit=0)
+        flat_evals = ast_to_graph.collect_asts(compressed_graphs_file, limit=0)
         py_extractor.__collect_all_and_save(flat_evals, args, './new/train.c2s', para=para)
 
         config = cast(DictConfig, OmegaConf.load(args.config))

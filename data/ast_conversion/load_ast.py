@@ -6,7 +6,7 @@ import os
 import numpy as np
 
 from data.ast_conversion import ast_to_graph
-from data.ast_conversion.ast_to_graph import __collect_asts
+from data.ast_conversion.ast_to_graph import collect_asts
 import TPE
 
 parser = argparse.ArgumentParser()
@@ -28,12 +28,12 @@ np.random.seed(args.seed)
 data_dir = Path(args.data_dir)
 limit = 10
 # limit = 0
-evals = __collect_asts(data_dir / 'python50k_eval.json', limit=limit)
-train = __collect_asts(data_dir / 'python100k_train.json', limit=limit)
+evals = collect_asts(data_dir / 'python50k_eval.json', limit=limit)
+train = collect_asts(data_dir / 'python100k_train.json', limit=limit)
 
-graphs_eval = ast_to_graph.__collect_all_ast_graphs(evals, args)
-graphs_train = ast_to_graph.__collect_all_ast_graphs(train, args)
-# graphs = __collect_all_ast_graphs(evals, args, collection_function=ast_to_graph.filter_ast)
+graphs_eval = ast_to_graph.collect_all_ast_graphs(evals, args)
+graphs_train = ast_to_graph.collect_all_ast_graphs(train, args)
+# graphs = collect_all_ast_graphs(evals, args, collection_function=ast_to_graph.filter_ast)
 
 vocab_size = 10
 

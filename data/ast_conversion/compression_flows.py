@@ -28,11 +28,11 @@ data_dir = Path(args.data_dir)
 limit = 0
 vocab_size = args.vocab_size
 # limit = 0
-evals = ast_to_graph.__collect_asts(data_dir / 'python50k_eval.json', limit=limit)
-trains = ast_to_graph.__collect_asts(data_dir / 'python100k_train.json', limit=limit)
+evals = ast_to_graph.collect_asts(data_dir / 'python50k_eval.json', limit=limit)
+trains = ast_to_graph.collect_asts(data_dir / 'python100k_train.json', limit=limit)
 
-graphs_eval = ast_to_graph.__collect_all_ast_graphs(evals, args)
-graphs_train = ast_to_graph.__collect_all_ast_graphs(trains, args)
+graphs_eval = ast_to_graph.collect_all_ast_graphs(evals, args)
+graphs_train = ast_to_graph.collect_all_ast_graphs(trains, args)
 
 del evals
 del trains
