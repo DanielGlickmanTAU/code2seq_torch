@@ -44,9 +44,9 @@ def __terminals(ast, node_index, args):
             else:
                 v_type = v_node['type']
 
-                if 'Name' in v_type:
+                if v_type.startswith('Name'):
                     paths.append((stack.copy(), v_node['value']))
-                elif args.use_nums and 'Num' in v_type:
+                elif args.use_nums and v_type == 'Num':
                     paths.append((stack.copy(), NUM))
                 else:
                     pass

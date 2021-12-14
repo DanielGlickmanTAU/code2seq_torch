@@ -23,10 +23,14 @@ def learn_vocabulary(graphs, vocab_size):
         # dict[str] -> list of (graph,parent index, child index)
         counter = collections.defaultdict(list)
 
-        with futures.ThreadPoolExecutor() as executor:
+        if config.parallel_compute:
+            with futures.ThreadPoolExecutor() as executor:
+                for graph in graphs:
+                    # executor.submit(count_pairs, graph, counter)
+                    executor.submit(count_pairs_efficient, graph, counter)
+        else:
             for graph in graphs:
-                # executor.submit(count_pairs, graph, counter)
-                executor.submit(count_pairs_efficient, graph, counter)
+                count_pairs_efficient(graph, counter)
 
         sorted_counter = sorted(counter.items(), key=lambda item: -len(item[1]))
         best_key = sorted_counter[0][0]
@@ -42,7 +46,7 @@ def learn_vocabulary(graphs, vocab_size):
         for graph, parent, child in best_key_locations:
             # if we have something like the rule a@a and a graph like (a -> a -> a),
             # we want to skip merging the 2ed and 3ed a(because the second is dead after merging it into the first).
-            #can be removed if taking edge into account..
+            # can be removed if taking edge into account..
             if (graphs.index(graph), parent) in merged_before:
                 continue
             merge_nodes_efficient(graph, parent, child)

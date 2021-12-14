@@ -87,6 +87,8 @@ def __collect_asts(json_file, limit=0):
                 continue
             if len(ast) == 0:
                 continue
+
+            ast = convert(ast)
             asts.append(ast)
             if len(asts) % 10_000 == 0:
                 print(f'done {len(asts)}')
@@ -96,10 +98,42 @@ def __collect_asts(json_file, limit=0):
     return asts
 
 
+def convert(ast):
+    increase_by = {}  # count of how many idx to increase the new idx by:
+    # each time there is a value node
+    cur = 0
+    for i, node in enumerate(ast):
+        increase_by[i] = cur
+        if "value" in node:
+            cur += 1
+
+    new_dp = []
+    for i, node in enumerate(ast):
+        inc = increase_by[i]
+        if "value" in node:
+            child = [i + inc + 1]
+            if "children" in node:
+                child += [n + increase_by[n] for n in node["children"]]
+            new_dp.append({"type": node["type"], "children": child})
+            new_dp.append({"value": node["value"]})
+        else:
+            if "children" in node:
+                node["children"] = [n + increase_by[n] for n in node["children"]]
+            new_dp.append(node)
+
+    # sanity check
+    children = []
+    for node in new_dp:
+        if "children" in node:
+            children += node["children"]
+    assert len(children) == len(set(children))
+    return new_dp
+
+
 def __collect_ast_graphs(ast, args=None, collection_function=filter_ast):
     samples = []
     for node_index, node in enumerate(ast):
-        if node['type'].startswith('FunctionDef'):
+        if 'type' in node and node['type'].startswith('FunctionDef'):
             sample = collection_function(ast, node_index)
             if sample is not None:
                 samples.append(sample)

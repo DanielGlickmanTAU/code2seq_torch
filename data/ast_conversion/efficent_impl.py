@@ -4,15 +4,14 @@ from data.ast_conversion import config, TPE
 def count_pairs_efficient(g, counter):
     for n in g:
         node = g[n]
+        if 'children' not in node:
+            continue
         for j in node['children']:
             child_node = g[j]
-            if config.skip_if_both_nodes_have_value and 'value' in node and 'value' in child_node:
-                pass
+            if 'value' in child_node:
+                continue
                 # print(f'something strange.. value in both {g.nodes[n]} and {g.nodes[child]}')
-            # if not child_node['children']:
-            #     pass
-            else:
-                counter[(node['type'], child_node['type'])].append((g, n, j))
+            counter[(node['type'], child_node['type'])].append((g, n, j))
 
 
 def merge_nodes_efficient(g, parent: int, child: int):
