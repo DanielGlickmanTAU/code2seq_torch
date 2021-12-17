@@ -1,4 +1,3 @@
-import json
 import unittest
 import argparse
 import multiprocessing
@@ -7,7 +6,6 @@ import os
 from typing import cast
 
 from omegaconf import DictConfig, OmegaConf
-import networkx as nx
 
 from code2seq.data.path_context_data_module import PathContextDataModule
 from data.ast_conversion import ast_to_graph, TPE
@@ -30,7 +28,7 @@ parser.add_argument("-c", "--config", help="Path to YAML configuration file", ty
 args = parser.parse_args()
 data_dir = Path(args.data_dir)
 
-para = False
+para = True
 
 
 def flatten(graphs, filename_to_write):
@@ -100,13 +98,12 @@ class TestCompression(unittest.TestCase):
         vocab_size = 100
 
         functions = ast_to_graph.collect_all_functions(data_dir / 'python50k_eval.json', args, limit=limit)
-        paths = py_extractor.collect_all(functions, args, False)
+        paths = py_extractor.collect_all(functions, args, para)
 
         functions2 = ast_to_graph.collect_all_functions(data_dir / 'python50k_eval.json', args, limit=limit)
         vocab = TPE.learn_vocabulary(functions2, vocab_size)
-        paths_compressed = py_extractor.collect_all(functions2, args, False)
+        paths_compressed = py_extractor.collect_all(functions2, args, True)
 
-        # false just checking...
         assert len(paths_compressed) == len(paths)
 
         py_extractor.write_to_file('%s/train.c2s' % uncompressed_c2s_dir, paths)
