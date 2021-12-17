@@ -24,11 +24,13 @@ parser.add_argument('--n_jobs', type=int, default=multiprocessing.cpu_count())
 parser.add_argument('--seed', type=int, default=239)
 parser.add_argument("-c", "--config", help="Path to YAML configuration file", type=str,
                     default=os.getcwd().split('code2seq_torch')[0] + '/code2seq_torch/config/code2seq-py150k.yaml')
+parser.add_argument('--max_node_joins', type=int, default=999)
 
 args = parser.parse_args()
 data_dir = Path(args.data_dir)
 
 para = True
+max_word_joins = 999
 
 
 def flatten(graphs, filename_to_write):
@@ -37,6 +39,7 @@ def flatten(graphs, filename_to_write):
 
 
 class TestCompression(unittest.TestCase):
+
     def test_learning_vocab(self):
         limit = 10
         evals = ast_to_graph.collect_asts(data_dir / 'python50k_eval.json', limit=limit)
@@ -45,8 +48,26 @@ class TestCompression(unittest.TestCase):
 
         vocab_size = 10
 
-        vocab = TPE.learn_vocabulary(graphs_eval, vocab_size)
+        vocab = TPE.learn_vocabulary(graphs_eval, vocab_size, max_word_joins)
         assert ('AttributeLoad', 'attr') in vocab
+
+    def test_limit_vocab_length(self):
+        uncompressed_c2s_dir = Path('./uncomp1')
+        Path(uncompressed_c2s_dir).mkdir(exist_ok=True)
+        limit = 10
+        vocab_size = 10
+        max_word_joins = 1
+
+        functions = ast_to_graph.collect_all_functions(data_dir / 'python50k_eval.json', args, limit=limit)
+        vocab = TPE.learn_vocabulary(functions, vocab_size, max_word_joins)
+        paths_compressed = py_extractor.collect_all(functions, args, True)
+
+        for path in paths_compressed:
+            for context in path.split(' '):
+                for node in context.split(py_extractor.token_separator):
+                    assert node.count(
+                        TPE.vocab_separator) <= max_word_joins, \
+                        f'word {node} was merged from {node.count(TPE.vocab_separator) + 1} nodes'
 
     def test_flatting_then_reading_into_c2q_format(self):
         limit = 100
@@ -101,7 +122,7 @@ class TestCompression(unittest.TestCase):
         paths = py_extractor.collect_all(functions, args, para)
 
         functions2 = ast_to_graph.collect_all_functions(data_dir / 'python50k_eval.json', args, limit=limit)
-        vocab = TPE.learn_vocabulary(functions2, vocab_size)
+        vocab = TPE.learn_vocabulary(functions2, vocab_size, max_word_joins)
         paths_compressed = py_extractor.collect_all(functions2, args, True)
 
         assert len(paths_compressed) == len(paths)
@@ -119,3 +140,4 @@ class TestCompression(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+    # TestCompression().test_limit_vocab_length()

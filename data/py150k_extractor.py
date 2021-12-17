@@ -14,6 +14,8 @@ import sklearn.model_selection as model_selection
 
 from data.ast_conversion.ast_to_graph import collect_asts
 
+token_separator = '|'
+
 METHOD_NAME, NUM = 'METHODNAME', 'NUM'
 
 parser = argparse.ArgumentParser()
@@ -115,7 +117,7 @@ def __delim_name(name):
     for underscore_block in name.split('_'):
         blocks.extend(camel_case_split(underscore_block))
 
-    return '|'.join(block.lower() for block in blocks)
+    return token_separator.join(block.lower() for block in blocks)
 
 
 def get_node_value(ast, node):

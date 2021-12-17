@@ -39,7 +39,7 @@ del trains
 
 
 #notice graphs_eval + graphs_train here
-vocab = TPE.learn_vocabulary(graphs_eval+graphs_train, vocab_size)
+vocab = TPE.learn_vocabulary(graphs_eval + graphs_train, vocab_size, max_word_joins)
 # vocab = TPE.learn_vocabulary(graphs_train, vocab_size)
 
 data_eval = [ast_to_graph.graph_to_ast(graph) for graph in graphs_eval]
