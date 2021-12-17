@@ -2,11 +2,8 @@ import collections
 import concurrent.futures as futures
 from typing import List
 
-import networkx as nx
 from tqdm import tqdm
 
-from data.ast_conversion import config
-from data.ast_conversion.efficent_impl import count_pairs_efficient, merge_nodes_efficient
 from data.types import AST
 
 
@@ -26,14 +23,10 @@ def learn_vocabulary(graphs: List[AST], vocab_size):
         # dict[str] -> list of (graph,parent index, child index)
         counter = collections.defaultdict(list)
 
-        if config.parallel_compute:
-            with futures.ThreadPoolExecutor() as executor:
-                for i, graph in enumerate(graphs):
-                    # executor.submit(count_pairs, graph, counter)
-                    executor.submit(count_pairs_efficient, graph, counter, i)
-        else:
+        with futures.ThreadPoolExecutor() as executor:
             for i, graph in enumerate(graphs):
-                count_pairs_efficient(graph, counter, i)
+                # executor.submit(count_pairs, graph, counter)
+                executor.submit(count_pairs_efficient, graph, counter, i)
 
         sorted_counter = sorted(counter.items(), key=lambda item: -len(item[1]))
         best_key = sorted_counter[0][0]
@@ -46,52 +39,45 @@ def learn_vocabulary(graphs: List[AST], vocab_size):
         vocab.append(best_key)
 
         merged_before = set()
-        for i, (graphs_index, parent, child) in enumerate(best_key_locations):
+        for graphs_index, parent, child in best_key_locations:
             # if we have something like the rule a@a and a graph like (a -> a -> a),
             # we want to skip merging the 2ed and 3ed a(because the second is dead after merging it into the first).
             # can be removed if taking edge into account..
             if (graphs_index, parent) in merged_before:
                 continue
             graph = graphs[graphs_index]
-            # if graphs_index == 371 and parent == 183 and child == 186:
-            #     assert 186 in graphs[372][183]['children']
             merge_nodes_efficient(graph, parent, child)
-            # if graphs_index == 371 and parent == 183 and child == 186:
-            #     assert 186 not in graphs[372][183]['children']
-            # merge_nodes(graph, parent, child)
+
             merged_before.add((graphs_index, child))
             merged_before.add((graphs_index, parent))
-
-            # for g_i, p_i, c_i in best_key_locations:
-            #     if (g_i, p_i) not in merged_before and c_i not in graphs[g_i][p_i]['children']:
-            #         print('!!!!')
 
     print_vocab(vocab)
     return [(r1, r2) for r1, r2, freq, size in vocab]
 
 
-def count_pairs(g: nx.DiGraph, counter):
-    for n, nbrs in g.adjacency():
-        childs = nbrs.keys()
-        parent_node = g.nodes[n]
-        for child in childs:
-            # consider ignoring childs with no children - terminals
-            child_node = g.nodes[child]
-            if config.skip_if_both_nodes_have_value and 'value' in parent_node and 'value' in child_node:
-                pass
-                # print(f'something strange.. value in both {g.nodes[n]} and {g.nodes[child]}')
-            if not child_node['children']:
-                pass
-            else:
-                counter[(parent_node['type'], child_node['type'])].append((g, n, child))
+def count_pairs_efficient(g, counter, i):
+    for n in g:
+        node = g[n]
+        if 'children' not in node:
+            continue
+        for j in node['children']:
+            child_node = g[j]
+            if 'type' in child_node and 'type' in node:
+                counter[(node['type'], child_node['type'])].append((i, n, j))
 
 
-def merge_nodes(g: nx.DiGraph, parent: int, child: int):
-    parent_node = g.nodes[parent]
-    child_node = g.nodes[child]
+def merge_nodes_efficient(g, parent: int, child: int):
+    def merge_children(parent_node, child_node):
+        if child in parent_node['children']:
+            new_children = [x for x in parent_node['children'] if x != child]
+            new_children += child_node['children']
+            parent_node['children'] = new_children
+        else:
+            print(f'bug! {parent_node}:{parent} , {child_node}:{child}')
 
-    g.add_edges_from([parent, grand_children] for grand_children in list(g[child]))
+    parent_node = g[parent]
+    child_node = g[child]
+    merge_children(parent_node, child_node)
     # if doing efficent counting,implement it about here....
-    # todo check cycles
     parent_node['type'] = order_agnostic_name_merge(parent_node['type'], child_node['type'])
-    g.remove_node(child)
+    g.pop(child)

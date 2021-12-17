@@ -9,20 +9,7 @@ from typing import List, Dict
 from data.types import AST
 
 
-def create_graph(ast):
-    # root = ast[root_index]
-    # assert root['type'].startswith('FunctionDef')
-    #
-    # edges = []
-    # # value not interesting... only to restore.. need node['type']
-    # to_visit = [root_index]
-    # while len(to_visit) > 0:
-    #     index = to_visit.pop()
-    #     node_dict = ast[index]
-    #     if 'children' in node_dict:
-    #         edges += [(index, child) for child in node_dict['children']]
-    #         to_visit += node_dict['children']
-    # g = nx.DiGraph()
+def create_nx_graph(ast):
     g = nx.convert.from_dict_of_dicts(
         {id: {child_id: [] for child_id in node['children']} for id, node in ast.items()},
         create_using=nx.DiGraph
@@ -38,7 +25,7 @@ def create_graph(ast):
     return g
 
 
-def filter_ast(ast: AST, root_index) -> AST:
+def extract_function_subtree(ast: AST, root_index) -> AST:
     root = ast[root_index]
     assert root['type'].startswith('FunctionDef')
 
@@ -50,31 +37,9 @@ def filter_ast(ast: AST, root_index) -> AST:
         if 'children' not in node_dict:
             node_dict['children'] = []
         to_visit += node_dict['children']
-
-        # node_dict = ast[index]
-
-        # visit by old index
-        # child_start = len(to_visit)
-
         new_ast[index] = node_dict
-        # something like this
-        # node_dict['children'] += [child_start + i for i in range(len(node_dict['children']))]
-        # parent_index = len(new_ast)
-        # node_dict['children'] = [parent_index + child_num for child_num in range(len(node_dict['children']))]
-        # node_dict['children'] = [ast[i] for i in node_dict['children']]
 
     return new_ast
-    # fixer = {original_index: fixed_index for (fixed_index, original_index) in enumerate(list(new_ast))}
-    # ast_ret = {}
-    # for original_index, fixed_index in fixer.items():
-    #     ast_ret[fixed_index] = new_ast[original_index]
-    #     ast_ret[fixed_index]['children'] = [fixer[original_child_index] for original_child_index in
-    #                                   ast_ret[fixed_index]['children']]
-    # return ast_ret
-    # fixer = {original_index: fixed_index for (fixed_index, original_index) in enumerate(list(new_ast))}
-    #
-    #
-    # return l
 
 
 def graph_to_ast(graph):
@@ -145,8 +110,7 @@ def convert(ast) -> AST:
     increase_by = {}  # count of how many idx to increase the new idx by:
     # each time there is a value node
     cur = 0
-    # if isinstance(ast, Dict):
-    #     ast = [ast[key] for key in sorted(ast)]
+
     for i, node in enumerate(ast):
         increase_by[i] = cur
         if "value" in node and 'type' in node:
@@ -180,7 +144,7 @@ def convert(ast) -> AST:
     return {i: node for i, node in enumerate(new_dp)}
 
 
-def __collect_ast_graphs(ast, args=None, collection_function=filter_ast):
+def __collect_ast_graphs(ast, args=None, collection_function=extract_function_subtree):
     samples = []
     for node_index, node in ast.items():
         if 'type' in node and 'FunctionDef' in node['type']:
@@ -190,7 +154,7 @@ def __collect_ast_graphs(ast, args=None, collection_function=filter_ast):
     return samples
 
 
-def collect_all_ast_graphs(asts, args, collection_function=filter_ast) -> List[AST]:
+def collect_all_ast_graphs(asts, args, collection_function=extract_function_subtree) -> List[AST]:
     parallel = joblib.Parallel(n_jobs=args.n_jobs)
     func = joblib.delayed(lambda ast, args: __collect_ast_graphs(ast, collection_function=collection_function))
 

@@ -119,8 +119,3 @@ class TestCompression(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
-    # TestCompression().test_learning_vocab()
-    # TestCompression().test_compressed_dataset()
-    # TestCompression().test_list_dataset()
-    # TestCompression().test_py_extractor_works()
-    # TestCompression().test_flatting_then_reading_into_c2q_format()

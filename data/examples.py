@@ -1,5 +1,6 @@
 import networkx as nx
 
+import data.ast_conversion.TPE_old
 from data.node import WrapperGraph, Node
 
 
@@ -255,7 +256,7 @@ for parent_rule, child_rule in rules:
         for child in node.children:
             # simplifying by checking "in" rather than equlas
             if parent_rule in original_string(node.name) and child_rule in original_string(child.name):
-                node.merge_nodes(child)
+                data.ast_conversion.TPE_old.merge_nodes(child)
                 break
     print(f'size after merges is {root.size()}')
 

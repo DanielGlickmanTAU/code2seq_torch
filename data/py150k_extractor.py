@@ -186,8 +186,7 @@ def write_to_file(output_file: str, samples: List):
 
 def collect_all(asts, args, para):
     parallel = joblib.Parallel(args.n_jobs, max_nbytes='3M', backend='multiprocessing')
-    # backend = multiprocessing
-    # max_nbytes = '3M'
+
     func = joblib.delayed(__collect_samples)
     if para:
         samples = parallel(func(ast, args) for ast in tqdm.tqdm(asts))
