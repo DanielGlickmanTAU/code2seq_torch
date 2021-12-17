@@ -58,4 +58,4 @@ ast_to_graph.write_asts_to_file(data_dir / 'python50k_eval_formatted.json', data
 #         (evals,)
 # ):
 #     output_file = output_dir / f'{split_name}_output_file.txt'
-#     __collect_all_and_save(split, args, output_file)
+#     collect_all_and_save(split, args, output_file)

@@ -3,8 +3,14 @@ each dict has: type, children(optional list), value(optinal string)
 for method declaraction:
 type is FunctionDef value is the function name
 
+todo:
+- do not merge if more than 1 value.
+- limit range(@)
+- ordered merges
+
 
 todo:
+- config.parallel
 - model can not even overfit 100 examples..
 - add @ add name starts makes it like bfs:
     v->(a1->(b1, b2) , a2 , a3) ....-> v@a1[?0?]-> (a2, a3, !b1, !b2)

@@ -5,6 +5,7 @@ import re
 import multiprocessing
 import itertools
 from pathlib import Path
+from typing import List
 
 import tqdm
 import joblib
@@ -28,7 +29,7 @@ parser.add_argument('--seed', type=int, default=239)
 
 
 # returns all the paths from root to terminals. as list of lists
-#e.g 1,2,3,num
+# e.g 1,2,3,num
 def __terminals(ast, node_index, args):
     stack, paths = [], []
 
@@ -37,19 +38,20 @@ def __terminals(ast, node_index, args):
 
         v_node = ast[v]
 
-        if 'value' in v_node:
+        value = get_node_value(ast, v_node)
+        if value:
             if v == node_index:  # Top-level func def node.
                 if args.use_method_name:
                     paths.append((stack.copy(), METHOD_NAME))
-            else:
-                v_type = v_node['type']
+            # else:
+            v_type = v_node['type']
 
-                if v_type.startswith('Name'):
-                    paths.append((stack.copy(), v_node['value']))
-                elif args.use_nums and v_type == 'Num':
-                    paths.append((stack.copy(), NUM))
-                else:
-                    pass
+            if 'Name' in v_type:
+                # paths.append((stack.copy(), v_node['value']))
+                paths.append((stack.copy(), value))
+            # elif args.use_nums and 'Num' in v_type:
+            if args.use_nums and 'Num' in v_type:
+                paths.append((stack.copy(), NUM))
 
         if 'children' in v_node:
             for child in v_node['children']:
@@ -91,6 +93,8 @@ def __raw_tree_paths(ast, node_index, args):
             path = prefix + [lca] + suffix
             tree_path = v_value, path, u_value
             tree_paths.append(tree_path)
+        else:
+            pass
 
     return tree_paths
 
@@ -114,13 +118,25 @@ def __delim_name(name):
     return '|'.join(block.lower() for block in blocks)
 
 
+def get_node_value(ast, node):
+    if 'children' not in node:
+        return None
+    children_ = node['children']
+    if not children_:
+        return None
+    value_node = ast[children_[0]]
+    return value_node['value'] if 'value' in value_node else None
+
+
 # returns strings
-def __collect_sample(ast, fd_index, args):
+def _collect_sample(ast, fd_index, args):
     root = ast[fd_index]
     if not root['type'].startswith('FunctionDef'):
         raise ValueError('Wrong node type.')
 
-    target = root['value']
+    # target = root['value']
+    target = get_node_value(ast, root)
+    assert target is not None
 
     # tree_paths format is (target,list of node ids, source)
     tree_paths = __raw_tree_paths(ast, fd_index, args)
@@ -146,19 +162,23 @@ def __collect_sample(ast, fd_index, args):
 # returns list of strings
 def __collect_samples(ast, args):
     samples = []
-    for node_index, node in enumerate(ast):
-        if node['type'].startswith('FunctionDef'):
+    for node_index, node in ast.items():
+        if 'type' in node and node['type'].startswith('FunctionDef'):
             # can be called more than once. if 2 methods in a file.
-            sample = __collect_sample(ast, node_index, args)
+            sample = _collect_sample(ast, node_index, args)
             if sample:
                 samples.append(sample)
 
     return samples
 
 
-def __collect_all_and_save(asts, args, output_file, para=True):
+def collect_all_and_save(asts, args, output_file, para=True):
     samples = collect_all(asts, args, para)
 
+    write_to_file(output_file, samples)
+
+
+def write_to_file(output_file: str, samples: List):
     with open(output_file, 'w') as f:
         for line_index, line in enumerate(samples):
             f.write(line + ('' if line_index == len(samples) - 1 else '\n'))
@@ -207,7 +227,7 @@ def main():
 
     ):
         output_file = output_dir / f'{split_name}.c2s'
-        __collect_all_and_save(split, args, output_file, para=True)
+        collect_all_and_save(split, args, output_file, para=True)
         del split
         gc.collect()
         out_files.append(str(out_files))

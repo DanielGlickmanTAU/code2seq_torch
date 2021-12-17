@@ -22,12 +22,23 @@ class PathContextDataset(Dataset):
         self._vocab = vocabulary
         self._random_context = random_context
 
-        self._line_offsets = get_lines_offsets(data_file)
+        self._line_offsets = self.calc_lines_offset(data_file)
         if limit:
             self._line_offsets = self._line_offsets[:limit]
         self._n_samples = len(self._line_offsets)
 
         open(self._log_file, "w").close()
+
+    def calc_lines_offset(self, data_file):
+        lines_offsets = get_lines_offsets(data_file)
+        #fix problem with offsets in the c2s file..
+        first_line = get_line_by_offset(self._data_file, lines_offsets[1])
+        if not first_line:
+            lines_offsets = [index + offset for index, offset in enumerate(lines_offsets)]
+        first_line = get_line_by_offset(self._data_file, lines_offsets[1])
+        assert len(first_line)
+
+        return lines_offsets
 
     def __len__(self):
         return self._n_samples
@@ -71,8 +82,8 @@ class PathContextDataset(Dataset):
         return [vocab[raw_class]]
 
     @staticmethod
-    #gets method name(raw_labels)
-    #tokenize it from vocab. add EOS and padding
+    # gets method name(raw_labels)
+    # tokenize it from vocab. add EOS and padding
     def tokenize_label(raw_label: str, vocab: Dict[str, int], max_parts: Optional[int]) -> List[int]:
         sublabels = raw_label.split(PathContextDataset._separator)
         max_parts = max_parts or len(sublabels)
