@@ -12,6 +12,7 @@ import joblib
 import numpy as np
 import sklearn.model_selection as model_selection
 
+from data.ast import get_node_value
 from data.ast_conversion.ast_to_graph import collect_asts
 
 token_separator = '|'
@@ -118,16 +119,6 @@ def __delim_name(name):
         blocks.extend(camel_case_split(underscore_block))
 
     return token_separator.join(block.lower() for block in blocks)
-
-
-def get_node_value(ast, node):
-    if 'children' not in node:
-        return None
-    children_ = node['children']
-    if not children_:
-        return None
-    value_node = ast[children_[0]]
-    return value_node['value'] if 'value' in value_node else None
 
 
 # returns strings
