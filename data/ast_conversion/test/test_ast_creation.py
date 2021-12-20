@@ -39,16 +39,6 @@ def flatten(graphs, filename_to_write):
 
 
 class TestCompression(unittest.TestCase):
-    def test_temp(self):
-        limit = 500
-        evals = ast_to_graph.collect_asts(data_dir / 'python50k_eval.json', limit=limit)
-
-        graphs_eval = ast_to_graph.collect_all_ast_graphs(evals, args)
-
-        vocab_size = 10
-
-        vocab = TPE.learn_vocabulary(graphs_eval, vocab_size, max_word_joins)
-        assert ('AttributeLoad', 'attr') in vocab
 
     def test_learning_vocab(self):
         limit = 10
@@ -149,5 +139,4 @@ class TestCompression(unittest.TestCase):
 
 
 if __name__ == "__main__":
-    # unittest.main()
-    TestCompression().test_temp()
+    unittest.main()
