@@ -11,5 +11,6 @@ files are /data/python/python100k_train.json or /data/python/'python100k_train_%
 
 train code2seq:
     create config pointing to /data/out_python % compressed_vocab_size
+    run code2seq_wrapper.py
 
 

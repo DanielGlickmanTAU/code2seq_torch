@@ -17,12 +17,19 @@ from code2seq.utils.train import train
 
 def configure_arg_parser() -> ArgumentParser:
     arg_parser = ArgumentParser()
-    arg_parser.add_argument("mode", help="Mode to run script", choices=["train", "test"])
+    arg_parser.add_argument("mode", help="Mode to run script", choices=["train", "test"], default='train')
     arg_parser.add_argument("-c", "--config", help="Path to YAML configuration file", type=str)
     arg_parser.add_argument("-train_on_val", help="Train on validation set for debugging", type=bool, default=False)
     arg_parser.add_argument("-max_num_examples",
                             help="Limit the number of training/validaition examples. Mostly used for debugging",
                             type=int, default=0)
+    arg_parser.add_argument('-embedding_size',
+                            help='embedding size of model. If None(default) will take from config file, if not, will overwrite it.',
+                            type=int, default=None)
+    arg_parser.add_argument('-data_folder',
+                            help='location of {train,val,test}.c2s. If None(default), will take from config file. If not, will overwrite it.',
+                            type=str, default=None)
+
     return arg_parser
 
 
@@ -33,7 +40,7 @@ def train_code2seq(config: DictConfig, args):
         print_config(config, fields=["model", "data", "train", "optimizer"])
 
     # Load data module
-    data_module = PathContextDataModule(config.data_folder, config.data,limit = args.max_num_examples)
+    data_module = PathContextDataModule(config.data_folder, config.data, limit=args.max_num_examples)
 
     if args.train_on_val:
         data_module._train = 'val'
@@ -59,8 +66,13 @@ def test_code2seq(config: DictConfig):
 if __name__ == "__main__":
     __arg_parser = configure_arg_parser()
     __args = __arg_parser.parse_args()
-
     __config = cast(DictConfig, OmegaConf.load(__args.config))
+    if __args.data_folder:
+        __config.data_folder = __args.data_folder
+    if __args.embedding_size:
+        __config.model.embedding_size = __args.embedding_size
+    print(__config.model.embedding_size)
+
     if __args.mode == "train":
         train_code2seq(__config, __args)
     else:
