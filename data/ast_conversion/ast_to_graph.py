@@ -6,7 +6,7 @@ import networkx as nx
 import tqdm
 from typing import List, Dict
 
-from data.types import AST
+from data.ast import AST
 
 
 def create_nx_graph(ast):

@@ -4,7 +4,7 @@ from typing import List
 
 from tqdm import tqdm
 
-from data.types import AST
+from data.ast import AST
 
 vocab_separator = '@'
 
