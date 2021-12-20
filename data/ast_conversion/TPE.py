@@ -23,11 +23,11 @@ def learn_vocabulary(graphs: List[AST], vocab_size, max_word_joins):
             node = g[n]
             if 'children' not in node:
                 continue
-            node_type = node['type']
             # joined_types = [node_type]
             for j in node['children']:
                 child_node = g[j]
-                if 'type' in child_node:
+                if 'type' in child_node and 'type' in node:
+                    node_type = node['type']
                     child_node_type = child_node['type']
                     if node_type.count(vocab_separator) + child_node_type.count(vocab_separator) < max_word_joins:
                         # joined_types.append(child_node_type)
