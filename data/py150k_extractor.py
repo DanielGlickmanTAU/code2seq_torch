@@ -12,7 +12,7 @@ import joblib
 import numpy as np
 import sklearn.model_selection as model_selection
 
-from data.ast import get_node_value
+from data.ast import get_first_value, get_node_values
 from data.ast_conversion.ast_to_graph import collect_asts
 
 token_separator = '|'
@@ -41,8 +41,8 @@ def __terminals(ast, node_index, args):
 
         v_node = ast[v]
 
-        value = get_node_value(ast, v_node)
-        if value:
+        values = get_node_values(ast, v_node)
+        if values:
             if v == node_index:  # Top-level func def node.
                 if args.use_method_name:
                     paths.append((stack.copy(), METHOD_NAME))
@@ -51,7 +51,8 @@ def __terminals(ast, node_index, args):
 
             if 'Name' in v_type:
                 # paths.append((stack.copy(), v_node['value']))
-                paths.append((stack.copy(), value))
+                for value in values:
+                    paths.append((stack.copy(), value))
             # elif args.use_nums and 'Num' in v_type:
             if args.use_nums and 'Num' in v_type:
                 paths.append((stack.copy(), NUM))
@@ -128,7 +129,7 @@ def _collect_sample(ast, fd_index, args):
         raise ValueError('Wrong node type.')
 
     # target = root['value']
-    target = get_node_value(ast, root)
+    target = get_first_value(ast, root)
     assert target is not None
 
     # tree_paths format is (target,list of node ids, source)
@@ -137,8 +138,12 @@ def _collect_sample(ast, fd_index, args):
     for tree_path in tree_paths:
         start, connector, finish = tree_path
 
+        if finish == target:
+            continue
+
         start, finish = __delim_name(start), __delim_name(finish)
-        connector = '|'.join(ast[v]['type'] for v in connector)
+        in_connector = (ast[v]['type'] for v in connector)
+        connector = '|'.join(in_connector)
 
         context = f'{start},{connector},{finish}'
         contexts.append(context)

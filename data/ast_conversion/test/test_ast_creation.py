@@ -41,7 +41,7 @@ def flatten(graphs, filename_to_write):
 class TestCompression(unittest.TestCase):
 
     def test_learning_vocab(self):
-        limit = 10
+        limit = 100
         evals = ast_to_graph.collect_asts(data_dir / 'python50k_eval.json', limit=limit)
 
         graphs_eval = ast_to_graph.collect_all_ast_graphs(evals, args)
@@ -126,6 +126,7 @@ class TestCompression(unittest.TestCase):
         paths_compressed = py_extractor.collect_all(functions2, args, True)
 
         assert len(paths_compressed) == len(paths)
+        assert len(paths_compressed[0].split()) == len(paths[0].split())
 
         py_extractor.write_to_file('%s/train.c2s' % uncompressed_c2s_dir, paths)
         data_module = PathContextDataModule('./%s' % uncompressed_c2s_dir, config.data)
@@ -134,9 +135,10 @@ class TestCompression(unittest.TestCase):
         data_module_compressed = PathContextDataModule('./%s' % compressed_c2s_dir, config.data)
 
         assert data_module_compressed.vocabulary.label_to_id == data_module.vocabulary.label_to_id
-        assert data_module_compressed.vocabulary.node_to_id != data_module.vocabulary.node_to_id
+        assert len(data_module_compressed.vocabulary.node_to_id) > len(data_module.vocabulary.node_to_id)
         assert None not in list(data_module_compressed.train_dataloader().dataset)
 
 
 if __name__ == "__main__":
     unittest.main()
+    # TestCompression().test_compressed_dataset()

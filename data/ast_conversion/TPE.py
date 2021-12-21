@@ -4,6 +4,7 @@ from typing import List
 
 from tqdm import tqdm
 
+from data import ast
 from data.ast import AST
 
 vocab_separator = '@'
@@ -26,11 +27,11 @@ def learn_vocabulary(graphs: List[AST], vocab_size, max_word_joins):
             for j in node['children']:
                 child_node = g[j]
                 if 'type' in child_node and 'type' in node:
-                    node_type = node['type']
-                    child_node_type = child_node['type']
-                    if node_type.count(vocab_separator) + child_node_type.count(vocab_separator) < max_word_joins:
-                        counter[(node_type, child_node_type)].append((i, n, j))
-
+                    if ast.get_first_value(g, child_node) and not ast.get_first_value(g, node):
+                        node_type = node['type']
+                        child_node_type = child_node['type']
+                        if node_type.count(vocab_separator) + child_node_type.count(vocab_separator) < max_word_joins:
+                            counter[(node_type, child_node_type)].append((i, n, j))
 
     def count_all_children(g, counter, i):
         for n in g:
@@ -53,8 +54,7 @@ def learn_vocabulary(graphs: List[AST], vocab_size, max_word_joins):
     def merge_nodes_efficient(g, parent: int, child: int):
         def merge_children(parent_node, child_node):
             if child in parent_node['children']:
-                new_children = [x for x in parent_node['children'] if x != child]
-                new_children += child_node['children']
+                new_children = [x for x in parent_node['children'] if x != child] + child_node['children']
                 parent_node['children'] = new_children
             else:
                 print(f'bug! {parent_node}:{parent} , {child_node}:{child}')
