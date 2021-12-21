@@ -15,7 +15,7 @@ def order_agnostic_name_merge(name1, name2):
 
 
 # mutates graphs
-def learn_vocabulary(graphs: List[AST], vocab_size, max_word_joins):
+def learn_vocabulary(graphs: List[AST], vocab_size, max_word_joins, scan_in_order=False):
     assert max_word_joins > 0
     assert vocab_size > 0
 
@@ -32,6 +32,8 @@ def learn_vocabulary(graphs: List[AST], vocab_size, max_word_joins):
                         child_node_type = child_node['type']
                         if node_type.count(vocab_separator) + child_node_type.count(vocab_separator) < max_word_joins:
                             counter[(node_type, child_node_type)].append((i, n, j))
+                            if scan_in_order:
+                                break
 
     def count_all_children(g, counter, i):
         for n in g:
