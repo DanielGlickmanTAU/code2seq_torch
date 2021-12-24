@@ -1,6 +1,7 @@
 import matplotlib as mpl
 
 from data import drawing
+from data.ast_conversion import ast_to_graph
 
 mpl.rcParams['figure.dpi'] = 500
 import matplotlib.pyplot as plt
@@ -78,8 +79,20 @@ class Node:
         return Node.from_graph_node(root, graph)
 
 
+def draw_ast(ast):
+    nx_graph = ast_to_graph.create_nx_graph(ast)
+    plt.figure(figsize=(20, 5))
+    pos = drawing.hierarchy_pos(nx_graph)
+    nx.draw(nx_graph, pos,
+            labels={key: (value['type'] if 'type' in value else value['value']) + key for key, value in ast.items()},
+            with_labels=True)
+    plt.show()
+    # WrapperGraph(nx_graph).draw()
+
+
 class WrapperGraph(nx.DiGraph):
-    def __init__(self, target):
+    def __init__(self, target, **attr):
+        super().__init__(**attr)
         self._impl = target
 
     def __getattr__(self, name):
