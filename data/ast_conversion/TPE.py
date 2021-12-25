@@ -152,6 +152,7 @@ def merge_nodes_efficient(g, parent: int, child: int, counter, graph_index, max_
     if parent_parent is not None:
         add_counts(parent_parent, parent_parent_node)
 
+    # when merging a,b in a->b->c.. need to change c's parents
     if 'children' in child_node:
         for child_child_i in child_node['children']:
             g[child_child_i]['parent'] = parent
