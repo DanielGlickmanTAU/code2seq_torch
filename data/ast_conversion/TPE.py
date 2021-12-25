@@ -26,7 +26,7 @@ def should_count(g, node, child_node, max_word_joins, from_bottom=True):
 
 
 # mutates graphs
-def learn_vocabulary(graphs: List[AST], vocab_size, max_word_joins, scan_in_order=False, from_bottom=True):
+def learn_vocabulary(graphs: List[AST], vocab_size, max_word_joins, scan_in_order=False, from_bottom=False):
     assert max_word_joins > 0
     assert vocab_size > 0
     for graph in graphs:

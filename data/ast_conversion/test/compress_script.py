@@ -49,7 +49,12 @@ eval = ast_to_graph.collect_all_functions(data_dir / 'python50k_eval.json', args
 functions = ast_to_graph.collect_all_functions(data_dir / 'python100k_train.json', args, limit=limit)
 
 #######
-vocab = TPE.learn_vocabulary(eval+functions, vocab_size, max_word_joins)
+vocab = TPE.learn_vocabulary(eval + functions, vocab_size, max_word_joins)
+
+try:
+    open(f'./vocab_{vocab_size}_{max_word_joins}', 'w+').write(str(vocab))
+except:
+    print(f'fail saving file vocab_{vocab_size}_{max_word_joins}')
 
 train, valid = model_selection.train_test_split(
     functions,
