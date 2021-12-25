@@ -106,6 +106,13 @@ def with_int_keys(ast):
     return {int(key): value for key, value in ast.items()}
 
 
+def add_parents(ast: AST):
+    for node_id, node in ast.items():
+        if 'children' in node:
+            for child in node['children']:
+                ast[child]['parent'] = node_id
+
+
 def convert(ast) -> AST:
     increase_by = {}  # count of how many idx to increase the new idx by:
     # each time there is a value node

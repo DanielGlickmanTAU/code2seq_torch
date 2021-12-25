@@ -138,7 +138,22 @@ class TestCompression(unittest.TestCase):
         assert len(data_module_compressed.vocabulary.node_to_id) > len(data_module.vocabulary.node_to_id)
         assert None not in list(data_module_compressed.train_dataloader().dataset)
 
+    # def test_tmp(self):
+    #     uncompressed_c2s_dir = Path('./uncomp1')
+    #     compressed_c2s_dir = './comp2'
+    #     Path(uncompressed_c2s_dir).mkdir(exist_ok=True)
+    #     Path(compressed_c2s_dir).mkdir(exist_ok=True)
+    #     limit = 1
+    #     vocab_size = 100
+    #
+    #
+    #
+    #     functions2 = ast_to_graph.collect_all_functions(data_dir / 'python50k_eval.json', args, limit=limit)[:1]
+    #     vocab = TPE.learn_vocabulary(functions2, vocab_size, max_word_joins,from_bottom=False)
+    #     paths_compressed = py_extractor.collect_all(functions2, args, True)
+
+
 
 if __name__ == "__main__":
     unittest.main()
-    # TestCompression().test_compressed_dataset()
+    # TestCompression().test_tmp()

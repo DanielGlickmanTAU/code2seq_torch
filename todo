@@ -1,0 +1,5 @@
+
+
+remove parent_parent assertions and logic, just do parent_node['parent'] == parent_parent
+
+think about # if should_count(g, parent_node, c, from_bottom):

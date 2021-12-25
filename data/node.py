@@ -84,7 +84,7 @@ def draw_ast(ast):
     plt.figure(figsize=(20, 5))
     pos = drawing.hierarchy_pos(nx_graph)
     nx.draw(nx_graph, pos,
-            labels={key: (value['type'] if 'type' in value else value['value']) + key for key, value in ast.items()},
+            labels={key: (value['type'] if 'type' in value else value['value']) + str(key) for key, value in ast.items()},
             with_labels=True)
     plt.show()
     # WrapperGraph(nx_graph).draw()
