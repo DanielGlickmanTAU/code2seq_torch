@@ -79,14 +79,21 @@ class Node:
         return Node.from_graph_node(root, graph)
 
 
-def draw_ast(ast):
+def draw_ast(ast, filename=None, highlight_value=None):
     nx_graph = ast_to_graph.create_nx_graph(ast)
-    plt.figure(figsize=(20, 5))
+    plt.figure(figsize=(30, 8))
     pos = drawing.hierarchy_pos(nx_graph)
     nx.draw(nx_graph, pos,
-            labels={key: (value['type'] if 'type' in value else value['value']) + str(key) for key, value in ast.items()},
+            node_color=['yellow' if 'type' in value and value['type'] == highlight_value else 'coral' for key, value in
+                        ast.items()],
+            labels={key: (value['type'] if 'type' in value else value['value']) for key, value in
+                    ast.items()},
             with_labels=True)
-    plt.show()
+    if filename:
+        plt.savefig(filename)
+        plt.close('all')
+    else:
+        plt.show()
     # WrapperGraph(nx_graph).draw()
 
 

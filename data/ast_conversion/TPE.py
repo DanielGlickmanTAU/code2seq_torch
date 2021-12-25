@@ -75,15 +75,17 @@ def learn_vocabulary(graphs: List[AST], vocab_size, max_word_joins, scan_in_orde
     # dict[str] -> list of (graph,parent index, child index)
     counter = collections.defaultdict(set)
 
+    # draw_graph_indexs = [0, 18, 22, 24, 31, 32, 33, 47]
+    # for draw_graph_index in draw_graph_indexs:
+    #     draw_ast(graphs[draw_graph_index], f'./images/fig_graph{draw_graph_index}_iter0')
+
     with futures.ThreadPoolExecutor() as executor:
         for i, graph in enumerate(graphs):
             executor.submit(count_pairs_efficient, graph, counter, i)
 
-    # draw_ast(graphs[0])
-
     for i in tqdm(range(vocab_size)):
-        #best_key_locations is  list of (graph,parent,child) tuples
-        best_key,best_key_locations = max(counter.items(), key=lambda item: len(item[1]))
+        # best_key_locations is  list of (graph,parent,child) tuples
+        best_key, best_key_locations = max(counter.items(), key=lambda item: len(item[1]))
 
         average_frequency = len(best_key_locations) / (len(graphs))
         average_graph_length = sum([len(g) for g in graphs]) / (len(graphs))
@@ -92,6 +94,12 @@ def learn_vocabulary(graphs: List[AST], vocab_size, max_word_joins, scan_in_orde
         stats.append((average_frequency, average_graph_length))
 
         merge_locations(best_key_locations, counter, max_word_joins, from_bottom, graphs)
+        # for draw_graph_index in draw_graph_indexs:
+        #     for g_i, index in merged_locations:
+        #         if g_i == draw_graph_index:
+        #             draw_ast(graphs[draw_graph_index], f'./images/fig_graph{draw_graph_index}_iter{i + 1}',
+        #                      order_agnostic_name_merge(*best_key))
+        #             break
 
     print_vocab([v + s for v, s in zip(vocab, stats)])
     return vocab
@@ -110,6 +118,7 @@ def merge_locations(best_key_locations, counter, max_word_joins, from_bottom, gr
 
         merged_before.add((graphs_index, child))
         merged_before.add((graphs_index, parent))
+    # return merged_before
 
 
 def merge_nodes_efficient(g, parent: int, child: int, counter, graph_index, max_word_joins, from_bottom):
