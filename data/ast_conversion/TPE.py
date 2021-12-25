@@ -82,9 +82,8 @@ def learn_vocabulary(graphs: List[AST], vocab_size, max_word_joins, scan_in_orde
     # draw_ast(graphs[0])
 
     for i in tqdm(range(vocab_size)):
-        sorted_counter = sorted(counter.items(), key=lambda item: -len(item[1]))
-        best_key = sorted_counter[0][0]
-        best_key_locations = sorted_counter[0][1]  # list of (graph,parent,child) tuples
+        #best_key_locations is  list of (graph,parent,child) tuples
+        best_key,best_key_locations = max(counter.items(), key=lambda item: len(item[1]))
 
         average_frequency = len(best_key_locations) / (len(graphs))
         average_graph_length = sum([len(g) for g in graphs]) / (len(graphs))
