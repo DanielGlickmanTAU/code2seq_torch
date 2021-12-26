@@ -32,6 +32,8 @@ def learn_vocabulary(graphs: List[AST], vocab_size, max_word_joins, scan_in_orde
     for graph in graphs:
         ast_to_graph.add_parents(graph)
 
+    counter_size_limit = 1_000_00
+
     def count_pairs_efficient(g, counter, i):
         for n in g:
             node = g[n]
@@ -42,7 +44,13 @@ def learn_vocabulary(graphs: List[AST], vocab_size, max_word_joins, scan_in_orde
                 if should_count(g, node, child_node, max_word_joins, from_bottom):
                     node_type = node['type']
                     child_node_type = child_node['type']
-                    counter[(node_type, child_node_type)].add((i, n, j))
+                    types_id = (node_type, child_node_type)
+                    locations_for_type = counter.get(types_id)
+                    if locations_for_type:
+                        locations_for_type.add((i, n, j))
+                    elif len(counter) < counter_size_limit:
+                        counter[types_id].add((i, n, j))
+
                     if scan_in_order:
                         break
 

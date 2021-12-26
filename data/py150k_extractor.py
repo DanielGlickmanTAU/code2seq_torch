@@ -27,7 +27,7 @@ parser.add_argument('--max_path_width', type=int, default=2)
 parser.add_argument('--use_method_name', type=bool, default=True)
 parser.add_argument('--use_nums', type=bool, default=True)
 parser.add_argument('--output_dir', default='out_python', type=str)
-parser.add_argument('--n_jobs', type=int, default=multiprocessing.cpu_count())
+parser.add_argument('--n_jobs', type=int, default=min(multiprocessing.cpu_count(), 4))
 parser.add_argument('--seed', type=int, default=239)
 
 
@@ -183,7 +183,7 @@ def write_to_file(output_file: str, samples: List):
 
 
 def collect_all(asts, args, para):
-    parallel = joblib.Parallel(args.n_jobs, max_nbytes='5M', backend='multiprocessing')
+    parallel = joblib.Parallel(args.n_jobs)
 
     func = joblib.delayed(__collect_samples)
     if para:
