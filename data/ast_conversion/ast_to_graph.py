@@ -7,7 +7,7 @@ import tqdm
 from typing import List, Dict
 
 from data.ast import AST
-
+import multiprocessing
 
 def create_nx_graph(ast):
     g = nx.convert.from_dict_of_dicts(
@@ -151,7 +151,7 @@ def convert(ast) -> AST:
     return {i: node for i, node in enumerate(new_dp)}
 
 
-def __collect_ast_graphs(ast, args=None, collection_function=extract_function_subtree):
+def __collect_ast_graphs(ast, collection_function=extract_function_subtree):
     samples = []
     for node_index, node in ast.items():
         if 'type' in node and 'FunctionDef' in node['type']:
@@ -162,10 +162,13 @@ def __collect_ast_graphs(ast, args=None, collection_function=extract_function_su
 
 
 def collect_all_ast_graphs(asts, args, collection_function=extract_function_subtree) -> List[AST]:
-    parallel = joblib.Parallel(n_jobs=args.n_jobs)
-    func = joblib.delayed(lambda ast, args: __collect_ast_graphs(ast, collection_function=collection_function))
+    # pool = multiprocessing.Pool()
 
-    samples = parallel(func(ast, args) for ast in asts)
+
+    parallel = joblib.Parallel(n_jobs=args.n_jobs)
+    func = joblib.delayed(lambda ast: __collect_ast_graphs(ast, collection_function=collection_function))
+
+    samples = parallel(func(ast) for ast in asts)
     return list(itertools.chain.from_iterable(samples))
 
 
