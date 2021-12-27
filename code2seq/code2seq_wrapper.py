@@ -18,15 +18,15 @@ from code2seq.utils.train import train
 def configure_arg_parser() -> ArgumentParser:
     arg_parser = ArgumentParser()
     arg_parser.add_argument("mode", help="Mode to run script", choices=["train", "test"], default='train')
-    arg_parser.add_argument("-c", "--config", help="Path to YAML configuration file", type=str)
+    arg_parser.add_argument("--c", "--config", help="Path to YAML configuration file", type=str)
     arg_parser.add_argument("-train_on_val", help="Train on validation set for debugging", type=bool, default=False)
-    arg_parser.add_argument("-max_num_examples",
+    arg_parser.add_argument("--max_num_examples",
                             help="Limit the number of training/validaition examples. Mostly used for debugging",
                             type=int, default=0)
-    arg_parser.add_argument('-embedding_size',
+    arg_parser.add_argument('--embedding_size',
                             help='embedding size of model. If None(default) will take from config file, if not, will overwrite it.',
                             type=int, default=None)
-    arg_parser.add_argument('-data_folder',
+    arg_parser.add_argument('--data_folder',
                             help='location of {train,val,test}.c2s. If None(default), will take from config file. If not, will overwrite it.',
                             type=str, default=None)
 
