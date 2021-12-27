@@ -2,7 +2,6 @@ import argparse
 import gc
 import os
 import re
-import multiprocessing
 import itertools
 from pathlib import Path
 from typing import List
@@ -18,17 +17,6 @@ from data.ast_conversion.ast_to_graph import collect_asts
 token_separator = '|'
 
 METHOD_NAME, NUM = 'METHODNAME', 'NUM'
-
-parser = argparse.ArgumentParser()
-parser.add_argument('--data_dir', default='python', type=str)
-parser.add_argument('--valid_p', type=float, default=0.2)
-parser.add_argument('--max_path_length', type=int, default=8)
-parser.add_argument('--max_path_width', type=int, default=2)
-parser.add_argument('--use_method_name', type=bool, default=True)
-parser.add_argument('--use_nums', type=bool, default=True)
-parser.add_argument('--output_dir', default='out_python', type=str)
-parser.add_argument('--n_jobs', type=int, default=min(multiprocessing.cpu_count(), 4))
-parser.add_argument('--seed', type=int, default=239)
 
 
 # returns all the paths from root to terminals. as list of lists
@@ -196,6 +184,17 @@ def collect_all(asts, args, para):
 
 
 def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--data_dir', default='python', type=str)
+    parser.add_argument('--valid_p', type=float, default=0.2)
+    parser.add_argument('--max_path_length', type=int, default=8)
+    parser.add_argument('--max_path_width', type=int, default=2)
+    parser.add_argument('--use_method_name', type=bool, default=True)
+    parser.add_argument('--use_nums', type=bool, default=True)
+    parser.add_argument('--output_dir', default='out_python', type=str)
+    parser.add_argument('--n_jobs', type=int, default=min(multiprocessing.cpu_count(), 4))
+    parser.add_argument('--seed', type=int, default=239)
+
     args = parser.parse_args()
     np.random.seed(args.seed)
 
