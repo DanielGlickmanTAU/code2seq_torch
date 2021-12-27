@@ -27,7 +27,7 @@ def run_on_slurm(job_name, params, no_flag_param='', slurm=True, gpu=True, sleep
 #SBATCH --ntasks=1
 #SBATCH --gpus={'1' if gpu else '0'}
 {python} {python_file}.py '''
-                + ' '.join([f'-{key} {value}' for key, value in params.items()])
+                + ' '.join([f'--{key} {value}' for key, value in params.items()])
                 + ' ' + no_flag_param
             )
 

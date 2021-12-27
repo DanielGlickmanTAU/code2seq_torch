@@ -1,5 +1,6 @@
 import itertools
 import json
+from concurrent import futures
 
 import joblib
 import networkx as nx
@@ -8,6 +9,7 @@ from typing import List, Dict
 
 from data.ast import AST
 import multiprocessing
+
 
 def create_nx_graph(ast):
     g = nx.convert.from_dict_of_dicts(
@@ -151,24 +153,26 @@ def convert(ast) -> AST:
     return {i: node for i, node in enumerate(new_dp)}
 
 
-def __collect_ast_graphs(ast, collection_function=extract_function_subtree):
+def __collect_ast_graphs(ast):
     samples = []
     for node_index, node in ast.items():
         if 'type' in node and 'FunctionDef' in node['type']:
-            sample = collection_function(ast, node_index)
+            sample = extract_function_subtree(ast, node_index)
             if sample is not None:
                 samples.append(sample)
     return samples
 
 
-def collect_all_ast_graphs(asts, args, collection_function=extract_function_subtree) -> List[AST]:
-    # pool = multiprocessing.Pool()
+def collect_all_ast_graphs(asts, args, ) -> List[AST]:
+    pool = multiprocessing.Pool()
+    # with futures.ProcessPoolExecutor() as executor:
+    #     samples = executor.map(__collect_ast_graphs, asts)
 
+    samples = pool.map(__collect_ast_graphs, asts)
 
-    parallel = joblib.Parallel(n_jobs=args.n_jobs)
-    func = joblib.delayed(lambda ast: __collect_ast_graphs(ast, collection_function=collection_function))
-
-    samples = parallel(func(ast) for ast in asts)
+    # parallel = joblib.Parallel(n_jobs=args.n_jobs)
+    # func = joblib.delayed(lambda ast: __collect_ast_graphs(ast))
+    # samples = parallel(func(ast) for ast in asts)
     return list(itertools.chain.from_iterable(samples))
 
 

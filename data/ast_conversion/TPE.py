@@ -8,6 +8,7 @@ from data import ast
 from data.ast import AST
 from data.ast_conversion import ast_to_graph
 from data.node import draw_ast
+import multiprocessing
 
 vocab_separator = '@'
 
@@ -29,9 +30,9 @@ def should_count(g, node, child_node, max_word_joins, from_bottom=True):
 def learn_vocabulary(graphs: List[AST], vocab_size, max_word_joins, scan_in_order=False, from_bottom=False):
     assert max_word_joins > 0
     assert vocab_size > 0
-    with futures.ProcessPoolExecutor() as executor:
-        for graph in graphs:
-            executor.submit(ast_to_graph.add_parents, graph)
+
+    for graph in graphs:
+        ast_to_graph.add_parents(graph)
 
     counter_size_limit = 1_000_00
 
@@ -88,9 +89,11 @@ def learn_vocabulary(graphs: List[AST], vocab_size, max_word_joins, scan_in_orde
     # for draw_graph_index in draw_graph_indexs:
     #     draw_ast(graphs[draw_graph_index], f'./images/fig_graph{draw_graph_index}_iter0')
 
-    with futures.ProcessPoolExecutor() as executor:
-        for i, graph in enumerate(graphs):
-            executor.submit(count_pairs_efficient, graph, counter, i)
+    # with futures.ProcessPoolExecutor() as executor:
+    #     for i, graph in enumerate(graphs):
+    #         executor.submit(count_pairs_efficient, graph, counter, i)
+    for i, graph in enumerate(graphs):
+        count_pairs_efficient(graph, counter, i)
 
     for i in tqdm(range(vocab_size)):
         # best_key_locations is  list of (graph,parent,child) tuples

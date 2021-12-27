@@ -20,11 +20,11 @@ parser.add_argument('--max_path_width', type=int, default=2)
 parser.add_argument('--use_method_name', type=bool, default=True)
 parser.add_argument('--use_nums', type=bool, default=True)
 parser.add_argument('--output_dir', default='out_python', type=str)
-parser.add_argument('--n_jobs', type=int, default=multiprocessing.cpu_count())
+parser.add_argument('--n_jobs', type=int, default=min(multiprocessing.cpu_count(), 8))
 parser.add_argument('--seed', type=int, default=239)
 parser.add_argument("-c", "--config", help="Path to YAML configuration file", type=str,
                     default=os.getcwd().split('code2seq_torch')[0] + '/code2seq_torch/config/code2seq-py150k.yaml')
-parser.add_argument('--max_node_joins', type=int)
+parser.add_argument('--max_word_joins', type=int)
 parser.add_argument('--vocab_size', type=int)
 
 args = parser.parse_args()
@@ -36,7 +36,7 @@ limit = 0
 out_files = []
 
 vocab_size = args.vocab_size
-max_word_joins = args.max_node_joins
+max_word_joins = args.max_word_joins
 
 compressed_c2s_dir = Path(f'../../out_python/compressed_{vocab_size}_{max_word_joins}')
 #####
@@ -51,10 +51,9 @@ functions = ast_to_graph.collect_all_functions(data_dir / 'python100k_train.json
 #######
 vocab = TPE.learn_vocabulary(eval + functions, vocab_size, max_word_joins)
 
-try:
-    open(f'./vocab_{vocab_size}_{max_word_joins}', 'w+').write(str(vocab))
-except:
-    print(f'fail saving file vocab_{vocab_size}_{max_word_joins}')
+joins_path = compressed_c2s_dir / f'vocab_{vocab_size}_{max_word_joins}'
+print(joins_path)
+open(joins_path, 'w+').write(str(vocab))
 
 train, valid = model_selection.train_test_split(
     functions,
@@ -70,8 +69,13 @@ for split_name, split in zip(
 
 ):
     output_file = compressed_c2s_dir / f'{split_name}.c2s'
-    py_extractor.collect_all_and_save(split, args, output_file, para=True)
+    # py_extractor.collect_all_and_save(split, args, output_file, para=True)
+    py_extractor.new_collect_all_and_save(split, args, output_file)
     del split
     gc.collect()
     out_files.append(str(output_file))
 print(out_files)
+zip_name = compressed_c2s_dir / f'py_c2s_compressed_{vocab_size}_{max_word_joins}.zip'
+what_in_zip = compressed_c2s_dir / '*'
+what_to_delete = compressed_c2s_dir / '*.c2s'
+os.system(f'zip  {zip_name} {what_in_zip} && rm {what_to_delete}')

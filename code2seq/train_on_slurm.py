@@ -4,7 +4,7 @@ from code2seq.utils.slurm import run_on_slurm
 params_for_grid_search = {
     # 'data_folder': ['../data/out_python/compressed_20_1', '../data/out_python/compressed_10_2']
     'data_folder': ['../data/out_python/uncompressed'],
-    'embedding_size': [128, 256],
+    # 'embedding_size': [128, 256],
 
 }
 model_name = 'facebook/bart-base'

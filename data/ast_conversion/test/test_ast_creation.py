@@ -24,7 +24,7 @@ parser.add_argument('--n_jobs', type=int, default=multiprocessing.cpu_count())
 parser.add_argument('--seed', type=int, default=239)
 parser.add_argument("-c", "--config", help="Path to YAML configuration file", type=str,
                     default=os.getcwd().split('code2seq_torch')[0] + '/code2seq_torch/config/code2seq-py150k.yaml')
-parser.add_argument('--max_node_joins', type=int, default=999)
+parser.add_argument('--max_word_joins', type=int, default=999)
 
 args = parser.parse_args()
 data_dir = Path(args.data_dir)
@@ -101,7 +101,7 @@ class TestCompression(unittest.TestCase):
 
         # create c2s for flattened
         flat_evals = ast_to_graph.collect_asts(compressed_graphs_file, limit=0)
-        py_extractor.collect_all_and_save(flat_evals, args, '%s/train.c2s' % output_dir, para=para)
+        py_extractor.new_collect_all_and_save(flat_evals, args, '%s/train.c2s' % output_dir)
 
         config = cast(DictConfig, OmegaConf.load(args.config))
         data_module = PathContextDataModule('%s' % output_dir, config.data)
@@ -118,11 +118,19 @@ class TestCompression(unittest.TestCase):
         limit = 100
         vocab_size = 100
 
+        import time
+        start = time.time()
         functions = ast_to_graph.collect_all_functions(data_dir / 'python50k_eval.json', args, limit=limit)
+        print(f'collection_all_functions took {time.time() - start}')
+        start = time.time()
         paths = py_extractor.collect_all(functions, args, para)
+        print(f'py_extractor.collect_all took {time.time() - start}')
 
         functions2 = ast_to_graph.collect_all_functions(data_dir / 'python50k_eval.json', args, limit=limit)
+        start = time.time()
         vocab = TPE.learn_vocabulary(functions2, vocab_size, max_word_joins)
+        print(f'Learn vocab took {time.time() - start}')
+
         paths_compressed = py_extractor.collect_all(functions2, args, True)
 
         assert len(paths_compressed) == len(paths)
@@ -156,4 +164,4 @@ class TestCompression(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
-    # TestCompression().test_tmp()
+    # TestCompression().test_compressed_dataset()

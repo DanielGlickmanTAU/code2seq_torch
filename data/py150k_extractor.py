@@ -160,8 +160,17 @@ def __collect_samples(ast, args):
 
 def collect_all_and_save(asts, args, output_file, para=True):
     samples = collect_all(asts, args, para)
-
     write_to_file(output_file, samples)
+
+
+def new_collect_all_and_save(asts, args, output_file):
+    with open(output_file, 'w') as f:
+        for ast_index, ast in enumerate(asts):
+            samples = collect_all([ast], args, para=False)
+            to_write = '\n'.join(samples)
+            if ast_index != len(asts) - 1:
+                to_write += '\n'
+            f.write(to_write)
 
 
 def write_to_file(output_file: str, samples: List):
@@ -175,7 +184,7 @@ def collect_all(asts, args, para):
 
     func = joblib.delayed(__collect_samples)
     if para:
-        samples = parallel(func(ast, args) for ast in tqdm.tqdm(asts))
+        samples = parallel(func(ast, args) for ast in asts)
         samples = list(itertools.chain.from_iterable(samples))
     else:
         samples = [__collect_samples(ast, args) for ast in tqdm.tqdm(asts)]
