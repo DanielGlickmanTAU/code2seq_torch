@@ -126,7 +126,7 @@ def _collect_sample(ast, fd_index, args):
     for tree_path in tree_paths:
         start, connector, finish = tree_path
 
-        if finish == target:
+        if finish == target or start == target:
             continue
 
         start, finish = __delim_name(start), __delim_name(finish)
