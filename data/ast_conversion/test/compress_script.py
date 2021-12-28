@@ -32,6 +32,7 @@ args = parser.parse_args()
 data_dir = Path(args.data_dir)
 
 para = True
+should_zip = False
 out_files = []
 
 limit = args.limit
@@ -76,7 +77,8 @@ for split_name, split in zip(
     gc.collect()
     out_files.append(str(output_file))
 print(out_files)
-zip_name = f'py_c2s_compressed_{vocab_size}_{max_word_joins}.zip'
-what_in_zip = compressed_c2s_dir / '*'
-what_to_delete = compressed_c2s_dir / '*.c2s'
-os.system(f'zip  {zip_name} {what_in_zip} && rm {what_to_delete}')
+if should_zip:
+    zip_name = f'py_c2s_compressed_{vocab_size}_{max_word_joins}.zip'
+    what_in_zip = compressed_c2s_dir / '*'
+    what_to_delete = compressed_c2s_dir / '*.c2s'
+    os.system(f'zip  {zip_name} {what_in_zip} && rm {what_to_delete}')
