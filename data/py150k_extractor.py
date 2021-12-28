@@ -158,15 +158,17 @@ def __collect_samples(ast, args):
     return samples
 
 
-def collect_all_and_save(asts, args, output_file, para=True):
-    samples = collect_all(asts, args, para)
-    write_to_file(output_file, samples)
+# def collect_all_and_save(asts, args, output_file, para=True):
+#     samples = collect_all(asts, args, para)
+#     write_to_file(output_file, samples)
 
 
 def new_collect_all_and_save(asts, args, output_file):
     with open(output_file, 'w') as f:
-        for ast_index, ast in enumerate(asts):
+        for ast_index, ast in tqdm.tqdm(enumerate(asts)):
             samples = collect_all([ast], args, para=False)
+            if len(samples) > 200:
+                continue
             to_write = '\n'.join(samples)
             if ast_index != len(asts) - 1:
                 to_write += '\n'
@@ -184,10 +186,10 @@ def collect_all(asts, args, para):
 
     func = joblib.delayed(__collect_samples)
     if para:
-        samples = parallel(func(ast, args) for ast in asts)
+        samples = parallel(func(ast, args) for ast in tqdm.tqdm(asts))
         samples = list(itertools.chain.from_iterable(samples))
     else:
-        samples = [__collect_samples(ast, args) for ast in tqdm.tqdm(asts)]
+        samples = [__collect_samples(ast, args) for ast in asts]
         samples = list(itertools.chain.from_iterable(samples))
     return samples
 
@@ -232,7 +234,7 @@ def main():
 
     ):
         output_file = output_dir / f'{split_name}.c2s'
-        collect_all_and_save(split, args, output_file, para=True)
+        new_collect_all_and_save(split, args, output_file)
         del split
         gc.collect()
         out_files.append(str(out_files))
