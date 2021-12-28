@@ -167,7 +167,7 @@ def collect_all_ast_graphs(asts, args, ) -> List[AST]:
     pool = multiprocessing.Pool()
     # with futures.ProcessPoolExecutor() as executor:
     #     samples = executor.map(__collect_ast_graphs, asts)
-
+    #todo look https://github.com/facebookresearch/code-prediction-transformer/blob/main/utils.py #paralize
     samples = pool.map(__collect_ast_graphs, asts)
 
     # parallel = joblib.Parallel(n_jobs=args.n_jobs)
