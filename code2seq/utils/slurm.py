@@ -15,9 +15,7 @@ def run_on_slurm(job_name, params, no_flag_param='', slurm=True, gpu=True, sleep
     python_file = python_file.replace('.py', '')
     job_name = job_name + str(time.time())
     if slurm:
-        with open(slurm_file, 'w') as f:
-            f.write(
-                f'''#! /bin/sh
+        slurm_script = f'''#! /bin/sh
 #SBATCH --job-name={job_name}
 #SBATCH --output={job_name}.out
 #SBATCH --error={job_name}.err
@@ -26,13 +24,13 @@ def run_on_slurm(job_name, params, no_flag_param='', slurm=True, gpu=True, sleep
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 #SBATCH --gpus={'1' if gpu else '0'}
-{python} {python_file}.py '''
-                + ' '.join([f'--{key} {value}' for key, value in params.items()])
-                + ' ' + no_flag_param
-            )
+{python} {python_file}.py ''' + ' '.join([f'--{key} {value}' for key, value in params.items()]) + ' ' + no_flag_param
+        with open(slurm_file, 'w') as f:
+            f.write(slurm_script)
 
         print(f'executing {job_name} ')
-        os.system(f'sbatch {slurm_file}')
+        job_id = os.system(f'sbatch {slurm_file}')
+        open(f'./slurm_id_{job_id}_outfile_{job_name}', 'w').write(slurm_script)
     else:
         f = f'{python} {python_file}.py ' + ' '.join([f'--{key} {value}' for key, value in params.items()])
         os.system(f"nohup sh -c ' {f} > res.txt '&")
