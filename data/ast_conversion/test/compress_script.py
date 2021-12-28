@@ -26,26 +26,27 @@ parser.add_argument("-c", "--config", help="Path to YAML configuration file", ty
                     default=os.getcwd().split('code2seq_torch')[0] + '/code2seq_torch/config/code2seq-py150k.yaml')
 parser.add_argument('--max_word_joins', type=int)
 parser.add_argument('--vocab_size', type=int)
+parser.add_argument('--limit', type=int, default=0)
 
 args = parser.parse_args()
 data_dir = Path(args.data_dir)
 
 para = True
-
-limit = 0
 out_files = []
 
+limit = args.limit
 vocab_size = args.vocab_size
 max_word_joins = args.max_word_joins
 
-compressed_c2s_dir = Path(f'../../out_python/compressed_{vocab_size}_{max_word_joins}')
+compressed_c2s_dir = Path(
+    f'../../out_python/compressed_{vocab_size}_{max_word_joins}{("_" + str(limit)) if limit else ""}')
 #####
 # compressed_c2s_dir = Path(f'../../out_python/compressed')
 
 Path(compressed_c2s_dir).mkdir(exist_ok=True)
 config = cast(DictConfig, OmegaConf.load(args.config))
 
-eval = ast_to_graph.collect_all_functions(data_dir / 'python50k_eval.json', args, limit=limit)
+eval = ast_to_graph.collect_all_functions(data_dir / 'python50k_eval.json', args, limit=limit // 2)
 functions = ast_to_graph.collect_all_functions(data_dir / 'python100k_train.json', args, limit=limit)
 
 #######
@@ -75,7 +76,7 @@ for split_name, split in zip(
     gc.collect()
     out_files.append(str(output_file))
 print(out_files)
-zip_name = compressed_c2s_dir / f'py_c2s_compressed_{vocab_size}_{max_word_joins}.zip'
+zip_name = f'py_c2s_compressed_{vocab_size}_{max_word_joins}.zip'
 what_in_zip = compressed_c2s_dir / '*'
 what_to_delete = compressed_c2s_dir / '*.c2s'
 os.system(f'zip  {zip_name} {what_in_zip} && rm {what_to_delete}')
