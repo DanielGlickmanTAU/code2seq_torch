@@ -29,7 +29,7 @@ def run_on_slurm(job_name, params, no_flag_param='', slurm=True, gpu=True, sleep
             f.write(slurm_script)
 
         print(f'executing {job_name} ')
-        job_id = os.system(f'sbatch {slurm_file}')
+        job_id = os.popen(f'sbatch {slurm_file}').read()[-6:]
         open(f'./slurm_id_{job_id}_outfile_{job_name}', 'w').write(slurm_script)
     else:
         f = f'{python} {python_file}.py ' + ' '.join([f'--{key} {value}' for key, value in params.items()])
