@@ -126,6 +126,8 @@ def _collect_sample(ast, fd_index, args):
     for tree_path in tree_paths:
         start, connector, finish = tree_path
 
+        if not finish or not start:
+            raise Exception(f'finish {finish} ... start {start}')
         if finish == target or start == target:
             continue
 
