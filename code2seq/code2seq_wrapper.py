@@ -18,7 +18,8 @@ from code2seq.utils.train import train
 def configure_arg_parser() -> ArgumentParser:
     arg_parser = ArgumentParser()
     arg_parser.add_argument("mode", help="Mode to run script", choices=["train", "test"], default='train')
-    arg_parser.add_argument("--c", "--config", help="Path to YAML configuration file", type=str)
+    # arg_parser.add_argument("--c", "--config", help="Path to YAML configuration file", type=str)
+    arg_parser.add_argument("--config", help="Path to YAML configuration file", type=str)
     arg_parser.add_argument("--train_on_val", help="Train on validation set for debugging", type=bool, default=False)
     arg_parser.add_argument("--max_num_examples",
                             help="Limit the number of training/validaition examples. Mostly used for debugging",
