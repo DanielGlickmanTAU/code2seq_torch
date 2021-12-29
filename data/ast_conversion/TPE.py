@@ -86,10 +86,12 @@ def learn_vocabulary(graphs: List[AST], vocab_size, max_word_joins, scan_in_orde
     # dict[str] -> list of (graph,parent index, child index)
     counter = collections.defaultdict(set)
 
+
     # draw_graph_indexs = [0, 18, 22, 24, 31, 32, 33, 47]
     # for draw_graph_index in draw_graph_indexs:
     #     draw_ast(graphs[draw_graph_index], f'./images/fig_graph{draw_graph_index}_iter0')
 
+    print('starting counting')
     # with futures.ProcessPoolExecutor() as executor:
     #     for i, graph in enumerate(graphs):
     #         executor.submit(count_pairs_efficient, graph, counter, i)
