@@ -31,7 +31,7 @@ class PathContextDataset(Dataset):
 
     def calc_lines_offset(self, data_file):
         lines_offsets = get_lines_offsets(data_file)
-        #fix problem with offsets in the c2s file..
+        # fix problem with offsets in the c2s file..
         first_line = get_line_by_offset(self._data_file, lines_offsets[1])
         if not first_line:
             lines_offsets = [index + offset for index, offset in enumerate(lines_offsets)]
@@ -39,6 +39,15 @@ class PathContextDataset(Dataset):
         assert len(first_line)
 
         return lines_offsets
+
+    def line_positions(self, file_path):
+        with open(file_path) as f:
+            while True:
+                pos = f.tell()
+                if f.readline():
+                    yield pos
+                else:
+                    break
 
     def __len__(self):
         return self._n_samples
