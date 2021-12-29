@@ -97,7 +97,7 @@ def learn_vocabulary(graphs: List[AST], vocab_size, max_word_joins, scan_in_orde
     #         executor.submit(count_pairs_efficient, graph, counter, i)
     for i, graph in enumerate(graphs):
         count_pairs_efficient(graph, counter, i)
-
+    print('start merging')
     for i in tqdm(range(vocab_size)):
         # best_key_locations is  list of (graph,parent,child) tuples
         best_key, best_key_locations = max(counter.items(), key=lambda item: len(item[1]))
