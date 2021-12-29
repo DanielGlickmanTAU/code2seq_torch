@@ -32,7 +32,7 @@ args = parser.parse_args()
 data_dir = Path(args.data_dir)
 
 para = True
-should_zip = False
+should_zip = True
 out_files = []
 
 limit = args.limit
