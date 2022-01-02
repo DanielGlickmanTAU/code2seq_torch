@@ -22,7 +22,8 @@ class PathContextDataset(Dataset):
         self._vocab = vocabulary
         self._random_context = random_context
 
-        self._line_offsets = self.calc_lines_offset(data_file)
+        # self._line_offsets = self.calc_lines_offset(data_file)
+        self._line_offsets = list(self.line_positions(data_file))
         if limit:
             self._line_offsets = self._line_offsets[:limit]
         self._n_samples = len(self._line_offsets)
@@ -58,10 +59,10 @@ class PathContextDataset(Dataset):
             raw_label, *raw_path_contexts = raw_sample.split()
             if not raw_path_contexts:
                 raise ValueError(str(raw_path_contexts))
-        except ValueError as e:
+        except Exception as e:
             with open(self._log_file, "a") as f_out:
-                f_out.write(f"Error reading sample from line #{index}: {e}")
-                print(f"Error reading sample from line #{index}: {e}")
+                f_out.write(f"Error READING sample from line #{index}: {e}")
+                print(f"Error Reading sample from line #{index}: {e} \n {raw_sample}\n")
             return None
 
         # Choose paths for current data sample
@@ -78,10 +79,24 @@ class PathContextDataset(Dataset):
 
         # Tokenize paths
         try:
-            paths = [self._get_path(raw_path.split(",")) for raw_path in raw_path_contexts]
-        except ValueError as e:
+            paths = []
+            num_nones = 0
+            for raw_path in raw_path_contexts:
+                path = self._get_path(raw_path.split(","))
+                paths.append(path)
+                if path is None:
+                    num_nones += 1
+                    print(f"Error parsing sample from line #{index}: {e} \n path: {path} \n {raw_sample}\n")
+
+            if num_nones > len(paths) * 0.5:
+                raise Exception
+            paths = [x for x in paths if x is not None]
+
+
+        except Exception as e:
             with open(self._log_file, "a") as f_out:
                 f_out.write(f"Error parsing sample from line #{index}: {e}")
+                print(f"Error parsing sample from line #{index}: {e} \n {raw_sample}")
             return None
 
         return LabeledPathContext(label, paths)
@@ -115,8 +130,11 @@ class PathContextDataset(Dataset):
         return result
 
     def _get_path(self, raw_path: List[str]) -> Path:
-        return Path(
-            from_token=self.tokenize_token(raw_path[0], self._vocab.token_to_id, self._config.max_token_parts),
-            path_node=self.tokenize_token(raw_path[1], self._vocab.node_to_id, self._config.path_length),
-            to_token=self.tokenize_token(raw_path[2], self._vocab.token_to_id, self._config.max_token_parts),
-        )
+        try:
+            return Path(
+                from_token=self.tokenize_token(raw_path[0], self._vocab.token_to_id, self._config.max_token_parts),
+                path_node=self.tokenize_token(raw_path[1], self._vocab.node_to_id, self._config.path_length),
+                to_token=self.tokenize_token(raw_path[2], self._vocab.token_to_id, self._config.max_token_parts),
+            )
+        except Exception:
+            print(f'failed parsing {raw_path}')
