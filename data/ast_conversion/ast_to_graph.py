@@ -136,7 +136,13 @@ def convert(ast) -> AST:
             if "children" in node:
                 child += [n + increase_by[n] for n in node["children"]]
             new_dp.append({"type": node["type"], "children": child})
-            new_dp.append({"value": node["value"]})
+            value_ = node["value"]
+            if len(value_) == 0:
+                value_ = "emptystring"
+
+            value_ = value_.strip()
+            value_ = value_.replace(' ', '_')
+            new_dp.append({"value": value_})
         else:
             if "children" in node:
                 node["children"] = [n + increase_by[n] for n in node["children"]]
@@ -167,7 +173,7 @@ def collect_all_ast_graphs(asts, args, ) -> List[AST]:
     pool = multiprocessing.Pool()
     # with futures.ProcessPoolExecutor() as executor:
     #     samples = executor.map(__collect_ast_graphs, asts)
-    #todo look https://github.com/facebookresearch/code-prediction-transformer/blob/main/utils.py #paralize
+    # todo look https://github.com/facebookresearch/code-prediction-transformer/blob/main/utils.py #paralize
     samples = pool.map(__collect_ast_graphs, asts)
 
     # parallel = joblib.Parallel(n_jobs=args.n_jobs)
