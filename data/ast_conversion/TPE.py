@@ -35,7 +35,7 @@ def learn_vocabulary(graphs: List[AST], vocab_size, max_word_joins, scan_in_orde
     for graph in graphs:
         ast_to_graph.add_parents(graph)
 
-    counter_size_limit = 1_000_00
+    counter_size_limit = 100_000
 
     def count_pairs_efficient(g, counter, i):
         for n in g:
