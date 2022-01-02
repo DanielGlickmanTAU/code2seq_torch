@@ -22,6 +22,6 @@ def get_compressor_argparser():
     parser.add_argument('--max_word_joins', type=int)
     parser.add_argument('--vocab_size', type=int)
     parser.add_argument('--limit', type=int, default=0)
-    parser.add_argument('--max_context_per_method_c2s', type=int, default=1000)
+    parser.add_argument('--max_context_per_method_c2s', type=int, default=400)
 
     return parser
