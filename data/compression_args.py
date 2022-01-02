@@ -17,11 +17,12 @@ def get_compressor_argparser():
     parser.add_argument('--output_dir', default='out_python', type=str)
     parser.add_argument('--n_jobs', type=int, default=min(multiprocessing.cpu_count(), 8))
     parser.add_argument('--seed', type=int, default=239)
-    # parser.add_argument("-c", "--config", help="Path to YAML configuration file", type=str,
-    #                     default=os.getcwd().split('code2seq_torch')[0] + '/code2seq_torch/config/code2seq-py150k.yaml')
+    parser.add_argument("-c", "--config", help="Path to YAML configuration file", type=str,
+                        default=os.getcwd().split('code2seq_torch')[0] + '/code2seq_torch/config/code2seq-py150k.yaml')
     parser.add_argument('--max_word_joins', type=int)
     parser.add_argument('--vocab_size', type=int)
     parser.add_argument('--limit', type=int, default=0)
     parser.add_argument('--max_context_per_method_c2s', type=int, default=400)
+    parser.add_argument('--merging_value_nodes', type=lambda x: x and x.lower() == 'true', default=True)
 
     return parser

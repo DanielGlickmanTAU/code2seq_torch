@@ -4,7 +4,7 @@ import os
 import re
 import itertools
 from pathlib import Path
-from typing import List
+from typing import List, Union
 
 import tqdm
 import joblib
@@ -163,7 +163,7 @@ def __collect_samples(ast, args):
     return samples
 
 
-def new_collect_all_and_save(asts: List[AST], output_file: str, args):
+def new_collect_all_and_save(asts: List[AST], output_file: Union[str, Path], args):
     def chunker(seq, size):
         return [seq[pos:pos + size] for pos in range(0, len(seq), size)]
 

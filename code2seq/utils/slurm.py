@@ -28,7 +28,7 @@ def run_on_slurm(job_name, params, no_flag_param='', slurm=True, gpu=True, sleep
         with open(slurm_file, 'w') as f:
             f.write(slurm_script)
 
-        job_id = os.popen(f'sbatch {slurm_file}').read()[-6:]
+        job_id = os.popen(f'sbatch {slurm_file}').read()[-6:].trim()
         print(f'executing {job_name} with job id {job_id}')
         open(f'./slurm_id_{job_id}_outfile_{job_name}', 'w').write(slurm_script)
     else:

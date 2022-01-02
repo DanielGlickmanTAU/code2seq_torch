@@ -18,15 +18,22 @@ args = parser.parse_args()
 data_dir = Path(args.data_dir)
 
 para = True
-should_zip = True
+should_zip = False
 out_files = []
 
 limit = args.limit
 vocab_size = args.vocab_size
 max_word_joins = args.max_word_joins
+merging_2_value_nodes = args.merging_value_nodes
 
+
+def args_to_path_suffix(limit, vocab_size, max_word_joins, merging_2_value_nodes):
+    return f'{vocab_size}_{max_word_joins}{("_" + str(limit)) if limit else ""}_Vmerge{merging_2_value_nodes}'
+
+
+path_suffix = args_to_path_suffix(limit, vocab_size, max_word_joins, merging_2_value_nodes)
 compressed_c2s_dir = Path(
-    f'../../out_python/compressed_{vocab_size}_{max_word_joins}{("_" + str(limit)) if limit else ""}')
+    f'../../out_python/compressed_{path_suffix}')
 #####
 # compressed_c2s_dir = Path(f'../../out_python/compressed')
 
@@ -37,9 +44,9 @@ eval = ast_to_graph.collect_all_functions(data_dir / 'python50k_eval.json', args
 functions = ast_to_graph.collect_all_functions(data_dir / 'python100k_train.json', args, limit=limit)
 
 #######
-vocab = TPE.learn_vocabulary(eval + functions, vocab_size, max_word_joins)
+vocab = TPE.learn_vocabulary(eval + functions, vocab_size, max_word_joins, merging_2_value_nodes=merging_2_value_nodes)
 
-joins_path = compressed_c2s_dir / f'vocab_{vocab_size}_{max_word_joins}'
+joins_path = compressed_c2s_dir / f'vocab_{path_suffix}'
 print(joins_path)
 open(joins_path, 'w+').write(str(vocab))
 
