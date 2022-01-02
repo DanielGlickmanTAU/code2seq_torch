@@ -8,25 +8,11 @@ from typing import cast
 from omegaconf import DictConfig, OmegaConf
 from sklearn import model_selection
 
+from data import compression_args
 from data.ast_conversion import ast_to_graph, TPE
 import data.py150k_extractor as py_extractor
 
-parser = argparse.ArgumentParser()
-data_dir = os.getcwd().split('data')[0] + '/data/python'
-parser.add_argument('--data_dir', default=data_dir, type=str)
-parser.add_argument('--valid_p', type=float, default=0.2)
-parser.add_argument('--max_path_length', type=int, default=8)
-parser.add_argument('--max_path_width', type=int, default=2)
-parser.add_argument('--use_method_name', type=bool, default=True)
-parser.add_argument('--use_nums', type=bool, default=True)
-parser.add_argument('--output_dir', default='out_python', type=str)
-parser.add_argument('--n_jobs', type=int, default=min(multiprocessing.cpu_count(), 8))
-parser.add_argument('--seed', type=int, default=239)
-parser.add_argument("-c", "--config", help="Path to YAML configuration file", type=str,
-                    default=os.getcwd().split('code2seq_torch')[0] + '/code2seq_torch/config/code2seq-py150k.yaml')
-parser.add_argument('--max_word_joins', type=int)
-parser.add_argument('--vocab_size', type=int)
-parser.add_argument('--limit', type=int, default=0)
+parser = compression_args.get_compressor_argparser()
 
 args = parser.parse_args()
 data_dir = Path(args.data_dir)
@@ -71,8 +57,7 @@ for split_name, split in zip(
 
 ):
     output_file = compressed_c2s_dir / f'{split_name}.c2s'
-    # py_extractor.collect_all_and_save(split, args, output_file, para=True)
-    py_extractor.new_collect_all_and_save(split, args, output_file)
+    py_extractor.new_collect_all_and_save(split, output_file, args)
     del split
     gc.collect()
     out_files.append(str(output_file))

@@ -2,8 +2,8 @@ import os
 import sys
 import random
 
-max_word_joins = "1"
-vocab_size = "100"
+max_word_joins = "2"
+vocab_size = "200"
 file_name = f"res{vocab_size}_{max_word_joins}.txt"
 sleep = 60 * 60 * 8 * 6
 print(file_name)

@@ -22,3 +22,9 @@ compressed_1000_5
 -------
 joblib.Parallel is slow....
 
+
+
+solved:
+2/1 terminal with delimnating symbols(e.g \t), cause problems when reading the dataset(pytorch dataloader) line by line
+fix: ast_to_graph#convert -> .strip() values..
+

@@ -25,12 +25,19 @@ parser.add_argument('--seed', type=int, default=239)
 parser.add_argument("-c", "--config", help="Path to YAML configuration file", type=str,
                     default=os.getcwd().split('code2seq_torch')[0] + '/code2seq_torch/config/code2seq-py150k.yaml')
 parser.add_argument('--max_word_joins', type=int, default=999)
+parser.add_argument('--max_context_per_method_c2s', type=int, default=1000)
 
 args = parser.parse_args()
 data_dir = Path(args.data_dir)
 
 para = True
 max_word_joins = 999
+
+uncompressed_c2s_dir = Path('./uncomp1')
+compressed_c2s_dir = './comp2'
+Path(uncompressed_c2s_dir).mkdir(exist_ok=True)
+Path(compressed_c2s_dir).mkdir(exist_ok=True)
+config = cast(DictConfig, OmegaConf.load(args.config))
 
 
 def flatten(graphs, filename_to_write):
@@ -52,8 +59,6 @@ class TestCompression(unittest.TestCase):
         assert ('AttributeLoad', 'attr') in vocab
 
     def test_limit_vocab_length(self):
-        uncompressed_c2s_dir = Path('./uncomp1')
-        Path(uncompressed_c2s_dir).mkdir(exist_ok=True)
         limit = 10
         vocab_size = 10
         max_word_joins = 1
@@ -101,7 +106,7 @@ class TestCompression(unittest.TestCase):
 
         # create c2s for flattened
         flat_evals = ast_to_graph.collect_asts(compressed_graphs_file, limit=0)
-        py_extractor.new_collect_all_and_save(flat_evals, args, '%s/train.c2s' % output_dir)
+        py_extractor.new_collect_all_and_save(flat_evals, '%s/train.c2s' % output_dir, args)
 
         config = cast(DictConfig, OmegaConf.load(args.config))
         data_module = PathContextDataModule('%s' % output_dir, config.data)
@@ -110,11 +115,6 @@ class TestCompression(unittest.TestCase):
         assert 'Call' in data_module.vocabulary.node_to_id
 
     def test_compressed_dataset(self):
-        uncompressed_c2s_dir = Path('./uncomp1')
-        compressed_c2s_dir = './comp2'
-        Path(uncompressed_c2s_dir).mkdir(exist_ok=True)
-        Path(compressed_c2s_dir).mkdir(exist_ok=True)
-        config = cast(DictConfig, OmegaConf.load(args.config))
         limit = 100
         vocab_size = 100
 
@@ -123,7 +123,7 @@ class TestCompression(unittest.TestCase):
         functions = ast_to_graph.collect_all_functions(data_dir / 'python50k_eval.json', args, limit=limit)
         print(f'collection_all_functions took {time.time() - start}')
         start = time.time()
-        paths = py_extractor.collect_all(functions, args, para)
+        paths = py_extractor.collect_all(functions, args, para=False)
         print(f'py_extractor.collect_all took {time.time() - start}')
 
         functions2 = ast_to_graph.collect_all_functions(data_dir / 'python50k_eval.json', args, limit=limit)
@@ -144,9 +144,28 @@ class TestCompression(unittest.TestCase):
 
         assert data_module_compressed.vocabulary.label_to_id == data_module.vocabulary.label_to_id
         assert len(data_module_compressed.vocabulary.node_to_id) > len(data_module.vocabulary.node_to_id)
-        assert None not in list(data_module_compressed.train_dataloader().dataset)
+        dataset = data_module_compressed.train_dataloader().dataset
+        assert None not in list(dataset)
+
+    def test_compress_large(self):
+        limit = 6_000
+        vocab_size = 70
+
+        functions2 = ast_to_graph.collect_all_functions(data_dir / 'python50k_eval.json', args, limit=limit)
+
+        TPE.learn_vocabulary(functions2, vocab_size, max_word_joins=3)
+
+        py_extractor.new_collect_all_and_save(functions2, './%s/train.c2s' % compressed_c2s_dir, args)
+        data_module_compressed = PathContextDataModule('./%s' % compressed_c2s_dir, config.data)
+
+        dataset = data_module_compressed.train_dataloader().dataset
+        # check last 100 items
+        dataset_items = [dataset[-i] for i in range(1000)]
+        assert None not in dataset_items, dataset_items.count(None)
 
 
 if __name__ == "__main__":
     unittest.main()
+    # TestCompression().test_compressed_dataset()
+    # TestCompression().test_compress_large()
     # TestCompression().test_compressed_dataset()

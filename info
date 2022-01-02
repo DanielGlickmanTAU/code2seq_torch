@@ -3,10 +3,6 @@ each dict has: type, children(optional list), value(optinal string)
 for method declaraction:
 type is FunctionDef value is the function name
 
-todo:
-- limit range(@)
-- ordered merges
-- can try to sum path token togeter, rather than create new token...
 
 
 todo:
@@ -17,12 +13,7 @@ todo:
     ?0? is for the index of a1, if i want to use it...
     ! is if I want to keep distance from original node
 
--consider triming low count entries out of vocabulary to keep memory sane
--remove limit=
-- be mindful of __delim_name when merging nodes
 
-
--if it is slow, consider changing regex:re.finditer
 
 
 
