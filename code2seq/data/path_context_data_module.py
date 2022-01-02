@@ -57,7 +57,7 @@ class PathContextDataModule(LightningDataModule):
     def _create_dataset(self, holdout_file: str, random_context: bool) -> PathContextDataset:
         if self._vocabulary is None:
             raise RuntimeError(f"Setup vocabulary before creating data loaders")
-        print('starting creat dataset')
+        print('starting create dataset')
         dataset = PathContextDataset(holdout_file, self._config, self._vocabulary, random_context, self.limit)
         print('created dataset')
         return dataset

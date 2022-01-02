@@ -1,26 +1,6 @@
-ran on:
-compressed_1000_3
-compressed_100_2
-
-ran on - small dataset  all zipped
-compressed_10_1_20000
-compressed_100_1_20000
-compressed_50_1_20000
-compressed_50_2_20000
-compressed_10_2_20000
-compressed_100_2_20000
-
-to delete
-compressed_100_1
-compressed_100_3
-compressed_1000_2
-compressed_10000_2
-compressed_10000_3
-compressed_100_5
-compressed_1000_5
-
--------
-joblib.Parallel is slow....
+todo:
+do i need?- adjust vocab size, for when running with less examples
+- check option of only single value merges..
 
 
 
