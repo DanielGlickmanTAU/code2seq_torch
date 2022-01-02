@@ -3,6 +3,7 @@ import json
 from concurrent import futures
 
 import joblib
+import math
 import networkx as nx
 import tqdm
 from typing import List, Dict
@@ -170,16 +171,31 @@ def __collect_ast_graphs(ast):
 
 
 def collect_all_ast_graphs(asts, args, ) -> List[AST]:
-    pool = multiprocessing.Pool()
-    # with futures.ProcessPoolExecutor() as executor:
-    #     samples = executor.map(__collect_ast_graphs, asts)
-    # todo look https://github.com/facebookresearch/code-prediction-transformer/blob/main/utils.py #paralize
-    samples = pool.map(__collect_ast_graphs, asts)
+    results = parallelize(asts, __collect_ast_graphs)
+    return list(itertools.chain.from_iterable(results))
 
-    # parallel = joblib.Parallel(n_jobs=args.n_jobs)
-    # func = joblib.delayed(lambda ast: __collect_ast_graphs(ast))
-    # samples = parallel(func(ast) for ast in asts)
-    return list(itertools.chain.from_iterable(samples))
+
+def _mp_iterate_over(f, lst, f_args):
+    return [f(x, *f_args) for x in lst]
+
+
+def parallelize(iterable, f, f_args=(), worker_init=None, n_cores=None):
+    if n_cores == 1:
+        return _mp_iterate_over(f, iterable, f_args)
+    if n_cores is None:
+        n_cores = int(multiprocessing.cpu_count())
+    lst = list(iterable)
+    chunksize = math.ceil(len(lst) / n_cores)
+    with multiprocessing.Pool(processes=n_cores, initializer=worker_init) as pool:
+        jobs = [
+            pool.apply_async(
+                _mp_iterate_over, (f, lst[i * chunksize: (i + 1) * chunksize], f_args)
+            )
+            for i in range(n_cores)
+        ]
+        multiple_results = [job.get() for job in jobs]
+        results = list(itertools.chain.from_iterable(multiple_results))
+    return results
 
 
 def collect_all_functions(path, args, limit=0):
