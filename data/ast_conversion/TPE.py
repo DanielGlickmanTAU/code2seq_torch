@@ -17,17 +17,20 @@ def order_agnostic_name_merge(name1, name2):
     return f'{name1}{vocab_separator}{name2}'
 
 
-def should_count(g, node, child_node, max_word_joins, from_bottom):
+def should_count(g, node, child_node, max_word_joins, merging_2_value_nodes):
     both_have_type = 'type' in child_node and 'type' in node
     merged_less_than_max = both_have_type \
                            and node['type'].count(vocab_separator) + child_node['type'].count(
         vocab_separator) < max_word_joins
-    only_child_have_value = not from_bottom or (ast.get_first_value(g, child_node) and not ast.get_first_value(g, node))
-    return merged_less_than_max and only_child_have_value
+    if merging_2_value_nodes:
+        return merged_less_than_max
+    else:
+        not_both_nodes_have_value = not ast.get_first_value(g, child_node) or not ast.get_first_value(g, node)
+        return merged_less_than_max and not_both_nodes_have_value
 
 
 # mutates graphs
-def learn_vocabulary(graphs: List[AST], vocab_size, max_word_joins, scan_in_order=False, from_bottom=False):
+def learn_vocabulary(graphs: List[AST], vocab_size, max_word_joins, scan_in_order=False, merging_2_value_nodes=True):
     if vocab_size == 0:
         return
     assert max_word_joins > 0
@@ -44,7 +47,7 @@ def learn_vocabulary(graphs: List[AST], vocab_size, max_word_joins, scan_in_orde
                 continue
             for j in node['children']:
                 child_node = g[j]
-                if should_count(g, node, child_node, max_word_joins, from_bottom):
+                if should_count(g, node, child_node, max_word_joins, merging_2_value_nodes):
                     node_type = node['type']
                     child_node_type = child_node['type']
                     types_id = (node_type, child_node_type)
@@ -107,7 +110,7 @@ def learn_vocabulary(graphs: List[AST], vocab_size, max_word_joins, scan_in_orde
         vocab.append(best_key)
         stats.append((average_frequency, average_graph_length))
 
-        merge_locations(best_key_locations, counter, max_word_joins, from_bottom, graphs)
+        merge_locations(best_key_locations, counter, max_word_joins, merging_2_value_nodes, graphs)
         # for draw_graph_index in draw_graph_indexs:
         #     for g_i, index in merged_locations:
         #         if g_i == draw_graph_index:
@@ -119,7 +122,7 @@ def learn_vocabulary(graphs: List[AST], vocab_size, max_word_joins, scan_in_orde
     return vocab
 
 
-def merge_locations(best_key_locations, counter, max_word_joins, from_bottom, graphs):
+def merge_locations(best_key_locations, counter, max_word_joins, merging_2_value_nodes, graphs):
     merged_before = set()
     for graphs_index, parent, child in best_key_locations.copy():
         # if we have something like the rule a@a and a graph like (a -> a -> a),
@@ -128,14 +131,14 @@ def merge_locations(best_key_locations, counter, max_word_joins, from_bottom, gr
         if (graphs_index, parent) in merged_before:
             continue
         graph = graphs[graphs_index]
-        merge_nodes_efficient(graph, parent, child, counter, graphs_index, max_word_joins, from_bottom)
+        merge_nodes_efficient(graph, parent, child, counter, graphs_index, max_word_joins, merging_2_value_nodes)
 
         merged_before.add((graphs_index, child))
         merged_before.add((graphs_index, parent))
     # return merged_before
 
 
-def merge_nodes_efficient(g, parent: int, child: int, counter, graph_index, max_word_joins, from_bottom):
+def merge_nodes_efficient(g, parent: int, child: int, counter, graph_index, max_word_joins, merging_2_value_nodes):
     def merge_children(parent_node, child_node):
         if child in parent_node['children']:
             new_children = [x for x in parent_node['children'] if x != child] + child_node['children']
@@ -149,13 +152,13 @@ def merge_nodes_efficient(g, parent: int, child: int, counter, graph_index, max_
             return
         for c_i in parent_node['children']:
             c = g[c_i]
-            if should_count(g, parent_node, c, max_word_joins, from_bottom):
+            if should_count(g, parent_node, c, max_word_joins, merging_2_value_nodes):
                 counter[(parent_node['type'], c['type'])].remove((graph_index, parent, c_i))
 
     def add_counts(parent, parent_node):
         for c_i in parent_node['children']:
             c = g[c_i]
-            if should_count(g, parent_node, c, max_word_joins, from_bottom):
+            if should_count(g, parent_node, c, max_word_joins, merging_2_value_nodes):
                 counter[(parent_node['type'], c['type'])].add((graph_index, parent, c_i))
 
     parent_node = g[parent]

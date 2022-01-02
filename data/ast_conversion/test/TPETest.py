@@ -32,7 +32,7 @@ class TPETest(unittest.TestCase):
                                                 ('B', 'E'): {(graph_index, B_index, E_index)}
                                                 })
         ast_to_graph.add_parents(ast)
-        TPE.merge_nodes_efficient(ast, A_index, B_index, counter, graph_index,max_word_joins=99, from_bottom=False)
+        TPE.merge_nodes_efficient(ast, A_index, B_index, counter, graph_index,max_word_joins=99, merging_2_value_nodes=False)
         # from defaultdict to dict
         counter = {k: v for k, v in counter.items() if v}
 
@@ -71,7 +71,7 @@ class TPETest(unittest.TestCase):
             ('args', 'NameParam'): {(0, 41, 44), (0, 41, 42)}
         })
 
-        TPE.merge_locations(counter[('args', 'NameParam')], counter, max_word_joins=99, from_bottom=False, graphs=[ast])
+        TPE.merge_locations(counter[('args', 'NameParam')], counter, max_word_joins=99, merging_2_value_nodes=False, graphs=[ast])
 
 
 if __name__ == "__main__":
