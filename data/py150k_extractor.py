@@ -11,7 +11,9 @@ import joblib
 import numpy as np
 import sklearn.model_selection as model_selection
 
-from data.ast import get_first_value, get_node_values
+from data import compression_args
+from data.ast import get_first_value, get_node_values, AST
+from data.ast_conversion import config
 from data.ast_conversion.ast_to_graph import collect_asts
 
 token_separator = '|'
@@ -85,8 +87,9 @@ def __raw_tree_paths(ast, node_index, args):
             path = prefix + [lca] + suffix
             tree_path = v_value, path, u_value
             tree_paths.append(tree_path)
-        else:
-            pass
+
+        if len(tree_paths) >= args.max_context_per_method_c2s:
+            break
 
     return tree_paths
 
@@ -126,8 +129,8 @@ def _collect_sample(ast, fd_index, args):
     for tree_path in tree_paths:
         start, connector, finish = tree_path
 
-        if not finish or not start:
-            raise Exception(f'finish {finish} ... start {start}')
+        # if not finish or not start:
+        #     raise Exception(f'finish {finish} ... start {start}')
         if finish == target or start == target:
             continue
 
@@ -160,19 +163,24 @@ def __collect_samples(ast, args):
     return samples
 
 
-# def collect_all_and_save(asts, args, output_file, para=True):
-#     samples = collect_all(asts, args, para)
-#     write_to_file(output_file, samples)
+def new_collect_all_and_save(asts: List[AST], output_file: str, args):
+    def chunker(seq, size):
+        return [seq[pos:pos + size] for pos in range(0, len(seq), size)]
 
-
-def new_collect_all_and_save(asts, args, output_file):
     with open(output_file, 'w') as f:
-        for ast_index, ast in tqdm.tqdm(enumerate(asts)):
-            samples = collect_all([ast], args, para=False)
-            if len(samples) > 200:
-                continue
+        # for ast_index, ast in tqdm.tqdm(enumerate(asts)):
+        #     samples = collect_all([ast], args, para=False)
+        #     to_write = '\n'.join(samples)
+        #     if ast_index != len(asts) - 1:
+        #         to_write += '\n'
+        #     f.write(to_write)
+
+        chunk_size = 5000
+        ast_chunks = chunker(asts, chunk_size)
+        for chunk_index, ast_chunk in tqdm.tqdm(enumerate(ast_chunks)):
+            samples = collect_all(ast_chunk, args, para=True)
             to_write = '\n'.join(samples)
-            if ast_index != len(asts) - 1:
+            if chunk_index != len(ast_chunks) - 1:
                 to_write += '\n'
             f.write(to_write)
 
@@ -184,10 +192,10 @@ def write_to_file(output_file: str, samples: List):
 
 
 def collect_all(asts, args, para):
-    parallel = joblib.Parallel(args.n_jobs)
-
-    func = joblib.delayed(__collect_samples)
     if para:
+        parallel = joblib.Parallel(args.n_jobs)
+        func = joblib.delayed(__collect_samples)
+
         samples = parallel(func(ast, args) for ast in tqdm.tqdm(asts))
         samples = list(itertools.chain.from_iterable(samples))
     else:
@@ -197,16 +205,17 @@ def collect_all(asts, args, para):
 
 
 def main():
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--data_dir', default='python', type=str)
-    parser.add_argument('--valid_p', type=float, default=0.2)
-    parser.add_argument('--max_path_length', type=int, default=8)
-    parser.add_argument('--max_path_width', type=int, default=2)
-    parser.add_argument('--use_method_name', type=bool, default=True)
-    parser.add_argument('--use_nums', type=bool, default=True)
-    parser.add_argument('--output_dir', default='out_python', type=str)
-    parser.add_argument('--n_jobs', type=int, default=min(multiprocessing.cpu_count(), 4))
-    parser.add_argument('--seed', type=int, default=239)
+    # parser = argparse.ArgumentParser()
+    # parser.add_argument('--data_dir', default='python', type=str)
+    # parser.add_argument('--valid_p', type=float, default=0.2)
+    # parser.add_argument('--max_path_length', type=int, default=8)
+    # parser.add_argument('--max_path_width', type=int, default=2)
+    # parser.add_argument('--use_method_name', type=bool, default=True)
+    # parser.add_argument('--use_nums', type=bool, default=True)
+    # parser.add_argument('--output_dir', default='out_python', type=str)
+    # parser.add_argument('--n_jobs', type=int, default=min(multiprocessing.cpu_count(), 4))
+    # parser.add_argument('--seed', type=int, default=239)
+    parser = parser = compression_args.get_compressor_argparser()
 
     args = parser.parse_args()
     np.random.seed(args.seed)
@@ -236,7 +245,7 @@ def main():
 
     ):
         output_file = output_dir / f'{split_name}.c2s'
-        new_collect_all_and_save(split, args, output_file)
+        new_collect_all_and_save(split, output_file, args)
         del split
         gc.collect()
         out_files.append(str(out_files))
