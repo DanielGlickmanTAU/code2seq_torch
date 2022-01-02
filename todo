@@ -1,6 +1,7 @@
 todo:
-do i need?- adjust vocab size, for when running with less examples
 - check option of only single value merges..
+
+wait with this for now, to see if can handle after adding max_context_per_method_c2s- adjust vocab size, for when running with less examples
 
 
 

@@ -17,7 +17,7 @@ def order_agnostic_name_merge(name1, name2):
     return f'{name1}{vocab_separator}{name2}'
 
 
-def should_count(g, node, child_node, max_word_joins, from_bottom=True):
+def should_count(g, node, child_node, max_word_joins, from_bottom):
     both_have_type = 'type' in child_node and 'type' in node
     merged_less_than_max = both_have_type \
                            and node['type'].count(vocab_separator) + child_node['type'].count(
@@ -85,7 +85,6 @@ def learn_vocabulary(graphs: List[AST], vocab_size, max_word_joins, scan_in_orde
     stats = []
     # dict[str] -> list of (graph,parent index, child index)
     counter = collections.defaultdict(set)
-
 
     # draw_graph_indexs = [0, 18, 22, 24, 31, 32, 33, 47]
     # for draw_graph_index in draw_graph_indexs:
