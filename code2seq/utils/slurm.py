@@ -5,12 +5,19 @@ import random
 
 print(os.path)
 python = os.sys.executable
-partition, time_limit = 'studentkillable', 'infinite'
-# partition, time_limit = 'studentbatch', '3-00:00:00'
+
 slurm_file = 'my_slurm.slurm'
 
 
+def get_partition_and_time_limit():
+    if 'studentb' in os.popen('squeue | grep glickman').read():
+        return 'studentkillable', 'infinite'
+
+    return 'studentbatch', '3-00:00:00'
+
+
 def run_on_slurm(job_name, params, no_flag_param='', slurm=True, gpu=True, sleep=True):
+    partition, time_limit = get_partition_and_time_limit()
     python_file = job_name
     python_file = python_file.replace('.py', '')
     job_name = job_name + str(time.time())
@@ -37,6 +44,9 @@ def run_on_slurm(job_name, params, no_flag_param='', slurm=True, gpu=True, sleep
     # os.system('chmod 700 slurm.py')
 
     if sleep:
-        time.sleep(random.randint(0, 15))
+        if isinstance(sleep, int):
+            time.sleep(random.randint(0, sleep))
+        else:
+            time.sleep(random.randint(0, 15))
     else:
         time.sleep(1)
