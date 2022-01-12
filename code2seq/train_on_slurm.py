@@ -2,9 +2,15 @@ from code2seq.utils.gridsearch import gridsearch
 from code2seq.utils.slurm import run_on_slurm
 
 params_for_grid_search = {
-    'data_folder': ['../data/out_python/compressed_1000_3', '../data/out_python/compressed_100_2'],
+    'data_folder': [
+        # '../data/out_python/compressed_0_1_VmergeTrue',
+        # '../data/out_python/compressed_50_2_VmergeTrue'
+        '../data/out_python/compressed_1000_3_VmergeTrue'
+        '../data/out_python/compressed_1000_3_VmergeFalse'
+
+    ],
     # 'data_folder': ['../data/out_python/uncompressed'],
-    'embedding_size': [128, 256],
+    'embedding_size': [128],
 }
 params = {
     'config': '../config/code2seq-py150k.yaml',
