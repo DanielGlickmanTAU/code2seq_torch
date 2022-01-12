@@ -1,18 +1,17 @@
-asts:list[dict]
-each dict has: type, children(optional list), value(optinal string)
-for method declaraction:
-type is FunctionDef value is the function name
-
-
-
 todo:
-- config.parallel
 - model can not even overfit 100 examples..
 - add @ add name starts makes it like bfs:
     v->(a1->(b1, b2) , a2 , a3) ....-> v@a1[?0?]-> (a2, a3, !b1, !b2)
     ?0? is for the index of a1, if i want to use it...
     ! is if I want to keep distance from original node
 
+
+
+** zip files are at /specific/scratches/scratch/glickman1/c2s_zip
+** model size differences: there are differences in token_embedding and node_embedding and label_embedding sizes.
+    token_embedding is due to different paths used(compressing merges Name and Num nodes with other nodes, which joins them to paths)
+    node_embedding. vocab makes a small difference(the vocab size). added paths make a difference. but there is also a bug..there are tokens that show up as nodes
+    label_embedding: minor difference. probably due to different number of lines in compressed/uncompressed training files(even raw)..maybe due to             if num_nones > len(paths) * 0.5:raise Exception
 
 
 

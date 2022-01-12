@@ -1,8 +1,12 @@
+
+
 todo:
-- check option of only single value merges..
-
-wait with this for now, to see if can handle after adding max_context_per_method_c2s- adjust vocab size, for when running with less examples
-
+-filter bad example before computing __len__ datasets
+-print len dataset
+-remove if num_nones > len(paths) * 0.5:
+- if performance drops for larger vocab sizes, it will be relaxing
+- change training patience
+- make token_embedding, label_embedding sizes constant, so model sizes are constant
 
 
 solved:
