@@ -1,9 +1,11 @@
+import comet_ml
 import torch
+from commode_utils.callbacks import ModelCheckpointWithUploadCallback
+from pytorch_lightning.loggers import CometLogger, WandbLogger
 from torch_geometric.loader import DataLoader
 import torch.optim as optim
 import torch.nn.functional as F
 from gnn import GNN
-
 from tqdm import tqdm
 import argparse
 import time
@@ -15,7 +17,7 @@ from ogb.graphproppred import PygGraphPropPredDataset, Evaluator
 cls_criterion = torch.nn.BCEWithLogitsLoss()
 reg_criterion = torch.nn.MSELoss()
 
-def train(model, device, loader, optimizer, task_type):
+def train_epoch(model, device, loader, optimizer, task_type):
     model.train()
 
     for step, batch in enumerate(tqdm(loader, desc="Iteration")):
@@ -127,10 +129,20 @@ def main():
     test_curve = []
     train_curve = []
 
+    comet_logger = CometLogger(
+        project_name= 'graph-filter-network',
+        api_key='FvAd5fm5rJLIj6TtmfGHUJm4b',
+        workspace="danielglickmantau"
+    )
+
+    #need this for starting the experiment
+    comet_logger.experiment
+
     for epoch in range(1, args.epochs + 1):
         print("=====Epoch {}".format(epoch))
         print('Training...')
-        train(model, device, train_loader, optimizer, dataset.task_type)
+        train_epoch(model, device, train_loader, optimizer, dataset.task_type)
+
 
         print('Evaluating...')
         train_perf = eval(model, device, train_loader, evaluator)
