@@ -1,3 +1,11 @@
+Pooling:
+    GlobalAttention - recive gate nn(returns for each tensor the gate(0-1) and optinally another nn to transform values..
+
+    Set2Set
+
+
+paper used average graph pooling
+
 installing ogb manually:
 1) install torch 1.10.1
     on cpu:pip3 install torch torchvision torchaudio

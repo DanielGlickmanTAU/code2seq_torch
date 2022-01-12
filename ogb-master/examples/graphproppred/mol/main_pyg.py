@@ -81,7 +81,7 @@ def main():
                         help='input batch size for training (default: 32)')
     parser.add_argument('--epochs', type=int, default=100,
                         help='number of epochs to train (default: 100)')
-    parser.add_argument('--patience', type=int, default=5,
+    parser.add_argument('--patience', type=int, default=8,
                         help='training early stopping patience')
     parser.add_argument('--num_workers', type=int, default=0,
                         help='number of workers (default: 0)')
@@ -168,12 +168,14 @@ def main():
 
         train_score = train_perf[dataset.eval_metric]
         validation_score = valid_perf[dataset.eval_metric]
+        test_score = test_perf[dataset.eval_metric]
         train_curve.append(train_score)
         valid_curve.append(validation_score)
-        test_curve.append(test_perf[dataset.eval_metric])
+        test_curve.append(test_score)
 
         exp.log_metric(f'train_{dataset.eval_metric}', train_score)
         exp.log_metric(f'val_{dataset.eval_metric}', validation_score)
+        exp.log_metric(f'test_{dataset.eval_metric}', test_score)
 
         if validation_score > best_so_far:
             best_so_far = validation_score
