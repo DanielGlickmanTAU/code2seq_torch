@@ -40,8 +40,8 @@ compressed_c2s_dir = Path(
 Path(compressed_c2s_dir).mkdir(exist_ok=True)
 config = cast(DictConfig, OmegaConf.load(args.config))
 
-eval = ast_to_graph.collect_all_functions(data_dir / 'python50k_eval.json', args, limit=limit // 2)
-functions = ast_to_graph.collect_all_functions(data_dir / 'python100k_train.json', args, limit=limit)
+eval = ast_to_graph.collect_all_functions(data_dir / 'python50k_eval.json', args, limit=limit // 2, n_cores=1)
+functions = ast_to_graph.collect_all_functions(data_dir / 'python100k_train.json', args, limit=limit, n_cores=1)
 
 #######
 vocab = TPE.learn_vocabulary(eval + functions, vocab_size, max_word_joins, merging_2_value_nodes=merging_2_value_nodes)
@@ -64,7 +64,7 @@ for split_name, split in zip(
 
 ):
     output_file = compressed_c2s_dir / f'{split_name}.c2s'
-    py_extractor.new_collect_all_and_save(split, output_file, args)
+    py_extractor.new_collect_all_and_save(split, output_file, args,para=para)
     del split
     gc.collect()
     out_files.append(str(output_file))
@@ -74,3 +74,5 @@ if should_zip:
     what_in_zip = compressed_c2s_dir / '*'
     what_to_delete = compressed_c2s_dir / '*.c2s'
     os.system(f'zip  {zip_name} {what_in_zip} && rm {what_to_delete}')
+
+print('done')

@@ -170,8 +170,8 @@ def __collect_ast_graphs(ast):
     return samples
 
 
-def collect_all_ast_graphs(asts, args, ) -> List[AST]:
-    results = parallelize(asts, __collect_ast_graphs)
+def collect_all_ast_graphs(asts, args, n_cores=None) -> List[AST]:
+    results = parallelize(asts, __collect_ast_graphs, n_cores=n_cores)
     return list(itertools.chain.from_iterable(results))
 
 
@@ -198,6 +198,6 @@ def parallelize(iterable, f, f_args=(), worker_init=None, n_cores=None):
     return results
 
 
-def collect_all_functions(path, args, limit=0):
+def collect_all_functions(path, args, limit=0, n_cores=None):
     asts = collect_asts(path, limit=limit)
-    return collect_all_ast_graphs(asts, args)
+    return collect_all_ast_graphs(asts, args, n_cores=n_cores)
