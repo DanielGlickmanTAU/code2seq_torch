@@ -138,6 +138,8 @@ def main():
     test_curve = []
     train_curve = []
 
+    exp.set_model_graph(model)
+    exp.log_parameters(args)
 
 
     for epoch in range(1, args.epochs + 1):
