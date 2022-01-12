@@ -92,6 +92,15 @@ def main():
 
     device = torch.device("cuda:" + str(args.device)) if torch.cuda.is_available() else torch.device("cpu")
 
+    comet_logger = CometLogger(
+        project_name='graph-filter-network',
+        api_key='FvAd5fm5rJLIj6TtmfGHUJm4b',
+        workspace="danielglickmantau"
+    )
+
+    # need this for starting the experiment
+    exp = comet_logger.experiment
+
     ### automatic dataloading and splitting
     dataset = PygGraphPropPredDataset(name = args.dataset)
 
@@ -129,14 +138,7 @@ def main():
     test_curve = []
     train_curve = []
 
-    comet_logger = CometLogger(
-        project_name= 'graph-filter-network',
-        api_key='FvAd5fm5rJLIj6TtmfGHUJm4b',
-        workspace="danielglickmantau"
-    )
 
-    #need this for starting the experiment
-    comet_logger.experiment
 
     for epoch in range(1, args.epochs + 1):
         print("=====Epoch {}".format(epoch))
