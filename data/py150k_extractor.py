@@ -163,7 +163,7 @@ def __collect_samples(ast, args):
     return samples
 
 
-def new_collect_all_and_save(asts: List[AST], output_file: Union[str, Path], args):
+def new_collect_all_and_save(asts: List[AST], output_file: Union[str, Path], args,para=True):
     def chunker(seq, size):
         return [seq[pos:pos + size] for pos in range(0, len(seq), size)]
 
@@ -178,7 +178,7 @@ def new_collect_all_and_save(asts: List[AST], output_file: Union[str, Path], arg
         chunk_size = 5000
         ast_chunks = chunker(asts, chunk_size)
         for chunk_index, ast_chunk in tqdm.tqdm(enumerate(ast_chunks)):
-            samples = collect_all(ast_chunk, args, para=True)
+            samples = collect_all(ast_chunk, args, para=para)
             to_write = '\n'.join(samples)
             if chunk_index != len(ast_chunks) - 1:
                 to_write += '\n'
