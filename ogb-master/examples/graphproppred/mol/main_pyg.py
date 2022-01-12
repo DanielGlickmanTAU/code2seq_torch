@@ -17,6 +17,7 @@ from ogb.graphproppred import PygGraphPropPredDataset, Evaluator
 cls_criterion = torch.nn.BCEWithLogitsLoss()
 reg_criterion = torch.nn.MSELoss()
 
+
 def train_epoch(model, device, loader, optimizer, task_type):
     model.train()
 
@@ -30,12 +31,13 @@ def train_epoch(model, device, loader, optimizer, task_type):
             optimizer.zero_grad()
             ## ignore nan targets (unlabeled) when computing training loss.
             is_labeled = batch.y == batch.y
-            if "classification" in task_type: 
+            if "classification" in task_type:
                 loss = cls_criterion(pred.to(torch.float32)[is_labeled], batch.y.to(torch.float32)[is_labeled])
             else:
                 loss = reg_criterion(pred.to(torch.float32)[is_labeled], batch.y.to(torch.float32)[is_labeled])
             loss.backward()
             optimizer.step()
+
 
 def eval(model, device, loader, evaluator):
     model.eval()
@@ -54,8 +56,8 @@ def eval(model, device, loader, evaluator):
             y_true.append(batch.y.view(pred.shape).detach().cpu())
             y_pred.append(pred.detach().cpu())
 
-    y_true = torch.cat(y_true, dim = 0).numpy()
-    y_pred = torch.cat(y_pred, dim = 0).numpy()
+    y_true = torch.cat(y_true, dim=0).numpy()
+    y_pred = torch.cat(y_pred, dim=0).numpy()
 
     input_dict = {"y_true": y_true, "y_pred": y_pred}
 
@@ -79,6 +81,8 @@ def main():
                         help='input batch size for training (default: 32)')
     parser.add_argument('--epochs', type=int, default=100,
                         help='number of epochs to train (default: 100)')
+    parser.add_argument('--patience', type=int, default=5,
+                        help='training early stopping patience')
     parser.add_argument('--num_workers', type=int, default=0,
                         help='number of workers (default: 0)')
     parser.add_argument('--dataset', type=str, default="ogbg-molhiv",
@@ -102,33 +106,40 @@ def main():
     exp = comet_logger.experiment
 
     ### automatic dataloading and splitting
-    dataset = PygGraphPropPredDataset(name = args.dataset)
+    dataset = PygGraphPropPredDataset(name=args.dataset)
 
     if args.feature == 'full':
-        pass 
+        pass
     elif args.feature == 'simple':
         print('using simple feature')
         # only retain the top two node/edge features
-        dataset.data.x = dataset.data.x[:,:2]
-        dataset.data.edge_attr = dataset.data.edge_attr[:,:2]
+        dataset.data.x = dataset.data.x[:, :2]
+        dataset.data.edge_attr = dataset.data.edge_attr[:, :2]
 
     split_idx = dataset.get_idx_split()
 
     ### automatic evaluator. takes dataset name as input
     evaluator = Evaluator(args.dataset)
 
-    train_loader = DataLoader(dataset[split_idx["train"]], batch_size=args.batch_size, shuffle=True, num_workers = args.num_workers)
-    valid_loader = DataLoader(dataset[split_idx["valid"]], batch_size=args.batch_size, shuffle=False, num_workers = args.num_workers)
-    test_loader = DataLoader(dataset[split_idx["test"]], batch_size=args.batch_size, shuffle=False, num_workers = args.num_workers)
+    train_loader = DataLoader(dataset[split_idx["train"]], batch_size=args.batch_size, shuffle=True,
+                              num_workers=args.num_workers)
+    valid_loader = DataLoader(dataset[split_idx["valid"]], batch_size=args.batch_size, shuffle=False,
+                              num_workers=args.num_workers)
+    test_loader = DataLoader(dataset[split_idx["test"]], batch_size=args.batch_size, shuffle=False,
+                             num_workers=args.num_workers)
 
     if args.gnn == 'gin':
-        model = GNN(gnn_type = 'gin', num_tasks = dataset.num_tasks, num_layer = args.num_layer, emb_dim = args.emb_dim, drop_ratio = args.drop_ratio, virtual_node = False).to(device)
+        model = GNN(gnn_type='gin', num_tasks=dataset.num_tasks, num_layer=args.num_layer, emb_dim=args.emb_dim,
+                    drop_ratio=args.drop_ratio, virtual_node=False).to(device)
     elif args.gnn == 'gin-virtual':
-        model = GNN(gnn_type = 'gin', num_tasks = dataset.num_tasks, num_layer = args.num_layer, emb_dim = args.emb_dim, drop_ratio = args.drop_ratio, virtual_node = True).to(device)
+        model = GNN(gnn_type='gin', num_tasks=dataset.num_tasks, num_layer=args.num_layer, emb_dim=args.emb_dim,
+                    drop_ratio=args.drop_ratio, virtual_node=True).to(device)
     elif args.gnn == 'gcn':
-        model = GNN(gnn_type = 'gcn', num_tasks = dataset.num_tasks, num_layer = args.num_layer, emb_dim = args.emb_dim, drop_ratio = args.drop_ratio, virtual_node = False).to(device)
+        model = GNN(gnn_type='gcn', num_tasks=dataset.num_tasks, num_layer=args.num_layer, emb_dim=args.emb_dim,
+                    drop_ratio=args.drop_ratio, virtual_node=False).to(device)
     elif args.gnn == 'gcn-virtual':
-        model = GNN(gnn_type = 'gcn', num_tasks = dataset.num_tasks, num_layer = args.num_layer, emb_dim = args.emb_dim, drop_ratio = args.drop_ratio, virtual_node = True).to(device)
+        model = GNN(gnn_type='gcn', num_tasks=dataset.num_tasks, num_layer=args.num_layer, emb_dim=args.emb_dim,
+                    drop_ratio=args.drop_ratio, virtual_node=True).to(device)
     else:
         raise ValueError('Invalid GNN type')
 
@@ -137,16 +148,16 @@ def main():
     valid_curve = []
     test_curve = []
     train_curve = []
+    best_so_far = 0.
+    steps_with_no_improvement = 0
 
     exp.set_model_graph(model)
     exp.log_parameters(args)
-
 
     for epoch in range(1, args.epochs + 1):
         print("=====Epoch {}".format(epoch))
         print('Training...')
         train_epoch(model, device, train_loader, optimizer, dataset.task_type)
-
 
         print('Evaluating...')
         train_perf = eval(model, device, train_loader, evaluator)
@@ -155,9 +166,22 @@ def main():
 
         print({'Train': train_perf, 'Validation': valid_perf, 'Test': test_perf})
 
-        train_curve.append(train_perf[dataset.eval_metric])
-        valid_curve.append(valid_perf[dataset.eval_metric])
+        train_score = train_perf[dataset.eval_metric]
+        validation_score = valid_perf[dataset.eval_metric]
+        train_curve.append(train_score)
+        valid_curve.append(validation_score)
         test_curve.append(test_perf[dataset.eval_metric])
+
+        exp.log_metric(f'train_{dataset.eval_metric}', train_score)
+        exp.log_metric(f'val_{dataset.eval_metric}', validation_score)
+
+        if validation_score > best_so_far:
+            best_so_far = validation_score
+            steps_with_no_improvement = 0
+        else:
+            steps_with_no_improvement += 1
+            if steps_with_no_improvement > args.patience:
+                break
 
     if 'classification' in dataset.task_type:
         best_val_epoch = np.argmax(np.array(valid_curve))
@@ -171,7 +195,8 @@ def main():
     print('Test score: {}'.format(test_curve[best_val_epoch]))
 
     if not args.filename == '':
-        torch.save({'Val': valid_curve[best_val_epoch], 'Test': test_curve[best_val_epoch], 'Train': train_curve[best_val_epoch], 'BestTrain': best_train}, args.filename)
+        torch.save({'Val': valid_curve[best_val_epoch], 'Test': test_curve[best_val_epoch],
+                    'Train': train_curve[best_val_epoch], 'BestTrain': best_train}, args.filename)
 
 
 if __name__ == "__main__":
