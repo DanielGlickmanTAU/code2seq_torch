@@ -87,7 +87,7 @@ def main():
                         help='number of epochs to train (default: 100)')
     parser.add_argument('--patience', type=int, default=8,
                         help='training early stopping patience')
-    parser.add_argument('--num_workers', type=int, default=0,
+    parser.add_argument('--num_workers', type=int, default=4,
                         help='number of workers (default: 0)')
     parser.add_argument('--dataset', type=str, default="ogbg-molhiv",
                         help='dataset name (default: ogbg-molhiv)')
