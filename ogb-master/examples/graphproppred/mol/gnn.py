@@ -8,7 +8,8 @@ from conv import GNN_node, GNN_node_Virtualnode
 class GNN(torch.nn.Module):
 
     def __init__(self, num_tasks, num_layer=5, emb_dim=300,
-                 gnn_type='gin', virtual_node=True, residual=False, drop_ratio=0.5, JK="last", graph_pooling="mean"):
+                 gnn_type='gin', virtual_node=True, residual=False, drop_ratio=0.5, JK="last", graph_pooling="mean",
+                 num_transformer_layers=0):
         '''
             num_tasks (int): number of labels to be predicted
             virtual_node (bool): whether to add virtual node or not
@@ -55,23 +56,26 @@ class GNN(torch.nn.Module):
         else:
             self.graph_pred_linear = torch.nn.Linear(self.emb_dim, self.num_tasks)
 
-        encoder_layer = nn.TransformerEncoderLayer(d_model=self.emb_dim, nhead=6)
-        self.transformer = nn.TransformerEncoder(encoder_layer, num_layers=1)
+        self.num_transformer_layers = num_transformer_layers
+        if num_transformer_layers:
+            encoder_layer = nn.TransformerEncoderLayer(d_model=self.emb_dim, nhead=3, dim_feedforward=1024)
+            self.transformer = nn.TransformerEncoder(encoder_layer, num_layers=num_transformer_layers)
 
     def forward(self, batched_data):
         h_node = self.gnn_node(batched_data)
 
-        # change from batched_data(shape num_nodes in batch, emb_dim), to list where each item is of shape (#num_nodes in *graph*, emb_dim)
-        h_node_batch = self.split_into_graphs(batched_data, h_node)
-        transformer_result = []
-        for x in h_node_batch:
-            bla = self.transformer(x.unsqueeze(0))
-            transformer_result.append(bla.squeeze(0))
+        if self.num_transformer_layers:
+            # change from batched_data(shape num_nodes in batch, emb_dim), to list where each item is of shape (#num_nodes in *graph*, emb_dim)
+            h_node_batch = self.split_into_graphs(batched_data, h_node)
+            transformer_result = []
+            for x in h_node_batch:
+                bla = self.transformer(x.unsqueeze(0))
+                transformer_result.append(bla.squeeze(0))
 
-        #back to original dim
-        transformer_h_node_batch = torch.cat(transformer_result, dim=0)
-        #shape (num_graphs, out_dim)
-        h_graph = self.pool(transformer_h_node_batch, batched_data.batch)
+            # back to original dim
+            h_node = torch.cat(transformer_result, dim=0)
+        # shape (num_graphs, out_dim)
+        h_graph = self.pool(h_node, batched_data.batch)
 
         return self.graph_pred_linear(h_graph)
 
