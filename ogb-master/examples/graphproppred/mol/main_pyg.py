@@ -75,6 +75,10 @@ def main():
                         help='dropout ratio (default: 0.5)')
     parser.add_argument('--num_layer', type=int, default=5,
                         help='number of GNN message passing layers (default: 5)')
+    parser.add_argument('--num_transformer_layers', type=int, default=0,
+                        help='number of transformer layers after GNN')
+    parser.add_argument('--transformer_ff_dim', type=int, default=600,
+                        help='transformer feedforward dim')
     parser.add_argument('--emb_dim', type=int, default=300,
                         help='dimensionality of hidden units in GNNs (default: 300)')
     parser.add_argument('--batch_size', type=int, default=32,
@@ -130,16 +134,20 @@ def main():
 
     if args.gnn == 'gin':
         model = GNN(gnn_type='gin', num_tasks=dataset.num_tasks, num_layer=args.num_layer, emb_dim=args.emb_dim,
-                    drop_ratio=args.drop_ratio, virtual_node=False).to(device)
+                    drop_ratio=args.drop_ratio, virtual_node=False, num_transformer_layers=args.num_transformer_layers,
+                    feed_forward_dim=args.transformer_ff_dim).to(device)
     elif args.gnn == 'gin-virtual':
         model = GNN(gnn_type='gin', num_tasks=dataset.num_tasks, num_layer=args.num_layer, emb_dim=args.emb_dim,
-                    drop_ratio=args.drop_ratio, virtual_node=True).to(device)
+                    drop_ratio=args.drop_ratio, virtual_node=True, num_transformer_layers=args.num_transformer_layers,
+                    feed_forward_dim=args.transformer_ff_dim).to(device)
     elif args.gnn == 'gcn':
         model = GNN(gnn_type='gcn', num_tasks=dataset.num_tasks, num_layer=args.num_layer, emb_dim=args.emb_dim,
-                    drop_ratio=args.drop_ratio, virtual_node=False).to(device)
+                    drop_ratio=args.drop_ratio, virtual_node=False, num_transformer_layers=args.num_transformer_layers,
+                    feed_forward_dim=args.transformer_ff_dim).to(device)
     elif args.gnn == 'gcn-virtual':
         model = GNN(gnn_type='gcn', num_tasks=dataset.num_tasks, num_layer=args.num_layer, emb_dim=args.emb_dim,
-                    drop_ratio=args.drop_ratio, virtual_node=True).to(device)
+                    drop_ratio=args.drop_ratio, virtual_node=True, num_transformer_layers=args.num_transformer_layers,
+                    feed_forward_dim=args.transformer_ff_dim).to(device)
     else:
         raise ValueError('Invalid GNN type')
 

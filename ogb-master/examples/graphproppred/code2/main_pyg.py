@@ -137,62 +137,9 @@ def main():
         assert(len(split_idx['valid']) == num_valid)
         assert(len(split_idx['test']) == num_test)
 
-
-    # print(split_idx['train'])
-    # print(split_idx['valid'])
-    # print(split_idx['test'])
-
-    # train_method_name = [' '.join(dataset.data.y[i]) for i in split_idx['train']]
-    # valid_method_name = [' '.join(dataset.data.y[i]) for i in split_idx['valid']]
-    # test_method_name = [' '.join(dataset.data.y[i]) for i in split_idx['test']]
-    # print('#train')
-    # print(len(train_method_name))
-    # print('#valid')
-    # print(len(valid_method_name))
-    # print('#test')
-    # print(len(test_method_name))
-
-    # train_method_name_set = set(train_method_name)
-    # valid_method_name_set = set(valid_method_name)
-    # test_method_name_set = set(test_method_name)
-
-    # # unique method name
-    # print('#unique train')
-    # print(len(train_method_name_set))
-    # print('#unique valid')
-    # print(len(valid_method_name_set))
-    # print('#unique test')
-    # print(len(test_method_name_set))
-
-    # # unique valid/test method name
-    # print('#valid unseen during training')
-    # print(len(valid_method_name_set - train_method_name_set))
-    # print('#test unseen during training')
-    # print(len(test_method_name_set - train_method_name_set))
-
-
     ### building vocabulary for sequence predition. Only use training data.
 
     vocab2idx, idx2vocab = get_vocab_mapping([dataset.data.y[i] for i in split_idx['train']], args.num_vocab)
-
-    # test encoder and decoder
-    # for data in dataset:
-    #     # PyG >= 1.5.0
-    #     print(data.y)
-    #
-    #     # PyG 1.4.3
-    #     # print(data.y[0])
-    #     data = encode_y_to_arr(data, vocab2idx, args.max_seq_len)
-    #     print(data.y_arr[0])
-    #     decoded_seq = decode_arr_to_seq(data.y_arr[0], idx2vocab)
-    #     print(decoded_seq)
-    #     print('')
-
-    ## test augment_edge
-    # data = dataset[2]
-    # print(data)
-    # data_augmented = augment_edge(data)
-    # print(data_augmented)
 
     ### set the transform function
     # augment_edge: add next-token edge as well as inverse edges. add edge attributes.

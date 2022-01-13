@@ -9,7 +9,7 @@ class GNN(torch.nn.Module):
 
     def __init__(self, num_tasks, num_layer=5, emb_dim=300,
                  gnn_type='gin', virtual_node=True, residual=False, drop_ratio=0.5, JK="last", graph_pooling="mean",
-                 num_transformer_layers=0):
+                 num_transformer_layers=0, feed_forward_dim=1024):
         '''
             num_tasks (int): number of labels to be predicted
             virtual_node (bool): whether to add virtual node or not
@@ -56,9 +56,14 @@ class GNN(torch.nn.Module):
         else:
             self.graph_pred_linear = torch.nn.Linear(self.emb_dim, self.num_tasks)
 
+        class dummy(nn.Module):
+            def forward(self, src, **kwargs):
+                return src
+
         self.num_transformer_layers = num_transformer_layers
         if num_transformer_layers:
-            encoder_layer = nn.TransformerEncoderLayer(d_model=self.emb_dim, nhead=3, dim_feedforward=1024)
+            # encoder_layer = nn.TransformerEncoderLayer(d_model=self.emb_dim, nhead=3, dim_feedforward=feed_forward_dim)
+            encoder_layer = dummy()
             self.transformer = nn.TransformerEncoder(encoder_layer, num_layers=num_transformer_layers)
 
     def forward(self, batched_data):
@@ -71,7 +76,6 @@ class GNN(torch.nn.Module):
             for x in h_node_batch:
                 bla = self.transformer(x.unsqueeze(0))
                 transformer_result.append(bla.squeeze(0))
-
             # back to original dim
             h_node = torch.cat(transformer_result, dim=0)
         # shape (num_graphs, out_dim)

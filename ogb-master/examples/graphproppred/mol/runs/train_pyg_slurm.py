@@ -1,10 +1,13 @@
 from code2seq.utils.gridsearch import gridsearch
 from code2seq.utils.slurm import run_on_slurm
 import os
+
 params_for_grid_search = {
     'num_layer': [5, 6],
-    'gnn': ['gin','gcn']
+    'gnn': ['gin', 'gcn'],
+    'num_transformer_layers': [0, 3, 4]
 }
+
 params = {
 
 }
