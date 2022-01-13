@@ -79,6 +79,8 @@ def main():
                         help='number of transformer layers after GNN')
     parser.add_argument('--transformer_ff_dim', type=int, default=600,
                         help='transformer feedforward dim')
+    parser.add_argument('--graph_pooling', type=str, default='mean',
+                        help='graph pooling')
     parser.add_argument('--emb_dim', type=int, default=300,
                         help='dimensionality of hidden units in GNNs (default: 300)')
     parser.add_argument('--batch_size', type=int, default=32,
@@ -139,23 +141,23 @@ def main():
     if args.gnn == 'gin':
         model = GNN(gnn_type='gin', num_tasks=dataset.num_tasks, num_layer=layer, emb_dim=args.emb_dim,
                     drop_ratio=args.drop_ratio, virtual_node=False, num_transformer_layers=num_transformer_layers,
-                    feed_forward_dim=args.transformer_ff_dim).to(device)
+                    feed_forward_dim=args.transformer_ff_dim, graph_pooling=args.graph_pooling).to(device)
     elif args.gnn == 'gin-virtual':
         model = GNN(gnn_type='gin', num_tasks=dataset.num_tasks, num_layer=layer, emb_dim=args.emb_dim,
                     drop_ratio=args.drop_ratio, virtual_node=True, num_transformer_layers=num_transformer_layers,
-                    feed_forward_dim=args.transformer_ff_dim).to(device)
+                    feed_forward_dim=args.transformer_ff_dim,graph_pooling=args.graph_pooling).to(device)
     elif args.gnn == 'gcn':
         model = GNN(gnn_type='gcn', num_tasks=dataset.num_tasks, num_layer=layer, emb_dim=args.emb_dim,
                     drop_ratio=args.drop_ratio, virtual_node=False, num_transformer_layers=num_transformer_layers,
-                    feed_forward_dim=args.transformer_ff_dim).to(device)
+                    feed_forward_dim=args.transformer_ff_dim,graph_pooling=args.graph_pooling).to(device)
     elif args.gnn == 'gcn-virtual':
         model = GNN(gnn_type='gcn', num_tasks=dataset.num_tasks, num_layer=layer, emb_dim=args.emb_dim,
                     drop_ratio=args.drop_ratio, virtual_node=True, num_transformer_layers=num_transformer_layers,
-                    feed_forward_dim=args.transformer_ff_dim).to(device)
+                    feed_forward_dim=args.transformer_ff_dim,graph_pooling=args.graph_pooling).to(device)
     else:
         raise ValueError('Invalid GNN type')
 
-    optimizer = optim.Adam(model.parameters(), lr=0.001)
+    optimizer = optim.Adam(model.parameters(), lr=0.00005)
 
     valid_curve = []
     test_curve = []

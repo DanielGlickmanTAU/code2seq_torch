@@ -4,12 +4,14 @@ import os
 
 params_for_grid_search = {
 
-    'num_transformer_layers': [0, 3, 4]
+    'num_transformer_layers': [1, 2, 4, 5],
+    'transformer_ff_dim': [600, 1200]
 }
 
 params = {
     'num_layer': 6,
-    'gnn': 'gin'
+    'gnn': 'gin',
+    'graph_pooling': 'attention'
 }
 os.chdir('..')
 job_name = '''main_pyg.py'''
