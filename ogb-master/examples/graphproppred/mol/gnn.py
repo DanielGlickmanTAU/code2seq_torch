@@ -65,18 +65,22 @@ class GNN(torch.nn.Module):
         h_node = self.gnn_node(batched_data)
 
         if self.num_transformer_layers:
-            # change from batched_data(shape num_nodes in batch, emb_dim), to list where each item is of shape (#num_nodes in *graph*, emb_dim)
-            h_node_batch = self.split_into_graphs(batched_data, h_node)
-            transformer_result = []
-            for x in h_node_batch:
-                bla = self.transformer(x.unsqueeze(0))
-                transformer_result.append(bla.squeeze(0))
-            # back to original dim
-            h_node = torch.cat(transformer_result, dim=0)
+            h_node = self.forward_transformer(batched_data, h_node)
         # shape (num_graphs, out_dim)
         h_graph = self.pool(h_node, batched_data.batch)
 
         return self.graph_pred_linear(h_graph)
+
+    def forward_transformer(self, batched_data, h_node):
+        # change from batched_data(shape num_nodes in batch, emb_dim), to list where each item is of shape (#num_nodes in *graph*, emb_dim)
+        h_node_batch = self.split_into_graphs(batched_data, h_node)
+        transformer_result = []
+        for x in h_node_batch:
+            bla = self.transformer(x.unsqueeze(0))
+            transformer_result.append(bla.squeeze(0))
+        # back to original dim
+        h_node = torch.cat(transformer_result, dim=0)
+        return h_node
 
     def split_into_graphs(self, batched_data, h_node):
         graph_end_indexes = torch.unique_consecutive(batched_data.batch, return_counts=True)[1]
