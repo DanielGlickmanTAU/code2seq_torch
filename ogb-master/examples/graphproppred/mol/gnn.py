@@ -56,14 +56,9 @@ class GNN(torch.nn.Module):
         else:
             self.graph_pred_linear = torch.nn.Linear(self.emb_dim, self.num_tasks)
 
-        class dummy(nn.Module):
-            def forward(self, src, **kwargs):
-                return src
-
         self.num_transformer_layers = num_transformer_layers
         if num_transformer_layers:
-            # encoder_layer = nn.TransformerEncoderLayer(d_model=self.emb_dim, nhead=3, dim_feedforward=feed_forward_dim)
-            encoder_layer = dummy()
+            encoder_layer = nn.TransformerEncoderLayer(d_model=self.emb_dim, nhead=3, dim_feedforward=feed_forward_dim)
             self.transformer = nn.TransformerEncoder(encoder_layer, num_layers=num_transformer_layers)
 
     def forward(self, batched_data):
