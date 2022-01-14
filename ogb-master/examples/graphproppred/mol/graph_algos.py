@@ -31,7 +31,8 @@ def floyd_warshall(adjacency_matrix, max_dist=9999):
     mat[mat > max_dist] = far_away_marker(max_dist)
     mat[unreachable_index] = unreachable_marker(max_dist)
 
-    return mat
+    # slow
+    return mat.numpy()
 
 
 def unreachable_marker(max_dist):

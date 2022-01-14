@@ -73,6 +73,7 @@ class GNN(torch.nn.Module):
 
     def forward_transformer(self, batched_data, h_node):
         # change from batched_data(shape num_nodes in batch, emb_dim), to list where each item is of shape (#num_nodes in *graph*, emb_dim)
+        #todo check torch_geometric.utils.to_dense_batch
         h_node_batch = self.split_into_graphs(batched_data, h_node)
         transformer_result = []
         for x in h_node_batch:
