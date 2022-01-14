@@ -1,3 +1,6 @@
+issue:training with transofrmer layer initalize performed way worse
+fix: lower learning rate(saw that training loss was going up and down)
+
 Pooling:
     GlobalAttention - recive gate nn(returns for each tensor the gate(0-1) and optinally another nn to transform values..
 

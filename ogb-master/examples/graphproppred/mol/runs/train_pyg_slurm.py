@@ -3,13 +3,13 @@ from code2seq.utils.slurm import run_on_slurm
 import os
 
 params_for_grid_search = {
-
-    'num_transformer_layers': [1, 2, 4, 5],
+    'num_layer': [6, 4],
+    'num_transformer_layers': [1, 2],
     'transformer_ff_dim': [600, 1200]
 }
 
 params = {
-    'num_layer': 6,
+
     'gnn': 'gin',
     'graph_pooling': 'attention'
 }
