@@ -5,6 +5,8 @@ from pytorch_lightning.loggers import CometLogger, WandbLogger
 from torch_geometric.loader import DataLoader
 import torch.optim as optim
 import torch.nn.functional as F
+
+import graph_algos
 from gnn import GNN
 from tqdm import tqdm
 import argparse
@@ -16,6 +18,23 @@ from ogb.graphproppred import PygGraphPropPredDataset, Evaluator
 
 cls_criterion = torch.nn.BCEWithLogitsLoss()
 reg_criterion = torch.nn.MSELoss()
+
+import torch_geometric.transforms
+from torch_geometric.data import Data
+
+
+class DistanceCalculator(torch_geometric.transforms.BaseTransform):
+    def __call__(self, data: Data):
+        edge_index = data.edge_index
+        N = data.x.size(0)
+        # (row, col) = data.edge_index
+        adj = torch.full([N, N], torch.inf)
+        adj[edge_index[0, :], edge_index[1, :]] = 1
+        adj.fill_diagonal_(0)
+        shortest_path = graph_algos.floyd_warshall(adj, 8)
+        data.distances = shortest_path
+
+        return data
 
 
 def train_epoch(model, device, loader, optimizer, task_type):
@@ -112,7 +131,9 @@ def main():
     exp = comet_logger.experiment
 
     ### automatic dataloading and splitting
-    dataset = PygGraphPropPredDataset(name=args.dataset)
+
+    dataset = PygGraphPropPredDataset(name=args.dataset, transform=DistanceCalculator())
+    # dataset = PygGraphPropPredDataset(name=args.dataset)
 
     if args.feature == 'full':
         pass
@@ -145,15 +166,15 @@ def main():
     elif args.gnn == 'gin-virtual':
         model = GNN(gnn_type='gin', num_tasks=dataset.num_tasks, num_layer=layer, emb_dim=args.emb_dim,
                     drop_ratio=args.drop_ratio, virtual_node=True, num_transformer_layers=num_transformer_layers,
-                    feed_forward_dim=args.transformer_ff_dim,graph_pooling=args.graph_pooling).to(device)
+                    feed_forward_dim=args.transformer_ff_dim, graph_pooling=args.graph_pooling).to(device)
     elif args.gnn == 'gcn':
         model = GNN(gnn_type='gcn', num_tasks=dataset.num_tasks, num_layer=layer, emb_dim=args.emb_dim,
                     drop_ratio=args.drop_ratio, virtual_node=False, num_transformer_layers=num_transformer_layers,
-                    feed_forward_dim=args.transformer_ff_dim,graph_pooling=args.graph_pooling).to(device)
+                    feed_forward_dim=args.transformer_ff_dim, graph_pooling=args.graph_pooling).to(device)
     elif args.gnn == 'gcn-virtual':
         model = GNN(gnn_type='gcn', num_tasks=dataset.num_tasks, num_layer=layer, emb_dim=args.emb_dim,
                     drop_ratio=args.drop_ratio, virtual_node=True, num_transformer_layers=num_transformer_layers,
-                    feed_forward_dim=args.transformer_ff_dim,graph_pooling=args.graph_pooling).to(device)
+                    feed_forward_dim=args.transformer_ff_dim, graph_pooling=args.graph_pooling).to(device)
     else:
         raise ValueError('Invalid GNN type')
 
