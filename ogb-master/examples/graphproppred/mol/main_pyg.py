@@ -1,6 +1,9 @@
+from code2seq.utils import compute
 import comet_ml
-import torch
+
 from commode_utils.callbacks import ModelCheckpointWithUploadCallback
+
+torch = compute.get_torch()
 from pytorch_lightning.loggers import CometLogger, WandbLogger
 from torch_geometric.loader import DataLoader
 import torch.optim as optim
