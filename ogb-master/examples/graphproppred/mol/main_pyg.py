@@ -37,6 +37,8 @@ class DistanceCalculator(torch_geometric.transforms.BaseTransform):
         adj[edge_index[0, :], edge_index[1, :]] = 1
         adj.fill_diagonal_(0)
         shortest_path = graph_algos.floyd_warshall(adj, MAX_DIST)
+        #pytorch-geometric collate expects tensor with all same dims, except for the 0 dim. so we pack here to a single dim, and unpack it back in GNN#forward
+        # data.distances = shortest_path.view(-1)
         data.distances = shortest_path
 
         return data

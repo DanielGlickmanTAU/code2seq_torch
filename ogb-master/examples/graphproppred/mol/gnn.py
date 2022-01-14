@@ -73,8 +73,8 @@ class GNN(torch.nn.Module):
 
     def forward_transformer(self, batched_data, h_node):
         # change from batched_data(shape num_nodes in batch, emb_dim), to list where each item is of shape (#num_nodes in *graph*, emb_dim)
-        #todo check torch_geometric.utils.to_dense_batch
-        h_node_batch = self.split_into_graphs(batched_data, h_node)
+        # todo check torch_geometric.utils.to_dense_batch
+        h_node_batch, distances_batched = self.split_into_graphs(batched_data, h_node)
         transformer_result = []
         for x in h_node_batch:
             bla = self.transformer(x.unsqueeze(0))
@@ -86,8 +86,11 @@ class GNN(torch.nn.Module):
     def split_into_graphs(self, batched_data, h_node):
         graph_end_indexes = torch.unique_consecutive(batched_data.batch, return_counts=True)[1]
         graph_end_indexes_as_list = [x.item() for x in graph_end_indexes]
+
         h_node_batched = torch.split(h_node, graph_end_indexes_as_list)
-        return h_node_batched
+        distances_batched = [torch.tensor(x) for x in batched_data.distances]
+
+        return h_node_batched, distances_batched
 
 
 if __name__ == '__main__':

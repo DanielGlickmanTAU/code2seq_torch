@@ -25,14 +25,13 @@ def floyd_warshall(adjacency_matrix, max_dist=9999):
     for k in range(n):
         mat = minimum(mat, mat[newaxis, k, :] + mat[:, k, newaxis])
 
-    mat = torch.Tensor(mat)
+    # mat = torch.Tensor(mat)
 
     unreachable_index = mat == inf
     mat[mat > max_dist] = far_away_marker(max_dist)
     mat[unreachable_index] = unreachable_marker(max_dist)
 
-    # slow
-    return mat.numpy()
+    return mat
 
 
 def unreachable_marker(max_dist):
