@@ -37,7 +37,7 @@ class DistanceCalculator(torch_geometric.transforms.BaseTransform):
         adj[edge_index[0, :], edge_index[1, :]] = 1
         adj.fill_diagonal_(0)
         shortest_path = graph_algos.floyd_warshall(adj, MAX_DIST)
-        #pytorch-geometric collate expects tensor with all same dims, except for the 0 dim. so we pack here to a single dim, and unpack it back in GNN#forward
+        # pytorch-geometric collate expects tensor with all same dims, except for the 0 dim. so we pack here to a single dim, and unpack it back in GNN#forward
         # data.distances = shortest_path.view(-1)
         data.distances = shortest_path
 
@@ -109,6 +109,7 @@ def main():
                         help='graph pooling')
     parser.add_argument('--emb_dim', type=int, default=300,
                         help='dimensionality of hidden units in GNNs (default: 300)')
+    parser.add_argument('--residual', type=bool, default=False)
     parser.add_argument('--batch_size', type=int, default=32,
                         help='input batch size for training (default: 32)')
     parser.add_argument('--epochs', type=int, default=100,
@@ -169,19 +170,23 @@ def main():
     if args.gnn == 'gin':
         model = GNN(gnn_type='gin', num_tasks=dataset.num_tasks, num_layer=layer, emb_dim=args.emb_dim,
                     drop_ratio=args.drop_ratio, virtual_node=False, num_transformer_layers=num_transformer_layers,
-                    feed_forward_dim=args.transformer_ff_dim, graph_pooling=args.graph_pooling).to(device)
+                    feed_forward_dim=args.transformer_ff_dim, graph_pooling=args.graph_pooling,
+                    residual=args.residual).to(device)
     elif args.gnn == 'gin-virtual':
         model = GNN(gnn_type='gin', num_tasks=dataset.num_tasks, num_layer=layer, emb_dim=args.emb_dim,
                     drop_ratio=args.drop_ratio, virtual_node=True, num_transformer_layers=num_transformer_layers,
-                    feed_forward_dim=args.transformer_ff_dim, graph_pooling=args.graph_pooling).to(device)
+                    feed_forward_dim=args.transformer_ff_dim, graph_pooling=args.graph_pooling,
+                    residual=args.residual).to(device)
     elif args.gnn == 'gcn':
         model = GNN(gnn_type='gcn', num_tasks=dataset.num_tasks, num_layer=layer, emb_dim=args.emb_dim,
                     drop_ratio=args.drop_ratio, virtual_node=False, num_transformer_layers=num_transformer_layers,
-                    feed_forward_dim=args.transformer_ff_dim, graph_pooling=args.graph_pooling).to(device)
+                    feed_forward_dim=args.transformer_ff_dim, graph_pooling=args.graph_pooling,
+                    residual=args.residual).to(device)
     elif args.gnn == 'gcn-virtual':
         model = GNN(gnn_type='gcn', num_tasks=dataset.num_tasks, num_layer=layer, emb_dim=args.emb_dim,
                     drop_ratio=args.drop_ratio, virtual_node=True, num_transformer_layers=num_transformer_layers,
-                    feed_forward_dim=args.transformer_ff_dim, graph_pooling=args.graph_pooling).to(device)
+                    feed_forward_dim=args.transformer_ff_dim, graph_pooling=args.graph_pooling,
+                    residual=args.residual).to(device)
     else:
         raise ValueError('Invalid GNN type')
 

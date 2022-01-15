@@ -1,0 +1,1 @@
+encoder_layer = nn.TransformerEncoderLayer(d_model=self.emb_dim, nhead=4, dim_feedforward=feed_forward_dim,norm_first=True)
