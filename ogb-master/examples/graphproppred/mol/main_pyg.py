@@ -19,7 +19,6 @@ import numpy as np
 ### importing OGB
 from ogb.graphproppred import PygGraphPropPredDataset, Evaluator
 
-
 cls_criterion = torch.nn.BCEWithLogitsLoss()
 reg_criterion = torch.nn.MSELoss()
 
@@ -167,22 +166,22 @@ def main():
     assert layer >= 0
     assert num_transformer_layers >= 0
     if args.gnn == 'gin':
-        model = GNN(gnn_type='gin', num_tasks=dataset.num_tasks, num_layer=layer, emb_dim=args.emb_dim,
+        model = GNN(args, gnn_type='gin', num_tasks=dataset.num_tasks, num_layer=layer, emb_dim=args.emb_dim,
                     drop_ratio=args.drop_ratio, virtual_node=False, num_transformer_layers=num_transformer_layers,
                     feed_forward_dim=args.transformer_ff_dim, graph_pooling=args.graph_pooling,
                     residual=args.residual).to(device)
     elif args.gnn == 'gin-virtual':
-        model = GNN(gnn_type='gin', num_tasks=dataset.num_tasks, num_layer=layer, emb_dim=args.emb_dim,
+        model = GNN(args, gnn_type='gin', num_tasks=dataset.num_tasks, num_layer=layer, emb_dim=args.emb_dim,
                     drop_ratio=args.drop_ratio, virtual_node=True, num_transformer_layers=num_transformer_layers,
                     feed_forward_dim=args.transformer_ff_dim, graph_pooling=args.graph_pooling,
                     residual=args.residual).to(device)
     elif args.gnn == 'gcn':
-        model = GNN(gnn_type='gcn', num_tasks=dataset.num_tasks, num_layer=layer, emb_dim=args.emb_dim,
+        model = GNN(args, gnn_type='gcn', num_tasks=dataset.num_tasks, num_layer=layer, emb_dim=args.emb_dim,
                     drop_ratio=args.drop_ratio, virtual_node=False, num_transformer_layers=num_transformer_layers,
                     feed_forward_dim=args.transformer_ff_dim, graph_pooling=args.graph_pooling,
                     residual=args.residual).to(device)
     elif args.gnn == 'gcn-virtual':
-        model = GNN(gnn_type='gcn', num_tasks=dataset.num_tasks, num_layer=layer, emb_dim=args.emb_dim,
+        model = GNN(args, gnn_type='gcn', num_tasks=dataset.num_tasks, num_layer=layer, emb_dim=args.emb_dim,
                     drop_ratio=args.drop_ratio, virtual_node=True, num_transformer_layers=num_transformer_layers,
                     feed_forward_dim=args.transformer_ff_dim, graph_pooling=args.graph_pooling,
                     residual=args.residual).to(device)
