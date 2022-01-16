@@ -2,6 +2,7 @@ import torch
 from torch import nn
 from torch_geometric.nn import global_add_pool, global_mean_pool, global_max_pool, GlobalAttention, Set2Set
 
+from GraphDistanceBias import GraphDistanceBias
 from conv import GNN_node, GNN_node_Virtualnode
 
 
@@ -59,9 +60,12 @@ class GNN(torch.nn.Module):
 
         self.num_transformer_layers = num_transformer_layers
         if num_transformer_layers:
-            encoder_layer = nn.TransformerEncoderLayer(d_model=self.emb_dim, nhead=4, dim_feedforward=feed_forward_dim,
+            num_heads = 4
+            encoder_layer = nn.TransformerEncoderLayer(d_model=self.emb_dim, nhead=num_heads,
+                                                       dim_feedforward=feed_forward_dim,
                                                        norm_first=True)
             self.transformer = nn.TransformerEncoder(encoder_layer, num_layers=num_transformer_layers)
+            self.distance_bias = GraphDistanceBias(num_heads=num_heads)
 
     def forward(self, batched_data):
         h_node = self.gnn_node(batched_data)
@@ -76,7 +80,8 @@ class GNN(torch.nn.Module):
     def forward_transformer(self, batched_data, h_node):
         # change from batched_data(shape num_nodes in batch, emb_dim), to list where each item is of shape (#num_nodes in *graph*, emb_dim)
         # todo check torch_geometric.utils.to_dense_batch
-        h_node_batch, distances_batched = self.split_into_graphs(batched_data, h_node)
+        h_node_batch = self.split_into_graphs(batched_data, h_node)
+        distances_batched = self.distance_bias(batched_data)
         transformer_result = []
         for x, distance_weights in zip(h_node_batch, distances_batched):
             # unsqueeze(1) -> transformer needs batch size in second dim by default
@@ -90,11 +95,9 @@ class GNN(torch.nn.Module):
     def split_into_graphs(self, batched_data, h_node):
         graph_end_indexes = torch.unique_consecutive(batched_data.batch, return_counts=True)[1]
         graph_end_indexes_as_list = [x.item() for x in graph_end_indexes]
-
         h_node_batched = torch.split(h_node, graph_end_indexes_as_list)
-        distances_batched = [torch.tensor(x, device=batched_data.batch.device) for x in batched_data.distances]
 
-        return h_node_batched, distances_batched
+        return h_node_batched
 
 
 if __name__ == '__main__':

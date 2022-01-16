@@ -19,7 +19,6 @@ import numpy as np
 ### importing OGB
 from ogb.graphproppred import PygGraphPropPredDataset, Evaluator
 
-MAX_DIST = 8
 
 cls_criterion = torch.nn.BCEWithLogitsLoss()
 reg_criterion = torch.nn.MSELoss()
@@ -36,7 +35,7 @@ class DistanceCalculator(torch_geometric.transforms.BaseTransform):
         adj = torch.full([N, N], torch.inf)
         adj[edge_index[0, :], edge_index[1, :]] = 1
         adj.fill_diagonal_(0)
-        shortest_path = graph_algos.floyd_warshall(adj, MAX_DIST)
+        shortest_path = graph_algos.floyd_warshall(adj)
         # pytorch-geometric collate expects tensor with all same dims, except for the 0 dim. so we pack here to a single dim, and unpack it back in GNN#forward
         # data.distances = shortest_path.view(-1)
         data.distances = shortest_path

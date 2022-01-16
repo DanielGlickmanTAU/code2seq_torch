@@ -19,24 +19,9 @@ def check_and_convert_adjacency_matrix(adjacency_matrix):
     return (mat, n)
 
 
-def floyd_warshall(adjacency_matrix, max_dist=9999):
+def floyd_warshall(adjacency_matrix):
     (mat, n) = check_and_convert_adjacency_matrix(adjacency_matrix)
 
     for k in range(n):
         mat = minimum(mat, mat[newaxis, k, :] + mat[:, k, newaxis])
-
-    # mat = torch.Tensor(mat)
-
-    unreachable_index = mat == inf
-    mat[mat > max_dist] = far_away_marker(max_dist)
-    mat[unreachable_index] = unreachable_marker(max_dist)
-
     return mat
-
-
-def unreachable_marker(max_dist):
-    return max_dist + 2
-
-
-def far_away_marker(max_dist):
-    return max_dist + 1
