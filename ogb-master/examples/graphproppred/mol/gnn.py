@@ -38,6 +38,14 @@ class GNN(torch.nn.Module):
             self.gnn_node = GNN_node(num_layer, emb_dim, JK=JK, drop_ratio=drop_ratio, residual=residual,
                                      gnn_type=gnn_type)
 
+        self.num_transformer_layers = num_transformer_layers
+        if num_transformer_layers:
+            num_heads = 4
+            encoder_layer = nn.TransformerEncoderLayer(d_model=self.emb_dim, nhead=num_heads,
+                                                       dim_feedforward=feed_forward_dim)
+            self.transformer = nn.TransformerEncoder(encoder_layer, num_layers=num_transformer_layers)
+            self.distance_bias = GraphDistanceBias(args, num_heads=num_heads)
+
         ### Pooling function to generate whole-graph embeddings
         if self.graph_pooling == "sum":
             self.pool = global_add_pool
@@ -58,14 +66,6 @@ class GNN(torch.nn.Module):
             self.graph_pred_linear = torch.nn.Linear(2 * self.emb_dim, self.num_tasks)
         else:
             self.graph_pred_linear = torch.nn.Linear(self.emb_dim, self.num_tasks)
-
-        self.num_transformer_layers = num_transformer_layers
-        if num_transformer_layers:
-            num_heads = 4
-            encoder_layer = nn.TransformerEncoderLayer(d_model=self.emb_dim, nhead=num_heads,
-                                                       dim_feedforward=feed_forward_dim)
-            self.transformer = nn.TransformerEncoder(encoder_layer, num_layers=num_transformer_layers)
-            self.distance_bias = GraphDistanceBias(args, num_heads=num_heads)
 
     def forward(self, batched_data):
         h_node = self.gnn_node(batched_data)
