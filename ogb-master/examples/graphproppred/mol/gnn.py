@@ -63,8 +63,7 @@ class GNN(torch.nn.Module):
         if num_transformer_layers:
             num_heads = 4
             encoder_layer = nn.TransformerEncoderLayer(d_model=self.emb_dim, nhead=num_heads,
-                                                       dim_feedforward=feed_forward_dim,
-                                                       norm_first=True)
+                                                       dim_feedforward=feed_forward_dim)
             self.transformer = nn.TransformerEncoder(encoder_layer, num_layers=num_transformer_layers)
             self.distance_bias = GraphDistanceBias(num_heads=num_heads)
 
