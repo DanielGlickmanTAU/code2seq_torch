@@ -23,6 +23,7 @@ class GNN(torch.nn.Module):
         self.emb_dim = emb_dim
         self.num_tasks = num_tasks
         self.graph_pooling = graph_pooling
+        # self.spatial_pos_encoder = nn.Embedding(num_spatial, num_heads)
 
         if self.num_layer < 2:
             raise ValueError("Number of GNN layers must be greater than 1.")
@@ -77,8 +78,13 @@ class GNN(torch.nn.Module):
         h_node_batch, distances_batched = self.split_into_graphs(batched_data, h_node)
         transformer_result = []
         for x in h_node_batch:
-            bla = self.transformer(x.unsqueeze(0))
-            transformer_result.append(bla.squeeze(0))
+            #unsqueeze(1) -> transformer needs batch size in second dim by default
+            bla = self.transformer(x.unsqueeze(1))
+            ## [n_graph, n_node, n_node, n_head] -> [n_graph, n_head, n_node, n_node]
+            # spatial_pos_bias = self.spatial_pos_encoder(spatial_pos).permute(0, 3, 1, 2)
+            # graph_attn_bias = graph_attn_bias + spatial_pos_bias
+
+            transformer_result.append(bla.squeeze(1))
         # back to original dim
         h_node = torch.cat(transformer_result, dim=0)
         return h_node
