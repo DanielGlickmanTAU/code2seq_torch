@@ -59,7 +59,8 @@ class GNN(torch.nn.Module):
 
         self.num_transformer_layers = num_transformer_layers
         if num_transformer_layers:
-            encoder_layer = nn.TransformerEncoderLayer(d_model=self.emb_dim, nhead=4, dim_feedforward=feed_forward_dim,norm_first=True)
+            encoder_layer = nn.TransformerEncoderLayer(d_model=self.emb_dim, nhead=4, dim_feedforward=feed_forward_dim,
+                                                       norm_first=True)
             self.transformer = nn.TransformerEncoder(encoder_layer, num_layers=num_transformer_layers)
 
     def forward(self, batched_data):
@@ -77,12 +78,9 @@ class GNN(torch.nn.Module):
         # todo check torch_geometric.utils.to_dense_batch
         h_node_batch, distances_batched = self.split_into_graphs(batched_data, h_node)
         transformer_result = []
-        for x in h_node_batch:
-            #unsqueeze(1) -> transformer needs batch size in second dim by default
-            bla = self.transformer(x.unsqueeze(1))
-            ## [n_graph, n_node, n_node, n_head] -> [n_graph, n_head, n_node, n_node]
-            # spatial_pos_bias = self.spatial_pos_encoder(spatial_pos).permute(0, 3, 1, 2)
-            # graph_attn_bias = graph_attn_bias + spatial_pos_bias
+        for x, distance_weights in zip(h_node_batch, distances_batched):
+            # unsqueeze(1) -> transformer needs batch size in second dim by default
+            bla = self.transformer(x.unsqueeze(1), mask=distance_weights)
 
             transformer_result.append(bla.squeeze(1))
         # back to original dim
@@ -94,7 +92,7 @@ class GNN(torch.nn.Module):
         graph_end_indexes_as_list = [x.item() for x in graph_end_indexes]
 
         h_node_batched = torch.split(h_node, graph_end_indexes_as_list)
-        distances_batched = [torch.tensor(x,device=batched_data.batch.device) for x in batched_data.distances]
+        distances_batched = [torch.tensor(x, device=batched_data.batch.device) for x in batched_data.distances]
 
         return h_node_batched, distances_batched
 
