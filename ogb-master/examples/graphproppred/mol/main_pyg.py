@@ -208,13 +208,13 @@ def main():
         # print({'Train': train_perf, 'Validation': valid_perf, 'Test': test_perf})
         print({'Validation': valid_perf, 'Test': test_perf})
 
-        # train_score = train_perf[dataset.eval_metric]
         validation_score = valid_perf[dataset.eval_metric]
         test_score = test_perf[dataset.eval_metric]
         # train_curve.append(train_score)
         valid_curve.append(validation_score)
         test_curve.append(test_score)
 
+        # train_score = train_perf[dataset.eval_metric]
         # exp.log_metric(f'train_{dataset.eval_metric}', train_score)
         exp.log_metric(f'val_{dataset.eval_metric}', validation_score)
         exp.log_metric(f'test_{dataset.eval_metric}', test_score)
@@ -237,7 +237,10 @@ def main():
     print('Finished training!')
     print('Best validation score: {}'.format(valid_curve[best_val_epoch]))
     print('Test score: {}'.format(test_curve[best_val_epoch]))
-    exp.log_metric(f'last_test_{test_curve[best_val_epoch]}')
+    exp.log_metric(f'last_test_', test_curve[best_val_epoch])
+    train_perf = eval(model, device, train_loader, evaluator)
+    train_score = train_perf[dataset.eval_metric]
+    exp.log_metric(f'train_{dataset.eval_metric}', train_score)
 
     if not args.filename == '':
         torch.save({'Val': valid_curve[best_val_epoch], 'Test': test_curve[best_val_epoch],
