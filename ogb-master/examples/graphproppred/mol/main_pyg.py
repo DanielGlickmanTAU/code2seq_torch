@@ -1,19 +1,14 @@
 from code2seq.utils import compute
-import comet_ml
-
-from commode_utils.callbacks import ModelCheckpointWithUploadCallback
 
 torch = compute.get_torch()
-from pytorch_lightning.loggers import CometLogger, WandbLogger
+from pytorch_lightning.loggers import CometLogger
 from torch_geometric.loader import DataLoader
 import torch.optim as optim
-import torch.nn.functional as F
 
 import graph_algos
 from gnn import GNN
 from tqdm import tqdm
 import argparse
-import time
 import numpy as np
 
 ### importing OGB
@@ -206,20 +201,21 @@ def main():
         train_epoch(model, device, train_loader, optimizer, dataset.task_type)
 
         print('Evaluating...')
-        train_perf = eval(model, device, train_loader, evaluator)
+        # train_perf = eval(model, device, train_loader, evaluator)
         valid_perf = eval(model, device, valid_loader, evaluator)
         test_perf = eval(model, device, test_loader, evaluator)
 
-        print({'Train': train_perf, 'Validation': valid_perf, 'Test': test_perf})
+        # print({'Train': train_perf, 'Validation': valid_perf, 'Test': test_perf})
+        print({'Validation': valid_perf, 'Test': test_perf})
 
-        train_score = train_perf[dataset.eval_metric]
+        # train_score = train_perf[dataset.eval_metric]
         validation_score = valid_perf[dataset.eval_metric]
         test_score = test_perf[dataset.eval_metric]
-        train_curve.append(train_score)
+        # train_curve.append(train_score)
         valid_curve.append(validation_score)
         test_curve.append(test_score)
 
-        exp.log_metric(f'train_{dataset.eval_metric}', train_score)
+        # exp.log_metric(f'train_{dataset.eval_metric}', train_score)
         exp.log_metric(f'val_{dataset.eval_metric}', validation_score)
         exp.log_metric(f'test_{dataset.eval_metric}', test_score)
 
@@ -241,6 +237,7 @@ def main():
     print('Finished training!')
     print('Best validation score: {}'.format(valid_curve[best_val_epoch]))
     print('Test score: {}'.format(test_curve[best_val_epoch]))
+    exp.log_metric(f'last_test_{test_curve[best_val_epoch]}')
 
     if not args.filename == '':
         torch.save({'Val': valid_curve[best_val_epoch], 'Test': test_curve[best_val_epoch],
