@@ -14,11 +14,10 @@ class GraphDistanceBias(nn.Module):
         padding_idx = self.unreachable_mark
         self.distance_embedding = nn.Embedding(max_dist + 2, num_heads, padding_idx=padding_idx)
         with torch.no_grad():
-            self.distance_embedding.weight[padding_idx] = -torch.inf
+            self.distance_embedding.weight[padding_idx] = float("-inf")
 
     "gets numpy distance matrix, where distance to self is 0(i.e entry (i,i) equals 0) and all unreachable entries are np.inf" \
     ":return long tensor where all reachable entries further away than max_dist are turned into max_dist + 1 and unreable are turned into -1"
-
 
     def as_fixed_distance_tensor(self, distance_matrix, device):
         unreachable_index = distance_matrix == numpy.inf
