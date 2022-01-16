@@ -123,6 +123,7 @@ def main():
     parser.add_argument('--filename', type=str, default="",
                         help='filename to output result (default: )')
     parser.add_argument('--distance_bias', type=bool, default=True)
+    parser.add_argument('--learning_rate', type=float, default=0.00005)
     args = parser.parse_args()
 
     device = torch.device("cuda:" + str(args.device)) if torch.cuda.is_available() else torch.device("cpu")
@@ -188,7 +189,7 @@ def main():
     else:
         raise ValueError('Invalid GNN type')
 
-    optimizer = optim.Adam(model.parameters(), lr=0.00005)
+    optimizer = optim.Adam(model.parameters(), lr=args.learning_rate)
 
     valid_curve = []
     test_curve = []
