@@ -83,7 +83,7 @@ class GNN(torch.nn.Module):
             bla = self.transformer(x.unsqueeze(1), mask=distance_weights)
 
             transformer_result.append(bla.squeeze(1))
-        # back to original dim
+        # back to original dim, i.e pytorch geometric format
         h_node = torch.cat(transformer_result, dim=0)
         return h_node
 
