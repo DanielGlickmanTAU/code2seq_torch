@@ -1,3 +1,6 @@
+MultiheadAttention#forward : line 5101: attn_output, attn_output_weights = _scaled_dot_product_attention(q, k, v, attn_mask, dropout_p)
+att_output_weights shape is #nhead,n,n....attn_output_weights.sum(dim=-1) sums aprox 1(dropout)
+
 issue:training with transofrmer layer initalize performed way worse
 fix: lower learning rate(saw that training loss was going up and down)
 

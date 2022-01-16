@@ -94,7 +94,7 @@ class GNN(torch.nn.Module):
         graph_end_indexes_as_list = [x.item() for x in graph_end_indexes]
 
         h_node_batched = torch.split(h_node, graph_end_indexes_as_list)
-        distances_batched = [torch.tensor(x) for x in batched_data.distances]
+        distances_batched = [torch.tensor(x,device=batched_data.batch.device) for x in batched_data.distances]
 
         return h_node_batched, distances_batched
 
