@@ -8,7 +8,7 @@ from conv import GNN_node, GNN_node_Virtualnode
 
 class GNN(torch.nn.Module):
 
-    def __init__(self,args, num_tasks, num_layer=5, emb_dim=300,
+    def __init__(self, args, num_tasks, num_layer=5, emb_dim=300,
                  gnn_type='gin', virtual_node=True, residual=False, drop_ratio=0.5, JK="last", graph_pooling="mean",
                  num_transformer_layers=0, feed_forward_dim=1024):
         '''
