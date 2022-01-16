@@ -25,7 +25,6 @@ class GNN(torch.nn.Module):
         self.emb_dim = emb_dim
         self.num_tasks = num_tasks
         self.graph_pooling = graph_pooling
-        # self.spatial_pos_encoder = nn.Embedding(num_spatial, num_heads)
 
         if self.num_layer < 2:
             raise ValueError("Number of GNN layers must be greater than 1.")
