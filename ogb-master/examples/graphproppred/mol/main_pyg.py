@@ -84,6 +84,9 @@ def eval(model, device, loader, evaluator):
 
 
 def main():
+    def bool_(s):
+        return s and s.lower() != 'false'
+
     # Training settings
     parser = argparse.ArgumentParser(description='GNN baselines on ogbgmol* data with Pytorch Geometrics')
     parser.add_argument('--device', type=int, default=0,
@@ -102,7 +105,7 @@ def main():
                         help='graph pooling')
     parser.add_argument('--emb_dim', type=int, default=300,
                         help='dimensionality of hidden units in GNNs (default: 300)')
-    parser.add_argument('--residual', type=bool, default=False)
+    parser.add_argument('--residual', type=bool_, default=True)
     parser.add_argument('--batch_size', type=int, default=32,
                         help='input batch size for training (default: 32)')
     parser.add_argument('--epochs', type=int, default=100,
@@ -117,14 +120,16 @@ def main():
                         help='full feature or simple feature')
     parser.add_argument('--filename', type=str, default="",
                         help='filename to output result (default: )')
-    parser.add_argument('--distance_bias', type=bool, default=True)
+    parser.add_argument('--distance_bias', type=bool_, default=True)
+    parser.add_argument('--max_graph_dist', type=int, default=20)
     parser.add_argument('--learning_rate', type=float, default=0.00004)
+    parser.add_argument('--exp_name', type=str, default='graph-filter-network')
     args = parser.parse_args()
 
     device = torch.device("cuda:" + str(args.device)) if torch.cuda.is_available() else torch.device("cpu")
 
     comet_logger = CometLogger(
-        project_name='graph-filter-network',
+        project_name=args.exp_name,
         api_key='FvAd5fm5rJLIj6TtmfGHUJm4b',
         workspace="danielglickmantau"
     )

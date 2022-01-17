@@ -4,17 +4,17 @@ from torch import nn
 
 
 class GraphDistanceBias(nn.Module):
-    def __init__(self, args, num_heads: int, max_dist: int = 10):
+    def __init__(self, args, num_heads: int, ):
         super(GraphDistanceBias, self).__init__()
         self.args = args
         self.num_heads = num_heads
-        self.max_dist = max_dist
-        self.far_away_mark = max_dist
-        self.unreachable_mark = max_dist + 1
-        # max_dist embedding plus
+        self.max_dist = args.max_graph_dist
+        self.far_away_mark = self.max_dist
+        self.unreachable_mark = self.max_dist + 1
+        # self.max_dist embedding plus
         padding_idx = self.unreachable_mark
         if args.distance_bias:
-            self.distance_embedding = nn.Embedding(max_dist + 2, num_heads, padding_idx=padding_idx)
+            self.distance_embedding = nn.Embedding(self.max_dist + 2, num_heads, padding_idx=padding_idx)
             with torch.no_grad():
                 self.distance_embedding.weight[padding_idx] = float("-inf")
 
