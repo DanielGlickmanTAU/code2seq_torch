@@ -10,7 +10,7 @@ from GraphDistanceBias import GraphDistanceBias
 
 
 class TestGraphDistanceBias(TestCase):
-    def test_masking_properly(self):
+    def test_embedding_distance(self):
         args = argparse.ArgumentParser().parse_args()
         args.max_graph_dist = 10
         args.distance_bias = True
@@ -25,7 +25,7 @@ class TestGraphDistanceBias(TestCase):
         # add distances
         data = DistanceCalculator()(data)
         random_const = 42
-        #set const embedding so we can test
+        # set const embedding so we can test
         with torch.no_grad():
             distance_bias.distance_embedding.weight[0] = 0 * random_const
             distance_bias.distance_embedding.weight[1] = 1 * random_const
