@@ -2,7 +2,7 @@ import torch_geometric.transforms
 from torch_geometric.data import Data
 
 import graph_algos
-from main_pyg import torch
+import torch
 
 
 class DistanceCalculator(torch_geometric.transforms.BaseTransform):
