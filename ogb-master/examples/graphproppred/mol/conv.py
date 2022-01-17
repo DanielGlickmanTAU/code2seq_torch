@@ -89,8 +89,8 @@ class GNN_node(torch.nn.Module):
         ### add residual connection or not
         self.residual = residual
 
-        if self.num_layer < 2:
-            raise ValueError("Number of GNN layers must be greater than 1.")
+        # if self.num_layer < 2:
+        #     raise ValueError("Number of GNN layers must be greater than 1.")
 
         self.atom_encoder = AtomEncoder(emb_dim)
 

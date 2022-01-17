@@ -37,9 +37,13 @@ class GraphDistanceBias(nn.Module):
         distances = torch.tensor(distances, dtype=torch.long, device=device)
 
         # distance_matrix[unreachable_index] = self.unreachable_mark
-        masks = torch.cat(
-            [(distances > i).view((1, distances.size(0), distances.size(1))) for i in self.receptive_fields])
-        # x = self.as_fixed_distance_tensor(distances, device)
+        if self.receptive_fields:
+            masks = [(distances > i).view((1, distances.size(0), distances.size(1))) for i in self.receptive_fields]
+            masks = torch.cat(masks)
+        else:
+            masks = distances >= DistanceCalculator.unconnected
+            masks = torch.cat(self.num_heads * [masks.unsqueeze(0)])
+            # x = self.as_fixed_distance_tensor(distances, device)
         distances[distances > self.max_dist] = self.far_away_mark
         x = self.distance_embedding(distances).permute(2, 0, 1)
         x[masks] = float('-inf')

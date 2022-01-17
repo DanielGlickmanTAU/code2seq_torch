@@ -24,8 +24,8 @@ class GNN(torch.nn.Module):
         self.num_tasks = num_tasks
         self.graph_pooling = graph_pooling
 
-        if self.num_layer < 2:
-            raise ValueError("Number of GNN layers must be greater than 1.")
+        # if self.num_layer < 2:
+        #     raise ValueError("Number of GNN layers must be greater than 1.")
 
         self.gnn_transformer = GNNTransformer(JK, args, drop_ratio, emb_dim, feed_forward_dim, gnn_type, num_layer,
                                               num_transformer_layers, residual, virtual_node)
