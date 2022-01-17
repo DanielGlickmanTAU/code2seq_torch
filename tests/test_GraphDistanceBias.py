@@ -1,13 +1,12 @@
 from unittest import TestCase
+import argparse
 
 import torch
-from torch_geometric.data import Batch
+import networkx as nx
+import torch_geometric
 
 from DistanceCalculator import DistanceCalculator
 from GraphDistanceBias import GraphDistanceBias
-import argparse
-import networkx as nx
-import torch_geometric
 
 
 class TestGraphDistanceBias(TestCase):
