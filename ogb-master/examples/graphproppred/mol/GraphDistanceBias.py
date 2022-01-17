@@ -27,9 +27,13 @@ class GraphDistanceBias(nn.Module):
         distance_matrix[unreachable_index] = self.unreachable_mark
         return torch.tensor(distance_matrix, dtype=torch.long, device=device)
 
+    def _embed_distances(self, distances, device):
+        x = self.as_fixed_distance_tensor(distances, device)
+        return self.distance_embedding(x).permute(2, 0, 1)
+
     def forward(self, batched_data):
-        distances_batched = [self.as_fixed_distance_tensor(x, batched_data.batch.device) for x in
-                             batched_data.distances]
         if self.args.distance_bias:
-            return [self.distance_embedding(x).permute(2, 0, 1) for x in distances_batched]
-        return [None for x in distances_batched]
+            return [self._embed_distances(x, batched_data.batch.device) for x in
+                    batched_data.distances]
+
+        return [None for x in batched_data.distances]

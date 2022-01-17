@@ -8,7 +8,8 @@ import torch
 class DistanceCalculator(torch_geometric.transforms.BaseTransform):
     def __call__(self, data: Data):
         edge_index = data.edge_index
-        N = data.x.size(0)
+        # N = data.x.size(0)
+        N = data.num_nodes
         # (row, col) = data.edge_index
         adj = torch.full([N, N], torch.inf)
         adj[edge_index[0, :], edge_index[1, :]] = 1
