@@ -3,17 +3,19 @@ from code2seq.utils.slurm import run_on_slurm
 import os
 
 params_for_grid_search = {
-    'num_layer': [6, 8],
-    'num_transformer_layers': [1, 2, 4],
+    'num_layer': [6],
+    'num_transformer_layers': [1, 2, 3],
     # 'num_transformer_layers': [0],
-    'transformer_ff_dim': [600, 1200, 2400],
-    'residual': [False, True]
+    'transformer_ff_dim': [1200, 2400],
+    'residual': [True],
+    'distance_bias': [False]
 }
 
 params = {
-
+    'exp_name': 'graph-filter-network-distance',
     'gnn': 'gin',
-    'graph_pooling': 'attention'
+    'graph_pooling': 'attention',
+    'max_graph_dist': 20
 }
 os.chdir('..')
 job_name = '''main_pyg.py'''
