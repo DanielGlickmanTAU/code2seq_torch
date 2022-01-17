@@ -92,7 +92,7 @@ def main():
                         help='which gpu to use if any (default: 0)')
     parser.add_argument('--gnn', type=str, default='gcn-virtual',
                         help='GNN gin, gin-virtual, or gcn, or gcn-virtual (default: gcn-virtual)')
-    parser.add_argument('--drop_ratio', type=float, default=0,
+    parser.add_argument('--drop_ratio', type=float, default=0.1,
                         help='dropout ratio (default: 0)')
     parser.add_argument('--max_seq_len', type=int, default=5,
                         help='maximum sequence length to predict (default: 5)')
