@@ -52,10 +52,6 @@ class GNN(torch.nn.Module):
             self.graph_pred_linear = torch.nn.Linear(self.emb_dim, self.num_tasks)
 
     def forward(self, batched_data):
-        # h_node = self.gnn_node(batched_data)
-        #
-        # if self.num_transformer_layers:
-        #     h_node = self.forward_transformer(batched_data, h_node)
         h_node = self.gnn_transformer(batched_data)
         # shape (num_graphs, out_dim)
         h_graph = self.pool(h_node, batched_data.batch)
