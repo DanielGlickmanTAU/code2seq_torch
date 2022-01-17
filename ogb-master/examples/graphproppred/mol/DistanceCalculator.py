@@ -4,6 +4,8 @@ from torch_geometric.data import Data
 import graph_algos
 import torch
 
+unconnected = 9999
+
 
 class DistanceCalculator(torch_geometric.transforms.BaseTransform):
     def __call__(self, data: Data):
@@ -11,7 +13,7 @@ class DistanceCalculator(torch_geometric.transforms.BaseTransform):
         # N = data.x.size(0)
         N = data.num_nodes
         # (row, col) = data.edge_index
-        adj = torch.full([N, N], torch.inf)
+        adj = torch.full([N, N], unconnected)
         adj[edge_index[0, :], edge_index[1, :]] = 1
         adj.fill_diagonal_(0)
         shortest_path = graph_algos.floyd_warshall(adj)
