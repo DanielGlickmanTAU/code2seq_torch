@@ -7,9 +7,9 @@ from conv import GNN_node_Virtualnode, GNN_node
 
 class GNNTransformer(nn.Module):
     def __init__(self, JK, args, drop_ratio, emb_dim, feed_forward_dim, gnn_type, num_layer, num_transformer_layers,
-                 residual, virtual_node):
+                 residual, virtual_node, node_encoder=None):
         ### GNN to generate node embeddings
-        num_heads = 4
+
         self.emb_dim = emb_dim
         super(GNNTransformer, self).__init__()
         if virtual_node:
@@ -18,13 +18,14 @@ class GNNTransformer(nn.Module):
                                                  gnn_type=gnn_type)
         else:
             self.gnn_node = GNN_node(num_layer, emb_dim, JK=JK, drop_ratio=drop_ratio, residual=residual,
-                                     gnn_type=gnn_type)
+                                     gnn_type=gnn_type, node_encoder=node_encoder)
         self.num_transformer_layers = num_transformer_layers
         if num_transformer_layers:
-            encoder_layer = nn.TransformerEncoderLayer(d_model=self.emb_dim, nhead=num_heads,
+            encoder_layer = nn.TransformerEncoderLayer(d_model=self.emb_dim, nhead=args.num_heads,
                                                        dim_feedforward=feed_forward_dim)
             self.transformer = nn.TransformerEncoder(encoder_layer, num_layers=num_transformer_layers)
-            self.distance_bias = GraphDistanceBias(args, num_heads=num_heads, receptive_fields=args.receptive_fields)
+            self.distance_bias = GraphDistanceBias(args, num_heads=args.num_heads,
+                                                   receptive_fields=args.receptive_fields)
 
     def forward(self, batched_data):
         h_node = self.gnn_node(batched_data)

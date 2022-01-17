@@ -1,16 +1,15 @@
 import torch
 from torch_geometric.nn import MessagePassing, GATv2Conv
 import torch.nn.functional as F
-from torch_geometric.nn import global_mean_pool, global_add_pool
-from ogb.graphproppred.mol_encoder import AtomEncoder, BondEncoder
+from torch_geometric.nn import global_add_pool
 from torch_geometric.utils import degree
 
-import math
+from ogb.graphproppred.mol_encoder import AtomEncoder, BondEncoder
 
 
 ### GIN convolution along the graph structure
 class GINConv(MessagePassing):
-    def __init__(self, emb_dim):
+    def __init__(self, emb_dim, type='mol'):
         '''
             emb_dim (int): node embedding dimensionality
         '''
@@ -20,8 +19,10 @@ class GINConv(MessagePassing):
         self.mlp = torch.nn.Sequential(torch.nn.Linear(emb_dim, 2 * emb_dim), torch.nn.BatchNorm1d(2 * emb_dim),
                                        torch.nn.ReLU(), torch.nn.Linear(2 * emb_dim, emb_dim))
         self.eps = torch.nn.Parameter(torch.Tensor([0]))
-
-        self.edge_encoder = BondEncoder(emb_dim=emb_dim)
+        if type == 'mol':
+            self.edge_encoder = BondEncoder(emb_dim=emb_dim)
+        elif type == 'code':
+            self.edge_encoder = torch.nn.Linear(2, emb_dim)
 
     def forward(self, x, edge_index, edge_attr):
         edge_embedding = self.edge_encoder(edge_attr)
@@ -38,12 +39,15 @@ class GINConv(MessagePassing):
 
 ### GCN convolution along the graph structure
 class GCNConv(MessagePassing):
-    def __init__(self, emb_dim):
+    def __init__(self, emb_dim, type='mol'):
         super(GCNConv, self).__init__(aggr='add')
 
         self.linear = torch.nn.Linear(emb_dim, emb_dim)
         self.root_emb = torch.nn.Embedding(1, emb_dim)
-        self.bond_encoder = BondEncoder(emb_dim=emb_dim)
+        if type == 'mol':
+            self.edge_encoder = BondEncoder(emb_dim=emb_dim)
+        elif type == 'code':
+            self.edge_encoder = torch.nn.Linear(2, emb_dim)
 
     def forward(self, x, edge_index, edge_attr):
         x = self.linear(x)
@@ -75,7 +79,8 @@ class GNN_node(torch.nn.Module):
         node representations
     """
 
-    def __init__(self, num_layer, emb_dim, drop_ratio=0.5, JK="last", residual=False, gnn_type='gin'):
+    def __init__(self, num_layer, emb_dim, drop_ratio=0.5, JK="last", residual=False, gnn_type='gin',
+                 node_encoder=None):
         '''
             emb_dim (int): node embedding dimensionality
             num_layer (int): number of GNN message passing layers
@@ -91,8 +96,12 @@ class GNN_node(torch.nn.Module):
 
         # if self.num_layer < 2:
         #     raise ValueError("Number of GNN layers must be greater than 1.")
-
-        self.atom_encoder = AtomEncoder(emb_dim)
+        if node_encoder is None:
+            self.atom_encoder = AtomEncoder(emb_dim)
+            self.type = 'mol'
+        else:
+            self.atom_encoder = node_encoder
+            self.type = 'code'
 
         ###List of GNNs
         self.convs = torch.nn.ModuleList()
@@ -100,9 +109,9 @@ class GNN_node(torch.nn.Module):
 
         for layer in range(num_layer):
             if gnn_type == 'gin':
-                self.convs.append(GINConv(emb_dim))
+                self.convs.append(GINConv(emb_dim, self.type))
             elif gnn_type == 'gcn':
-                self.convs.append(GCNConv(emb_dim))
+                self.convs.append(GCNConv(emb_dim, self.type))
             elif gnn_type == 'gatv2':
                 self.convs.append(GATv2Conv(emb_dim, emb_dim, heads=2))
             else:
@@ -111,11 +120,13 @@ class GNN_node(torch.nn.Module):
             self.batch_norms.append(torch.nn.BatchNorm1d(emb_dim))
 
     def forward(self, batched_data):
-        x, edge_index, edge_attr, batch = batched_data.x, batched_data.edge_index, batched_data.edge_attr, batched_data.batch
+        if self.type == 'mol':
+            x, edge_index, edge_attr, batch = batched_data.x, batched_data.edge_index, batched_data.edge_attr, batched_data.batch
+            h_list = [self.atom_encoder(x)]
+        else:
+            x, edge_index, edge_attr, node_depth, batch = batched_data.x, batched_data.edge_index, batched_data.edge_attr, batched_data.node_depth, batched_data.batch
+            h_list = [self.node_encoder(x, node_depth.view(-1, ))]
 
-        ### computing input node embedding
-
-        h_list = [self.atom_encoder(x)]
         for layer in range(self.num_layer):
 
             h = self.convs[layer](h_list[layer], edge_index, edge_attr)

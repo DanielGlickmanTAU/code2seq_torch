@@ -4,14 +4,14 @@ import os
 
 params_for_grid_search = {
     'num_layer': [6],
-    'num_transformer_layers': [1, 2, 4, 6],
+    'num_transformer_layers': [2, 4, 6],
     # 'num_transformer_layers': [0],
     'transformer_ff_dim': [1200],
     'residual': [True],
     'distance_bias': [True],
-    'receptive_fields': ['1 2 4 8', '1 1 40 40', '1 4 6 40', '1 2 40 40']
+    'num_heads': [10, 30, 75, 100]
+    # 'receptive_fields': ['1 2 4 8', '1 1 40 40', '1 4 6 40', '1 2 40 40']
 }
-
 
 params = {
     'exp_name': 'graph-filter-network-distance',

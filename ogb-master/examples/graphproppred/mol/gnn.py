@@ -8,7 +8,7 @@ class GNN(torch.nn.Module):
 
     def __init__(self, args, num_tasks, num_layer=5, emb_dim=300,
                  gnn_type='gin', virtual_node=True, residual=False, drop_ratio=0.5, JK="last", graph_pooling="mean",
-                 num_transformer_layers=0, feed_forward_dim=1024):
+                 num_transformer_layers=0, feed_forward_dim=1024, node_encoder=None):
         '''
             num_tasks (int): number of labels to be predicted
             virtual_node (bool): whether to add virtual node or not
@@ -16,6 +16,10 @@ class GNN(torch.nn.Module):
 
         super(GNN, self).__init__()
 
+        num_transformer_layers = num_transformer_layers
+        num_layer = num_layer - num_transformer_layers
+        assert num_layer >= 0
+        assert num_transformer_layers >= 0
         self.args = args
         self.num_layer = num_layer
         self.drop_ratio = drop_ratio
@@ -28,21 +32,44 @@ class GNN(torch.nn.Module):
         #     raise ValueError("Number of GNN layers must be greater than 1.")
 
         self.gnn_transformer = GNNTransformer(JK, args, drop_ratio, emb_dim, feed_forward_dim, gnn_type, num_layer,
-                                              num_transformer_layers, residual, virtual_node)
+                                              num_transformer_layers, residual, virtual_node, node_encoder)
 
         self.create_pooling(emb_dim)
 
-        if graph_pooling == "set2set":
-            self.graph_pred_linear = torch.nn.Linear(2 * self.emb_dim, self.num_tasks)
+        if node_encoder:
+            print('assuming code task')
+            self.task = 'code'
+            self.max_seq_len = args.max_seq_len
+            self.graph_pred_linear_list = torch.nn.ModuleList()
+            if graph_pooling == "set2set":
+                for i in range(self.max_seq_len):
+                    self.graph_pred_linear_list.append(torch.nn.Linear(2 * emb_dim, self.num_tasks))
+
+            else:
+                for i in range(self.max_seq_len):
+                    self.graph_pred_linear_list.append(torch.nn.Linear(emb_dim, self.num_tasks))
         else:
-            self.graph_pred_linear = torch.nn.Linear(self.emb_dim, self.num_tasks)
+            print('assuming mol task')
+            self.task = 'mol'
+
+            if graph_pooling == "set2set":
+                self.graph_pred_linear = torch.nn.Linear(2 * self.emb_dim, self.num_tasks)
+            else:
+                self.graph_pred_linear = torch.nn.Linear(self.emb_dim, self.num_tasks)
 
     def forward(self, batched_data):
         h_node = self.gnn_transformer(batched_data)
         # shape (num_graphs, out_dim)
         h_graph = self.pool(h_node, batched_data.batch)
 
-        return self.graph_pred_linear(h_graph)
+        if self.task == 'mol':
+            return self.graph_pred_linear(h_graph)
+
+        pred_list = []
+        for i in range(self.max_seq_len):
+            pred_list.append(self.graph_pred_linear_list[i](h_graph))
+
+        return pred_list
 
     def create_pooling(self, emb_dim):
         ### Pooling function to generate whole-graph embeddings

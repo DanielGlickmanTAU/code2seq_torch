@@ -8,7 +8,7 @@ except:
 import os
 import time
 
-minimum_free_giga = 7
+minimum_free_giga = 4
 max_num_gpus = 1
 
 last_write = 0

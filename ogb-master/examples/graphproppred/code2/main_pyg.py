@@ -1,11 +1,12 @@
+import args_parse
 from code2seq.utils import compute
+from gnn import GNN
 
 compute.get_torch()
 import torch
 from torch_geometric.loader import DataLoader
 import torch.optim as optim
 from torchvision import transforms
-from gnn_code import CodeGNN
 
 from tqdm import tqdm
 import argparse
@@ -86,32 +87,13 @@ def eval(model, device, loader, evaluator, arr_to_seq):
 def main():
     # Training settings
     parser = argparse.ArgumentParser(description='GNN baselines on ogbg-code2 data with Pytorch Geometrics')
-    parser.add_argument('--device', type=int, default=0,
-                        help='which gpu to use if any (default: 0)')
-    parser.add_argument('--gnn', type=str, default='gcn-virtual',
-                        help='GNN gin, gin-virtual, or gcn, or gcn-virtual (default: gcn-virtual)')
-    parser.add_argument('--drop_ratio', type=float, default=0.1,
-                        help='dropout ratio (default: 0)')
-    parser.add_argument('--max_seq_len', type=int, default=5,
-                        help='maximum sequence length to predict (default: 5)')
+    args_parse.add_args(parser)
     parser.add_argument('--num_vocab', type=int, default=5000,
                         help='the number of vocabulary used for sequence prediction (default: 5000)')
-    parser.add_argument('--num_layer', type=int, default=5,
-                        help='number of GNN message passing layers (default: 5)')
-    parser.add_argument('--emb_dim', type=int, default=300,
-                        help='dimensionality of hidden units in GNNs (default: 300)')
-    parser.add_argument('--batch_size', type=int, default=128,
-                        help='input batch size for training (default: 128)')
-    parser.add_argument('--epochs', type=int, default=25,
-                        help='number of epochs to train (default: 25)')
+    parser.add_argument('--max_seq_len', type=int, default=10)
     parser.add_argument('--random_split', action='store_true')
-    parser.add_argument('--num_workers', type=int, default=0,
-                        help='number of workers (default: 0)')
     parser.add_argument('--dataset', type=str, default="ogbg-code2",
                         help='dataset name (default: ogbg-code2)')
-
-    parser.add_argument('--filename', type=str, default="",
-                        help='filename to output result (default: )')
     args = parser.parse_args()
     print(args)
 
@@ -173,19 +155,19 @@ def main():
                                   num_nodeattributes=len(nodeattributes_mapping['attr']), max_depth=20)
 
     if args.gnn == 'gin':
-        model = CodeGNN(num_vocab=len(vocab2idx), max_seq_len=args.max_seq_len, node_encoder=node_encoder,
+        model = GNN(args, num_tasks=len(vocab2idx), node_encoder=node_encoder,
                     num_layer=args.num_layer, gnn_type='gin', emb_dim=args.emb_dim, drop_ratio=args.drop_ratio,
                     virtual_node=False).to(device)
     elif args.gnn == 'gin-virtual':
-        model = CodeGNN(num_vocab=len(vocab2idx), max_seq_len=args.max_seq_len, node_encoder=node_encoder,
+        model = GNN(args, num_tasks=len(vocab2idx), node_encoder=node_encoder,
                     num_layer=args.num_layer, gnn_type='gin', emb_dim=args.emb_dim, drop_ratio=args.drop_ratio,
                     virtual_node=True).to(device)
     elif args.gnn == 'gcn':
-        model = CodeGNN(num_vocab=len(vocab2idx), max_seq_len=args.max_seq_len, node_encoder=node_encoder,
+        model = GNN(args, num_tasks=len(vocab2idx), node_encoder=node_encoder,
                     num_layer=args.num_layer, gnn_type='gcn', emb_dim=args.emb_dim, drop_ratio=args.drop_ratio,
                     virtual_node=False).to(device)
     elif args.gnn == 'gcn-virtual':
-        model = CodeGNN(num_vocab=len(vocab2idx), max_seq_len=args.max_seq_len, node_encoder=node_encoder,
+        model = GNN(args, num_tasks=len(vocab2idx), node_encoder=node_encoder,
                     num_layer=args.num_layer, gnn_type='gcn', emb_dim=args.emb_dim, drop_ratio=args.drop_ratio,
                     virtual_node=True).to(device)
     else:
