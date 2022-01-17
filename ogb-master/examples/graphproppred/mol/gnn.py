@@ -30,6 +30,21 @@ class GNN(torch.nn.Module):
         self.gnn_transformer = GNNTransformer(JK, args, drop_ratio, emb_dim, feed_forward_dim, gnn_type, num_layer,
                                               num_transformer_layers, residual, virtual_node)
 
+        self.create_pooling(emb_dim)
+
+        if graph_pooling == "set2set":
+            self.graph_pred_linear = torch.nn.Linear(2 * self.emb_dim, self.num_tasks)
+        else:
+            self.graph_pred_linear = torch.nn.Linear(self.emb_dim, self.num_tasks)
+
+    def forward(self, batched_data):
+        h_node = self.gnn_transformer(batched_data)
+        # shape (num_graphs, out_dim)
+        h_graph = self.pool(h_node, batched_data.batch)
+
+        return self.graph_pred_linear(h_graph)
+
+    def create_pooling(self, emb_dim):
         ### Pooling function to generate whole-graph embeddings
         if self.graph_pooling == "sum":
             self.pool = global_add_pool
@@ -45,18 +60,6 @@ class GNN(torch.nn.Module):
             self.pool = Set2Set(emb_dim, processing_steps=2)
         else:
             raise ValueError("Invalid graph pooling type.")
-
-        if graph_pooling == "set2set":
-            self.graph_pred_linear = torch.nn.Linear(2 * self.emb_dim, self.num_tasks)
-        else:
-            self.graph_pred_linear = torch.nn.Linear(self.emb_dim, self.num_tasks)
-
-    def forward(self, batched_data):
-        h_node = self.gnn_transformer(batched_data)
-        # shape (num_graphs, out_dim)
-        h_graph = self.pool(h_node, batched_data.batch)
-
-        return self.graph_pred_linear(h_graph)
 
 
 if __name__ == '__main__':
