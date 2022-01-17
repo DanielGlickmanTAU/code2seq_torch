@@ -4,13 +4,11 @@ compute.get_torch()
 import torch
 from torch_geometric.loader import DataLoader
 import torch.optim as optim
-import torch.nn.functional as F
 from torchvision import transforms
-from gnn import GNN
+from gnn_code import CodeGNN
 
 from tqdm import tqdm
 import argparse
-import time
 import numpy as np
 import pandas as pd
 import os
@@ -175,19 +173,19 @@ def main():
                                   num_nodeattributes=len(nodeattributes_mapping['attr']), max_depth=20)
 
     if args.gnn == 'gin':
-        model = GNN(num_vocab=len(vocab2idx), max_seq_len=args.max_seq_len, node_encoder=node_encoder,
+        model = CodeGNN(num_vocab=len(vocab2idx), max_seq_len=args.max_seq_len, node_encoder=node_encoder,
                     num_layer=args.num_layer, gnn_type='gin', emb_dim=args.emb_dim, drop_ratio=args.drop_ratio,
                     virtual_node=False).to(device)
     elif args.gnn == 'gin-virtual':
-        model = GNN(num_vocab=len(vocab2idx), max_seq_len=args.max_seq_len, node_encoder=node_encoder,
+        model = CodeGNN(num_vocab=len(vocab2idx), max_seq_len=args.max_seq_len, node_encoder=node_encoder,
                     num_layer=args.num_layer, gnn_type='gin', emb_dim=args.emb_dim, drop_ratio=args.drop_ratio,
                     virtual_node=True).to(device)
     elif args.gnn == 'gcn':
-        model = GNN(num_vocab=len(vocab2idx), max_seq_len=args.max_seq_len, node_encoder=node_encoder,
+        model = CodeGNN(num_vocab=len(vocab2idx), max_seq_len=args.max_seq_len, node_encoder=node_encoder,
                     num_layer=args.num_layer, gnn_type='gcn', emb_dim=args.emb_dim, drop_ratio=args.drop_ratio,
                     virtual_node=False).to(device)
     elif args.gnn == 'gcn-virtual':
-        model = GNN(num_vocab=len(vocab2idx), max_seq_len=args.max_seq_len, node_encoder=node_encoder,
+        model = CodeGNN(num_vocab=len(vocab2idx), max_seq_len=args.max_seq_len, node_encoder=node_encoder,
                     num_layer=args.num_layer, gnn_type='gcn', emb_dim=args.emb_dim, drop_ratio=args.drop_ratio,
                     virtual_node=True).to(device)
     else:
