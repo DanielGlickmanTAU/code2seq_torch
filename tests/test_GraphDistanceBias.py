@@ -46,7 +46,7 @@ class TestGraphDistanceBias(TestCase):
         num_heads = 3
 
         receptive_field = [1, 2, unconnected]
-        distance_bias = GraphDistanceBias(args, receptive_field=receptive_field, num_heads=num_heads)
+        distance_bias = GraphDistanceBias(args, receptive_fields=receptive_field, num_heads=num_heads)
         graph = nx.Graph()
         # prepare simple graph 0 -> 1 -> 2 -> 3
         graph.add_edges_from([(0, 1), (1, 2), (2, 3)])

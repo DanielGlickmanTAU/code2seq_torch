@@ -68,6 +68,7 @@ def main():
     def bool_(s):
         return s and s.lower() != 'false'
 
+    import typing
     # Training settings
     parser = argparse.ArgumentParser(description='GNN baselines on ogbgmol* data with Pytorch Geometrics')
     parser.add_argument('--device', type=int, default=0,
@@ -82,6 +83,9 @@ def main():
                         help='number of transformer layers after GNN')
     parser.add_argument('--transformer_ff_dim', type=int, default=600,
                         help='transformer feedforward dim')
+                                    #this reads it as list of ints
+    parser.add_argument('--receptive_fields', nargs='+', type=int, default=None,
+                        help='for each head in transformer, will mask all nodes with distances > value.need to have size as num_heads')
     parser.add_argument('--graph_pooling', type=str, default='mean',
                         help='graph pooling')
     parser.add_argument('--emb_dim', type=int, default=300,

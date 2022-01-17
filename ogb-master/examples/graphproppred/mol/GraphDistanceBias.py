@@ -6,13 +6,13 @@ import DistanceCalculator
 
 
 class GraphDistanceBias(nn.Module):
-    def __init__(self, args, num_heads: int, receptive_field: list = None):
+    def __init__(self, args, num_heads: int, receptive_fields: list = None):
         super(GraphDistanceBias, self).__init__()
         self.args = args
-        self.receptive_fields = receptive_field
-        if receptive_field:
-            assert max(receptive_field) <= DistanceCalculator.unconnected
-            assert len(receptive_field) == num_heads
+        self.receptive_fields = receptive_fields
+        if receptive_fields:
+            assert max(receptive_fields) <= DistanceCalculator.unconnected
+            assert len(receptive_fields) == num_heads
         self.num_heads = num_heads
         self.max_dist = args.max_graph_dist
         self.far_away_mark = self.max_dist

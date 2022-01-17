@@ -24,7 +24,7 @@ class GNNTransformer(nn.Module):
             encoder_layer = nn.TransformerEncoderLayer(d_model=self.emb_dim, nhead=num_heads,
                                                        dim_feedforward=feed_forward_dim)
             self.transformer = nn.TransformerEncoder(encoder_layer, num_layers=num_transformer_layers)
-            self.distance_bias = GraphDistanceBias(args, num_heads=num_heads)
+            self.distance_bias = GraphDistanceBias(args, num_heads=num_heads, receptive_fields=args.receptive_fields)
 
     def forward(self, batched_data):
         h_node = self.gnn_node(batched_data)
