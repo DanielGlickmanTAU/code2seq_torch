@@ -22,7 +22,7 @@ reg_criterion = torch.nn.MSELoss()
 
 def train_epoch(model, device, loader, optimizer, task_type):
     model.train()
-
+    losses = []
     for step, batch in enumerate(tqdm(loader, desc="Iteration")):
         batch = batch.to(device)
 
@@ -39,6 +39,8 @@ def train_epoch(model, device, loader, optimizer, task_type):
                 loss = reg_criterion(pred.to(torch.float32)[is_labeled], batch.y.to(torch.float32)[is_labeled])
             loss.backward()
             optimizer.step()
+            losses.append(loss.item())
+    return sum(losses) / len(losses)
 
 
 def eval(model, device, loader, evaluator):
@@ -128,7 +130,7 @@ def main():
 
     valid_curve = []
     test_curve = []
-    train_curve = []
+    train_losses = []
     best_so_far = 0.
     steps_with_no_improvement = 0
 
@@ -141,7 +143,7 @@ def main():
     for epoch in range(1, args.epochs + 1):
         print("=====Epoch {}".format(epoch))
         print('Training...')
-        train_epoch(model, device, train_loader, optimizer, dataset.task_type)
+        epoch_avg_loss = train_epoch(model, device, train_loader, optimizer, dataset.task_type)
 
         print('Evaluating...')
         # train_perf = eval(model, device, train_loader, evaluator)
@@ -149,16 +151,17 @@ def main():
         test_perf = eval(model, device, test_loader, evaluator)
 
         # print({'Train': train_perf, 'Validation': valid_perf, 'Test': test_perf})
+        print(f'epoch loss {epoch_avg_loss}')
         print({'Validation': valid_perf, 'Test': test_perf})
 
         validation_score = valid_perf[dataset.eval_metric]
         test_score = test_perf[dataset.eval_metric]
-        # train_curve.append(train_score)
+        train_losses.append(epoch_avg_loss)
         valid_curve.append(validation_score)
         test_curve.append(test_score)
 
         # train_score = train_perf[dataset.eval_metric]
-        # exp.log_metric(f'train_{dataset.eval_metric}', train_score)
+        exp.log_metric(f'epoch_loss', epoch_avg_loss)
         exp.log_metric(f'val_{dataset.eval_metric}', validation_score)
         exp.log_metric(f'test_{dataset.eval_metric}', test_score)
 
@@ -172,24 +175,22 @@ def main():
 
     if 'classification' in dataset.task_type:
         best_val_epoch = np.argmax(np.array(valid_curve))
-        best_train = max(train_curve)
     else:
         best_val_epoch = np.argmin(np.array(valid_curve))
-        best_train = min(train_curve)
+    best_train = min(train_losses)
 
     train_perf = eval(model, device, train_loader, evaluator)
-    train_curve.append(train_perf[dataset.eval_metric])
+
     print('Finished training!')
     print('Best validation score: {}'.format(valid_curve[best_val_epoch]))
     print('Test score: {}'.format(test_curve[best_val_epoch]))
     exp.log_metric(f'last_test_', test_curve[best_val_epoch])
-    train_perf = eval(model, device, train_loader, evaluator)
     train_score = train_perf[dataset.eval_metric]
     exp.log_metric(f'train_{dataset.eval_metric}', train_score)
 
     if not args.filename == '':
         torch.save({'Val': valid_curve[best_val_epoch], 'Test': test_curve[best_val_epoch],
-                    'Train': train_curve[best_val_epoch], 'BestTrain': best_train}, args.filename)
+                    'Train': train_losses[best_val_epoch], 'BestTrain': best_train}, args.filename)
 
 
 if __name__ == "__main__":
