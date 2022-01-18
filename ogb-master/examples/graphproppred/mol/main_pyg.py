@@ -177,6 +177,8 @@ def main():
         best_val_epoch = np.argmin(np.array(valid_curve))
         best_train = min(train_curve)
 
+    train_perf = eval(model, device, train_loader, evaluator)
+    train_curve.append(train_perf[dataset.eval_metric])
     print('Finished training!')
     print('Best validation score: {}'.format(valid_curve[best_val_epoch]))
     print('Test score: {}'.format(test_curve[best_val_epoch]))
