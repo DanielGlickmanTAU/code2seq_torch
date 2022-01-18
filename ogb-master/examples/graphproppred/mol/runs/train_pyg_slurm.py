@@ -1,16 +1,19 @@
+import time
+
 from code2seq.utils.gridsearch import gridsearch
 from code2seq.utils.slurm import run_on_slurm
 import os
 
 params_for_grid_search = {
     'num_layer': [6],
-    'num_transformer_layers': [2, 4],
+    'num_transformer_layers': [6],
     # 'num_transformer_layers': [0],
     'transformer_ff_dim': [1200],
     'residual': [True],
     'distance_bias': [True],
-    'num_heads': [10, 30]
+    # 'num_heads': [10, 30]
     # 'receptive_fields': ['1 2 4 8', '1 1 40 40', '1 4 6 40', '1 2 40 40']
+    'receptive_fields': ['4 4 4 4', '1 1 1 1']
 }
 
 params = {
@@ -31,3 +34,4 @@ while True:
     not_running = [x for x in ids if str(x) not in running]
     len_running = len(ids) - len(not_running)
     print(f'running {len_running}/{len(ids)} jobs. {not_running} stopped.')
+    time.sleep(10)

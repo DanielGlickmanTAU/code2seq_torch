@@ -1,4 +1,6 @@
-from main_pyg import torch
+from code2seq.utils import compute
+
+torch = compute.get_torch()
 
 
 def add_args(parser):
@@ -41,4 +43,4 @@ def add_args(parser):
     parser.add_argument('--max_graph_dist', type=int, default=20)
     parser.add_argument('--learning_rate', type=float, default=0.00004)
     parser.add_argument('--exp_name', type=str, default='graph-filter-network')
-    parser.add_argument('--num_head', type=int, default=4, help='attention heads')
+    parser.add_argument('--num_heads', type=int, default=4, help='attention heads')

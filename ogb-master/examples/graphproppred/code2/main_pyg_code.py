@@ -195,8 +195,6 @@ def main():
         train(model, device, train_loader, optimizer)
 
         print('Evaluating...')
-        # train_perf = eval(model, device, train_loader, evaluator,
-        #                   arr_to_seq=lambda arr: decode_arr_to_seq(arr, idx2vocab))
         valid_perf = eval(model, device, valid_loader, evaluator,
                           arr_to_seq=lambda arr: decode_arr_to_seq(arr, idx2vocab))
         test_perf = eval(model, device, test_loader, evaluator,
@@ -204,7 +202,7 @@ def main():
 
         # print({'Train': train_perf, 'Validation': valid_perf, 'Test': test_perf})
 
-        # train_curve.append(train_perf[dataset.eval_metric])
+
         validation_score = valid_perf[dataset.eval_metric]
         test_score = test_perf[dataset.eval_metric]
         valid_curve.append(validation_score)
@@ -222,6 +220,9 @@ def main():
 
     print('F1')
     best_val_epoch = np.argmax(np.array(valid_curve))
+    train_perf = eval(model, device, train_loader, evaluator,
+                      arr_to_seq=lambda arr: decode_arr_to_seq(arr, idx2vocab))
+    train_curve.append(train_perf[dataset.eval_metric])
     best_train = max(train_curve)
     print('Finished training!')
     print('Best validation score: {}'.format(valid_curve[best_val_epoch]))
