@@ -1,6 +1,7 @@
 import torch
 from torch_geometric.nn import global_add_pool, global_mean_pool, global_max_pool, GlobalAttention, Set2Set
 
+import decoding
 from GNN_transformer import GNNTransformer
 
 
@@ -40,14 +41,9 @@ class GNN(torch.nn.Module):
             print('assuming code task')
             self.task = 'code'
             self.max_seq_len = args.max_seq_len
-            self.graph_pred_linear_list = torch.nn.ModuleList()
-            if graph_pooling == "set2set":
-                for i in range(self.max_seq_len):
-                    self.graph_pred_linear_list.append(torch.nn.Linear(2 * emb_dim, self.num_tasks))
+            self.decoder = decoding.LSTMDecoder(input_dim=emb_dim, output_dim=self.num_tasks, hidden_dim=emb_dim,
+                                                max_seq_len=self.max_seq_len)
 
-            else:
-                for i in range(self.max_seq_len):
-                    self.graph_pred_linear_list.append(torch.nn.Linear(emb_dim, self.num_tasks))
         else:
             print('assuming mol task')
             self.task = 'mol'
@@ -65,11 +61,7 @@ class GNN(torch.nn.Module):
         if self.task == 'mol':
             return self.graph_pred_linear(h_graph)
 
-        pred_list = []
-        for i in range(self.max_seq_len):
-            pred_list.append(self.graph_pred_linear_list[i](h_graph))
-
-        return pred_list
+        return self.decoder(h_graph)
 
     def create_pooling(self, emb_dim):
         ### Pooling function to generate whole-graph embeddings

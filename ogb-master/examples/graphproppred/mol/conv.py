@@ -97,11 +97,11 @@ class GNN_node(torch.nn.Module):
         # if self.num_layer < 2:
         #     raise ValueError("Number of GNN layers must be greater than 1.")
         if node_encoder is None:
-            self.atom_encoder = AtomEncoder(emb_dim)
-            self.type = 'mol'
+            self.node_encoder = AtomEncoder(emb_dim)
+            self.task = 'mol'
         else:
-            self.atom_encoder = node_encoder
-            self.type = 'code'
+            self.node_encoder = node_encoder
+            self.task = 'code'
 
         ###List of GNNs
         self.convs = torch.nn.ModuleList()
@@ -109,9 +109,9 @@ class GNN_node(torch.nn.Module):
 
         for layer in range(num_layer):
             if gnn_type == 'gin':
-                self.convs.append(GINConv(emb_dim, self.type))
+                self.convs.append(GINConv(emb_dim, self.task))
             elif gnn_type == 'gcn':
-                self.convs.append(GCNConv(emb_dim, self.type))
+                self.convs.append(GCNConv(emb_dim, self.task))
             elif gnn_type == 'gatv2':
                 self.convs.append(GATv2Conv(emb_dim, emb_dim, heads=2))
             else:
@@ -120,9 +120,9 @@ class GNN_node(torch.nn.Module):
             self.batch_norms.append(torch.nn.BatchNorm1d(emb_dim))
 
     def forward(self, batched_data):
-        if self.type == 'mol':
+        if self.task == 'mol':
             x, edge_index, edge_attr, batch = batched_data.x, batched_data.edge_index, batched_data.edge_attr, batched_data.batch
-            h_list = [self.atom_encoder(x)]
+            h_list = [self.node_encoder(x)]
         else:
             x, edge_index, edge_attr, node_depth, batch = batched_data.x, batched_data.edge_index, batched_data.edge_attr, batched_data.node_depth, batched_data.batch
             h_list = [self.node_encoder(x, node_depth.view(-1, ))]

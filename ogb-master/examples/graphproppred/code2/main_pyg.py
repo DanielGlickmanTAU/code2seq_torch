@@ -21,7 +21,6 @@ from ogb.graphproppred import PygGraphPropPredDataset, Evaluator
 from utils import ASTNodeEncoder, get_vocab_mapping
 ### for data transform
 from utils import augment_edge, encode_y_to_arr, decode_arr_to_seq
-
 multicls_criterion = torch.nn.CrossEntropyLoss()
 
 
