@@ -1,6 +1,8 @@
 import args_parse
 from code2seq.utils import compute
 from gnn import GNN
+from DistanceCalculator import DistanceCalculator
+from pytorch_lightning.loggers import CometLogger
 
 compute.get_torch()
 import torch
@@ -18,9 +20,10 @@ import os
 from ogb.graphproppred import PygGraphPropPredDataset, Evaluator
 
 ### importing utils
-from utils import ASTNodeEncoder, get_vocab_mapping
+from utils import ASTNodeEncoder, get_vocab_mapping, start_exp
 ### for data transform
 from utils import augment_edge, encode_y_to_arr, decode_arr_to_seq
+
 multicls_criterion = torch.nn.CrossEntropyLoss()
 
 
@@ -143,8 +146,6 @@ def main():
     nodetypes_mapping = pd.read_csv(os.path.join(dataset.root, 'mapping', 'typeidx2type.csv.gz'))
     nodeattributes_mapping = pd.read_csv(os.path.join(dataset.root, 'mapping', 'attridx2attr.csv.gz'))
 
-    print(nodeattributes_mapping)
-
     ### Encoding node features into emb_dim vectors.
     ### The following three node features are used.
     # 1. node type
@@ -172,13 +173,18 @@ def main():
     else:
         raise ValueError('Invalid GNN type')
 
-    optimizer = optim.Adam(model.parameters(), lr=0.001)
+    exp = start_exp(args.exp_name, args, model)
+
+    print(nodeattributes_mapping)
+    optimizer = optim.Adam(model.parameters(), lr=args.learning_rate)
 
     print(f'#Params: {sum(p.numel() for p in model.parameters())}')
 
     valid_curve = []
     test_curve = []
     train_curve = []
+    best_so_far = 0.
+    steps_with_no_improvement = 0
 
     for epoch in range(1, args.epochs + 1):
         print("=====Epoch {}".format(epoch))
@@ -186,18 +192,30 @@ def main():
         train(model, device, train_loader, optimizer)
 
         print('Evaluating...')
-        train_perf = eval(model, device, train_loader, evaluator,
-                          arr_to_seq=lambda arr: decode_arr_to_seq(arr, idx2vocab))
+        # train_perf = eval(model, device, train_loader, evaluator,
+        #                   arr_to_seq=lambda arr: decode_arr_to_seq(arr, idx2vocab))
         valid_perf = eval(model, device, valid_loader, evaluator,
                           arr_to_seq=lambda arr: decode_arr_to_seq(arr, idx2vocab))
         test_perf = eval(model, device, test_loader, evaluator,
                          arr_to_seq=lambda arr: decode_arr_to_seq(arr, idx2vocab))
 
-        print({'Train': train_perf, 'Validation': valid_perf, 'Test': test_perf})
+        # print({'Train': train_perf, 'Validation': valid_perf, 'Test': test_perf})
 
-        train_curve.append(train_perf[dataset.eval_metric])
-        valid_curve.append(valid_perf[dataset.eval_metric])
-        test_curve.append(test_perf[dataset.eval_metric])
+        # train_curve.append(train_perf[dataset.eval_metric])
+        validation_score = valid_perf[dataset.eval_metric]
+        test_score = test_perf[dataset.eval_metric]
+        valid_curve.append(validation_score)
+        test_curve.append(test_score)
+        exp.log_metric(f'val_{dataset.eval_metric}', validation_score)
+        exp.log_metric(f'test_{dataset.eval_metric}', test_score)
+
+        if validation_score > best_so_far:
+            best_so_far = validation_score
+            steps_with_no_improvement = 0
+        else:
+            steps_with_no_improvement += 1
+            if steps_with_no_improvement > args.patience:
+                break
 
     print('F1')
     best_val_epoch = np.argmax(np.array(valid_curve))
@@ -205,6 +223,10 @@ def main():
     print('Finished training!')
     print('Best validation score: {}'.format(valid_curve[best_val_epoch]))
     print('Test score: {}'.format(test_curve[best_val_epoch]))
+    exp.log_metric(f'last_test_', test_curve[best_val_epoch])
+    train_perf = eval(model, device, train_loader, evaluator, arr_to_seq=lambda arr: decode_arr_to_seq(arr, idx2vocab))
+    train_score = train_perf[dataset.eval_metric]
+    exp.log_metric(f'train_{dataset.eval_metric}', train_score)
 
     if not args.filename == '':
         result_dict = {'Val': valid_curve[best_val_epoch], 'Test': test_curve[best_val_epoch],

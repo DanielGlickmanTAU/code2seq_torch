@@ -1,6 +1,7 @@
 from args_parse import add_args
 from code2seq.utils import compute
 from DistanceCalculator import DistanceCalculator
+from utils import start_exp
 
 torch = compute.get_torch()
 from pytorch_lightning.loggers import CometLogger
@@ -75,15 +76,6 @@ def main():
 
     device = torch.device("cuda:" + str(args.device)) if torch.cuda.is_available() else torch.device("cpu")
 
-    comet_logger = CometLogger(
-        project_name=args.exp_name,
-        api_key='FvAd5fm5rJLIj6TtmfGHUJm4b',
-        workspace="danielglickmantau",
-    )
-
-    # need this for starting the experiment
-    exp = comet_logger.experiment
-
     ### automatic dataloading and splitting
 
     dataset = PygGraphPropPredDataset(name=args.dataset, transform=DistanceCalculator())
@@ -140,8 +132,11 @@ def main():
     best_so_far = 0.
     steps_with_no_improvement = 0
 
-    exp.set_model_graph(model)
-    exp.log_parameters(args)
+    exp = start_exp(args.exp_name, args, model)
+    try:
+        print(f'#Params: {sum(p.numel() for p in model.parameters())}')
+    except:
+        print('fail print params')
 
     for epoch in range(1, args.epochs + 1):
         print("=====Epoch {}".format(epoch))
