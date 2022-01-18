@@ -21,6 +21,13 @@ params = {
 }
 os.chdir('..')
 job_name = '''main_pyg.py'''
+ids = []
 for p in gridsearch(params, params_for_grid_search):
-    run_on_slurm(job_name, p, slurm=True, sleep=True)
+    id = run_on_slurm(job_name, p, slurm=True, sleep=True)
+    ids.append(ids)
 print(f'submited {len(gridsearch(params, params_for_grid_search))} jobs')
+while True:
+    running = os.popen("squeue |grep glick | awk '{print $1}' | xargs").read()
+    not_running = [x for x in ids if str(x) not in running]
+    len_running = len(ids) - len(not_running)
+    print(f'running {len_running}/{len(ids)} jobs. {not_running} stopped.')

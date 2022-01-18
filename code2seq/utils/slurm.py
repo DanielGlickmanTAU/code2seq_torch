@@ -50,3 +50,4 @@ def run_on_slurm(job_name, params, no_flag_param='', slurm=True, gpu=True, sleep
             time.sleep(random.randint(0, 15))
     else:
         time.sleep(1)
+    return job_id
