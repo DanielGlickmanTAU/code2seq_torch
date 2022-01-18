@@ -1,5 +1,6 @@
 import args_parse
 from code2seq.utils import compute
+from exp_utils import start_exp
 from gnn import GNN
 from DistanceCalculator import DistanceCalculator
 from pytorch_lightning.loggers import CometLogger
@@ -20,7 +21,7 @@ import os
 from ogb.graphproppred import PygGraphPropPredDataset, Evaluator
 
 ### importing utils
-from utils import ASTNodeEncoder, get_vocab_mapping, start_exp
+from utils import ASTNodeEncoder, get_vocab_mapping
 ### for data transform
 from utils import augment_edge, encode_y_to_arr, decode_arr_to_seq
 
@@ -51,7 +52,9 @@ def train(model, device, loader, optimizer):
 
             loss_accum += loss.item()
 
-    print('Average training loss: {}'.format(loss_accum / (step + 1)))
+    avg_train_loss = loss_accum / (step + 1)
+
+    print('Average training loss: {}'.format(avg_train_loss))
 
 
 def eval(model, device, loader, evaluator, arr_to_seq):

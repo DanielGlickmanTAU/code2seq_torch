@@ -1,7 +1,7 @@
 from args_parse import add_args
 from code2seq.utils import compute
 from DistanceCalculator import DistanceCalculator
-from utils import start_exp
+from exp_utils import start_exp
 
 torch = compute.get_torch()
 from pytorch_lightning.loggers import CometLogger
