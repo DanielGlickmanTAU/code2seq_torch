@@ -4,13 +4,14 @@ import os
 
 params_for_grid_search = {
     'num_layer': [6],
-    'num_transformer_layers': [6],
+    # 'num_transformer_layers': [1, 2],
+    'num_transformer_layers': [0],
     # 'num_transformer_layers': [0],
     'transformer_ff_dim': [1200],
     'residual': [True],
     'distance_bias': [True],
     # 'num_heads': [10, 30]
-    'receptive_fields': ['1 2 4 8', '1 1 40 40']
+    # 'receptive_fields': ['1 2 4 8', '1 1 40 40']
 }
 
 params = {

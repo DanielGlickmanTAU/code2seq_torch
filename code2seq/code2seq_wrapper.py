@@ -1,3 +1,4 @@
+import re
 from code2seq.utils import compute
 
 torch = compute.get_torch()

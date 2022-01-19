@@ -1,6 +1,9 @@
 import torch
+from commode_utils.modules import Decoder, LSTMDecoderStep
+from commode_utils.training import cut_into_segments
+from omegaconf import DictConfig
 from torch_geometric.nn import global_add_pool, global_mean_pool, global_max_pool, GlobalAttention, Set2Set
-
+import pygraph_utils
 import decoding
 from GNN_transformer import GNNTransformer
 
@@ -29,24 +32,27 @@ class GNN(torch.nn.Module):
         self.num_tasks = num_tasks
         self.graph_pooling = graph_pooling
 
-        # if self.num_layer < 2:
-        #     raise ValueError("Number of GNN layers must be greater than 1.")
-
         self.gnn_transformer = GNNTransformer(JK, args, drop_ratio, emb_dim, feed_forward_dim, gnn_type, num_layer,
                                               num_transformer_layers, residual, virtual_node, node_encoder)
-
-        self.create_pooling(emb_dim)
 
         if node_encoder:
             print('assuming code task')
             self.task = 'code'
             self.max_seq_len = args.max_seq_len
-            self.decoder = decoding.LSTMDecoder(input_dim=emb_dim, output_dim=self.num_tasks, hidden_dim=emb_dim,
-                                                max_seq_len=self.max_seq_len)
+            # self.decoder = decoding.LSTMDecoder(input_dim=emb_dim, output_dim=self.num_tasks, hidden_dim=emb_dim,
+            #                                     max_seq_len=self.max_seq_len)
+            config = DictConfig({'decoder_num_layers': 2,
+                                 'embedding_size': self.emb_dim,
+                                 'decoder_size': self.emb_dim,
+                                 'rnn_dropout': self.args.drop_ratio})
+            decoder_step = LSTMDecoderStep(config, self.num_tasks + 1)
+            self.decoder = Decoder(decoder_step, output_size=self.num_tasks + 1, sos_token=self.num_tasks,
+                                   teacher_forcing=1.0)
 
         else:
             print('assuming mol task')
             self.task = 'mol'
+            self.create_pooling(emb_dim)
 
             if graph_pooling == "set2set":
                 self.graph_pred_linear = torch.nn.Linear(2 * self.emb_dim, self.num_tasks)
@@ -56,12 +62,29 @@ class GNN(torch.nn.Module):
     def forward(self, batched_data):
         h_node = self.gnn_transformer(batched_data)
         # shape (num_graphs, out_dim)
-        h_graph = self.pool(h_node, batched_data.batch)
 
         if self.task == 'mol':
+            h_graph = self.pool(h_node, batched_data.batch)
             return self.graph_pred_linear(h_graph)
 
-        return self.decoder(h_graph)
+        segment_sizes = torch.unique_consecutive(batched_data.batch, return_counts=True)[1]
+        # add sos token to targets
+        targets = torch.cat((torch.full((batched_data.y_arr.shape[0], 1), self.num_tasks + 1,
+                                        device=batched_data.batch.device), batched_data.y_arr),
+                            dim=1)
+        # (seq_len,batch)
+        targets = targets.T
+        # +1 to fix <SOS> issues..
+        x, y = self.decoder(h_node, segment_sizes, self.max_seq_len + 1, target_sequence=targets)
+        # x shape is (max_seq_len,batch,1 +num_tasks)
+
+        # drop first prediction(SOS.first dim).. and sos logits(last dim) of each prediciton after
+        # this is done to fix training later
+        x = x[1:, :, :-1]
+        return x
+
+        # this returns list of len max_seq_len each having tensor of size (batch,num_tasks)
+        # return self.decoder(h_graph)
 
     def create_pooling(self, emb_dim):
         ### Pooling function to generate whole-graph embeddings

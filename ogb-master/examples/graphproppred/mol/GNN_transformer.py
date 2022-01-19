@@ -3,6 +3,7 @@ from torch import nn
 
 from GraphDistanceBias import GraphDistanceBias
 from conv import GNN_node_Virtualnode, GNN_node
+from pygraph_utils import split_into_graphs
 
 
 class GNNTransformer(nn.Module):
@@ -37,7 +38,7 @@ class GNNTransformer(nn.Module):
     def forward_transformer(self, batched_data, h_node):
         # change from batched_data(shape num_nodes in batch, emb_dim), to list where each item is of shape (#num_nodes in *graph*, emb_dim)
         # todo check torch_geometric.utils.to_dense_batch
-        h_node_batch = self.split_into_graphs(batched_data, h_node)
+        h_node_batch = split_into_graphs(batched_data, h_node)
         distances_batched = self.distance_bias(batched_data)
         transformer_result = []
         for x, distance_weights in zip(h_node_batch, distances_batched):
@@ -48,10 +49,3 @@ class GNNTransformer(nn.Module):
         # back to original dim, i.e pytorch geometric format
         h_node = torch.cat(transformer_result, dim=0)
         return h_node
-
-    def split_into_graphs(self, batched_data, h_node):
-        graph_end_indexes = torch.unique_consecutive(batched_data.batch, return_counts=True)[1]
-        graph_end_indexes_as_list = [x.item() for x in graph_end_indexes]
-        h_node_batched = torch.split(h_node, graph_end_indexes_as_list)
-
-        return h_node_batched

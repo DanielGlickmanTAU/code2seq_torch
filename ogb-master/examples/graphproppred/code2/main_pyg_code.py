@@ -28,7 +28,7 @@ from utils import augment_edge, encode_y_to_arr, decode_arr_to_seq
 multicls_criterion = torch.nn.CrossEntropyLoss()
 
 
-def train(model, device, loader, optimizer):
+def train(model, device, loader, optimizer, exp):
     model.train()
 
     loss_accum = 0
@@ -53,7 +53,7 @@ def train(model, device, loader, optimizer):
             loss_accum += loss.item()
 
     avg_train_loss = loss_accum / (step + 1)
-
+    exp.log_metric('loss', avg_train_loss)
     print('Average training loss: {}'.format(avg_train_loss))
 
 
@@ -100,6 +100,7 @@ def main():
     parser.add_argument('--dataset', type=str, default="ogbg-code2",
                         help='dataset name (default: ogbg-code2)')
     args = parser.parse_args()
+
     print(args)
 
     device = torch.device("cuda:" + str(args.device)) if torch.cuda.is_available() else torch.device("cpu")
@@ -192,7 +193,7 @@ def main():
     for epoch in range(1, args.epochs + 1):
         print("=====Epoch {}".format(epoch))
         print('Training...')
-        train(model, device, train_loader, optimizer)
+        train(model, device, train_loader, optimizer, exp)
 
         print('Evaluating...')
         valid_perf = eval(model, device, valid_loader, evaluator,
@@ -202,13 +203,14 @@ def main():
 
         # print({'Train': train_perf, 'Validation': valid_perf, 'Test': test_perf})
 
-
         validation_score = valid_perf[dataset.eval_metric]
         test_score = test_perf[dataset.eval_metric]
         valid_curve.append(validation_score)
         test_curve.append(test_score)
         exp.log_metric(f'val_{dataset.eval_metric}', validation_score)
+        print(f'val {validation_score}')
         exp.log_metric(f'test_{dataset.eval_metric}', test_score)
+        print(f'test {test_score}')
 
         if validation_score > best_so_far:
             best_so_far = validation_score

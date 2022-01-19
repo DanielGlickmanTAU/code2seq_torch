@@ -8,12 +8,13 @@ params_for_grid_search = {
     'num_layer': [6],
     'num_transformer_layers': [6],
     # 'num_transformer_layers': [0],
-    'transformer_ff_dim': [1200],
+    'transformer_ff_dim': [2400],
     'residual': [True],
     'distance_bias': [True],
+    'num_heads': [75, 150, 300]
     # 'num_heads': [10, 30]
     # 'receptive_fields': ['1 2 4 8', '1 1 40 40', '1 4 6 40', '1 2 40 40']
-    'receptive_fields': ['4 4 4 4', '1 1 1 1']
+    # 'receptive_fields': ['4 4 4 4', '1 1 1 1']
 }
 
 params = {
