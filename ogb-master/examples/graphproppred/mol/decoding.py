@@ -1,25 +1,37 @@
 import torch
+from commode_utils.modules import LSTMDecoderStep, Decoder
+from omegaconf import DictConfig
 
 
 class LSTMDecoder(torch.nn.Module):
-    def __init__(self, input_dim, output_dim, hidden_dim, num_layers=2, max_seq_len=10):
+    def __init__(self, args, emb_dim, num_tasks, max_seq_len=10):
         super(LSTMDecoder, self).__init__()
+        self.args = args
+        self.max_seq_len = args.max_seq_len
+        self.num_tasks = num_tasks
         self.max_seq_len = max_seq_len
-        self.decoder = torch.nn.LSTM(input_size=input_dim, hidden_size=hidden_dim, num_layers=num_layers)
-        self.linear_layer = torch.nn.Linear(input_dim, output_dim)
 
-    def forward(self, x: torch.Tensor):
-        pred_list = []
+        config = DictConfig({'decoder_num_layers': 2,
+                             'embedding_size': emb_dim,
+                             'decoder_size': emb_dim,
+                             'rnn_dropout': self.args.drop_ratio})
+        self.output_size = self.num_tasks + 1
+        decoder_step = LSTMDecoderStep(config, self.output_size)
+        self.decoder = Decoder(decoder_step, output_size=self.output_size, sos_token=self.num_tasks,
+                               teacher_forcing=1.0)
 
-        cn, hn = self.get_initial_hn_cn(x.size(0), x.device)
-        for i in range(self.max_seq_len):
-            output, (hn, cn) = self.decoder(x.unsqueeze(0), (hn, cn))
-            pred_list.append(self.linear_layer(output).squeeze(0))
+    def forward(self, h_node, batched_data):
+        segment_sizes = torch.unique_consecutive(batched_data.batch, return_counts=True)[1]
+        targets = self._get_targets_with_sos_token_added(batched_data)
 
-        # list of len max_seq_len where each entry is a tensor of shape num_graphs(batch_size) X num_tasks(out_dim)
-        return pred_list
+        x, att_weights = self.decoder(h_node, segment_sizes, self.output_size, target_sequence=targets)
 
-    def get_initial_hn_cn(self, batch_size, device):
-        size_ = (self.decoder.num_layers, batch_size, self.decoder.hidden_size)
-        hn, cn = torch.zeros(size_, device=device), torch.zeros(size_, device=device)
-        return cn, hn
+        # drop first prediction(SOS.first dim).. and sos logits(last dim) of each prediciton after
+        # this is done to fix training later
+        x = x[1:, :, :-1]
+        return x
+
+    def _get_targets_with_sos_token_added(self, batched_data):
+        sos_pad = torch.full((batched_data.y_arr.shape[0], 1), self.output_size, device=batched_data.batch.device)
+        # returns shape (batch,seq_len)
+        return torch.cat((sos_pad, batched_data.y_arr), dim=1).T

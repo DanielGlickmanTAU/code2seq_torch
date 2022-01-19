@@ -48,6 +48,7 @@ class GNN(torch.nn.Module):
             decoder_step = LSTMDecoderStep(config, self.num_tasks + 1)
             self.decoder = Decoder(decoder_step, output_size=self.num_tasks + 1, sos_token=self.num_tasks,
                                    teacher_forcing=1.0)
+            self.decoder = decoding.LSTMDecoder(args, emb_dim, self.num_tasks, max_seq_len=10)
 
         else:
             print('assuming mol task')
@@ -67,24 +68,7 @@ class GNN(torch.nn.Module):
             h_graph = self.pool(h_node, batched_data.batch)
             return self.graph_pred_linear(h_graph)
 
-        segment_sizes = torch.unique_consecutive(batched_data.batch, return_counts=True)[1]
-        # add sos token to targets
-        targets = torch.cat((torch.full((batched_data.y_arr.shape[0], 1), self.num_tasks + 1,
-                                        device=batched_data.batch.device), batched_data.y_arr),
-                            dim=1)
-        # (seq_len,batch)
-        targets = targets.T
-        # +1 to fix <SOS> issues..
-        x, y = self.decoder(h_node, segment_sizes, self.max_seq_len + 1, target_sequence=targets)
-        # x shape is (max_seq_len,batch,1 +num_tasks)
-
-        # drop first prediction(SOS.first dim).. and sos logits(last dim) of each prediciton after
-        # this is done to fix training later
-        x = x[1:, :, :-1]
-        return x
-
-        # this returns list of len max_seq_len each having tensor of size (batch,num_tasks)
-        # return self.decoder(h_graph)
+        return self.decoder(h_node, batched_data)
 
     def create_pooling(self, emb_dim):
         ### Pooling function to generate whole-graph embeddings
