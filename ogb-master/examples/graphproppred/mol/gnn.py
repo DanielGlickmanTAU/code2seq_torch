@@ -1,9 +1,8 @@
 import torch
 from commode_utils.modules import Decoder, LSTMDecoderStep
-from commode_utils.training import cut_into_segments
 from omegaconf import DictConfig
 from torch_geometric.nn import global_add_pool, global_mean_pool, global_max_pool, GlobalAttention, Set2Set
-import pygraph_utils
+
 import decoding
 from GNN_transformer import GNNTransformer
 
