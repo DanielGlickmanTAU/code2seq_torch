@@ -41,6 +41,7 @@ def add_args(parser):
                         help='filename to output result (default: )')
     parser.add_argument('--distance_bias', type=bool_, default=True)
     parser.add_argument('--max_graph_dist', type=int, default=20)
-    parser.add_argument('--learning_rate', type=float, default=0.00004)
+
+    parser.add_argument('--learning_rate', type=float, default=0.0001)
     parser.add_argument('--exp_name', type=str, default='graph-filter-network')
     parser.add_argument('--num_heads', type=int, default=4, help='attention heads')

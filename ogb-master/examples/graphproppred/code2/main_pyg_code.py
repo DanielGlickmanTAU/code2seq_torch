@@ -180,7 +180,7 @@ def main():
     exp = start_exp(args.exp_name, args, model)
 
     print(nodeattributes_mapping)
-    optimizer = optim.Adam(model.parameters(), lr=args.learning_rate)
+    optimizer = optim.Adam(model.parameters(), lr=args.learning_rate, weight_decay=0.00001)
 
     print(f'#Params: {sum(p.numel() for p in model.parameters())}')
 
