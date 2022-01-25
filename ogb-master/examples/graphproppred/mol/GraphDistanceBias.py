@@ -2,7 +2,7 @@ import numpy
 import torch
 from torch import nn
 
-import DistanceCalculator
+from dataset_transformations import DistanceCalculator, unconnected
 
 
 class GraphDistanceBias(nn.Module):
@@ -11,7 +11,7 @@ class GraphDistanceBias(nn.Module):
         self.args = args
         self.receptive_fields = receptive_fields
         if receptive_fields:
-            assert max(receptive_fields) <= DistanceCalculator.unconnected
+            assert max(receptive_fields) <= unconnected
             assert len(receptive_fields) == num_heads
         self.num_heads = num_heads
         self.max_dist = args.max_graph_dist

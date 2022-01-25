@@ -1,7 +1,9 @@
 from args_parse import add_args
 from code2seq.utils import compute
-from DistanceCalculator import DistanceCalculator
+from dataset_transformations import DistanceCalculator, AdjStack
+
 from exp_utils import start_exp
+from torchvision import transforms
 
 torch = compute.get_torch()
 from pytorch_lightning.loggers import CometLogger
@@ -72,6 +74,7 @@ def main():
     # Training settings
     parser = argparse.ArgumentParser(description='GNN baselines on ogbgmol* data with Pytorch Geometrics')
     add_args(parser)
+    AdjStack.add_args(parser)
     parser.add_argument('--dataset', type=str, default="ogbg-molhiv",
                         help='dataset name (default: ogbg-molhiv)')
     args = parser.parse_args()
@@ -80,8 +83,8 @@ def main():
 
     ### automatic dataloading and splitting
 
-    dataset = PygGraphPropPredDataset(name=args.dataset, transform=DistanceCalculator())
-    # dataset = PygGraphPropPredDataset(name=args.dataset)
+    dataset = PygGraphPropPredDataset(name=args.dataset,
+                                      transform=transforms.Compose([DistanceCalculator(), AdjStack(args)]))
 
     if args.feature == 'full':
         pass
