@@ -3,9 +3,11 @@ from code2seq.utils import compute
 torch = compute.get_torch()
 
 
+def bool_(s):
+    return s and s.lower() != 'false'
+
+
 def add_args(parser):
-    def bool_(s):
-        return s and s.lower() != 'false'
 
     parser.add_argument('--device', type=int, default=0,
                         help='which gpu to use if any (default: 0)')
@@ -20,8 +22,7 @@ def add_args(parser):
     parser.add_argument('--transformer_ff_dim', type=int, default=600,
                         help='transformer feedforward dim')
     # this reads it as list of ints
-    parser.add_argument('--receptive_fields', nargs='+', type=int, default=None,
-                        help='for each head in transformer, will mask all nodes with distances > value.need to have size as num_heads')
+
     parser.add_argument('--graph_pooling', type=str, default='mean',
                         help='graph pooling')
     parser.add_argument('--emb_dim', type=int, default=300,
@@ -39,7 +40,6 @@ def add_args(parser):
                         help='full feature or simple feature')
     parser.add_argument('--filename', type=str, default="",
                         help='filename to output result (default: )')
-    parser.add_argument('--distance_bias', type=bool_, default=True)
     parser.add_argument('--max_graph_dist', type=int, default=20)
 
     parser.add_argument('--learning_rate', type=float, default=0.0001)

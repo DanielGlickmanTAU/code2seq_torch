@@ -1,5 +1,6 @@
+from code2seq.utils import compute ##import this first
+from GraphDistanceBias import GraphDistanceBias
 from args_parse import add_args
-from code2seq.utils import compute
 from dataset_transformations import DistanceCalculator, AdjStack
 
 from exp_utils import start_exp
@@ -78,6 +79,7 @@ def main():
     add_args(parser)
     AdjStack.add_args(parser)
     GraphTransformerEncoder.add_args(parser)
+    GraphDistanceBias.add_args(parser)
     parser.add_argument('--dataset', type=str, default="ogbg-molhiv",
                         help='dataset name (default: ogbg-molhiv)')
     args = parser.parse_args()

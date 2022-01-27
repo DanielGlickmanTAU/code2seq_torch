@@ -2,10 +2,17 @@ import numpy
 import torch
 from torch import nn
 
+from args_parse import bool_
 from dataset_transformations import DistanceCalculator, unconnected
 
 
 class GraphDistanceBias(nn.Module):
+    @staticmethod
+    def add_args(parser):
+        parser.add_argument('--receptive_fields', nargs='+', type=int, default=None,
+                            help='for each head in transformer, will mask all nodes with distances > value.need to have size as num_heads')
+        parser.add_argument('--distance_bias', type=bool_, default=False)
+
     def __init__(self, args, num_heads: int, receptive_fields: list = None):
         super(GraphDistanceBias, self).__init__()
         self.args = args
