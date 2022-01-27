@@ -11,7 +11,7 @@ from torch.nn.modules.linear import NonDynamicallyQuantizableLinear
 from torch.overrides import has_torch_function, handle_torch_function
 
 
-class MyMultiheadAttention(torch.nn.Module):
+class ContentMultiheadAttention(torch.nn.Module):
     __constants__ = ['batch_first']
     bias_k: Optional[torch.Tensor]
     bias_v: Optional[torch.Tensor]
@@ -19,7 +19,7 @@ class MyMultiheadAttention(torch.nn.Module):
     def __init__(self, embed_dim, num_heads, dropout=0., bias=True, add_bias_kv=False, add_zero_attn=False,
                  kdim=None, vdim=None, batch_first=False, device=None, dtype=None) -> None:
         factory_kwargs = {'device': device, 'dtype': dtype}
-        super(MyMultiheadAttention, self).__init__()
+        super(ContentMultiheadAttention, self).__init__()
         self.embed_dim = embed_dim
         self.kdim = kdim if kdim is not None else embed_dim
         self.vdim = vdim if vdim is not None else embed_dim
@@ -79,7 +79,7 @@ class MyMultiheadAttention(torch.nn.Module):
         if '_qkv_same_embed_dim' not in state:
             state['_qkv_same_embed_dim'] = True
 
-        super(MyMultiheadAttention, self).__setstate__(state)
+        super(ContentMultiheadAttention, self).__setstate__(state)
 
     def forward(self, query: Tensor, key: Tensor, value: Tensor, key_padding_mask: Optional[Tensor] = None,
                 need_weights: bool = True, attn_mask: Optional[Tensor] = None) -> Tuple[Tensor, Optional[Tensor]]:
