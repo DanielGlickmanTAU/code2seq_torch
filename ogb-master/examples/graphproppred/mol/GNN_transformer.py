@@ -3,14 +3,14 @@ from torch import nn
 
 from GraphDistanceBias import GraphDistanceBias
 from conv import GNN_node_Virtualnode, GNN_node
-from model.MyTransformerEncoder import MyTransformerEncoder
-from model.MyTransformerEncoderLayer import MyTransformerEncoderLayer
+from model.GraphTransformerEncoder import GraphTransformerEncoder
 from pygraph_utils import split_into_graphs
 
 
 class GNNTransformer(nn.Module):
     def __init__(self, JK, args, drop_ratio, emb_dim, feed_forward_dim, gnn_type, num_layer, num_transformer_layers,
                  residual, virtual_node, node_encoder=None):
+
         ### GNN to generate node embeddings
 
         self.emb_dim = emb_dim
@@ -24,10 +24,9 @@ class GNNTransformer(nn.Module):
                                      gnn_type=gnn_type, node_encoder=node_encoder)
         self.num_transformer_layers = num_transformer_layers
         if num_transformer_layers:
-            encoder_layers = [MyTransformerEncoderLayer(d_model=self.emb_dim, nhead=args.num_heads,
-                                                        dim_feedforward=feed_forward_dim) for _ in
-                              range(num_transformer_layers)]
-            self.transformer = MyTransformerEncoder(encoder_layers, num_layers=num_transformer_layers)
+            self.transformer = GraphTransformerEncoder(args.attention_type, emb_dim, num_transformer_layers,
+                                                       args.num_heads,
+                                                       feed_forward_dim)
             self.distance_bias = GraphDistanceBias(args, num_heads=args.num_heads,
                                                    receptive_fields=args.receptive_fields)
 
@@ -46,7 +45,7 @@ class GNNTransformer(nn.Module):
         transformer_result = []
         for x, distance_weights in zip(h_node_batch, distances_batched):
             # unsqueeze(1) -> transformer needs batch size in second dim by default
-            bla = self.transformer(x.unsqueeze(1), mask=distance_weights)
+            bla = self.transformer(x.unsqueeze(1), masks=[distance_weights])
 
             transformer_result.append(bla.squeeze(1))
         # back to original dim, i.e pytorch geometric format

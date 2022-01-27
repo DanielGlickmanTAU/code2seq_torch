@@ -1,44 +1,31 @@
 from typing import Optional
 
-from regex import F
+import torch.nn.functional as F
 from torch import Tensor
 from torch.nn import Module, Linear, Dropout, LayerNorm
 from torch.nn.modules.transformer import _get_activation_fn
 
 from model.ContentMultiHeadAttention import ContentMultiheadAttention
+from model.positional.PositionMultiHeadAttention import PositionMultiHeadAttention
 
 
 class MyTransformerEncoderLayer(Module):
-    r"""TransformerEncoderLayer is made up of self-attn and feedforward network.
-    This standard encoder layer is based on the paper "Attention Is All You Need".
-    Ashish Vaswani, Noam Shazeer, Niki Parmar, Jakob Uszkoreit, Llion Jones, Aidan N Gomez,
-    Lukasz Kaiser, and Illia Polosukhin. 2017. Attention is all you need. In Advances in
-    Neural Information Processing Systems, pages 6000-6010. Users may modify or implement
-    in a different way during application.
-
-    Args:
-        d_model: the number of expected features in the input (required).
-        nhead: the number of heads in the multiheadattention models (required).
-        dim_feedforward: the dimension of the feedforward network model (default=2048).
-        dropout: the dropout value (default=0.1).
-        activation: the activation function of the intermediate layer, can be a string
-            ("relu" or "gelu") or a unary callable. Default: relu
-        layer_norm_eps: the eps value in layer normalization components (default=1e-5).
-        batch_first: If ``True``, then the input and output tensors are provided
-            as (batch, seq, feature). Default: ``False``.
-        norm_first: if ``True``, layer norm is done prior to attention and feedforward
-            operations, respectivaly. Otherwise it's done after. Default: ``False`` (after).
-
-    """
     __constants__ = ['batch_first', 'norm_first']
 
-    def __init__(self, d_model, nhead, dim_feedforward=2048, dropout=0.1, activation=F.relu,
+    def __init__(self, attention_type, d_model, nhead, dim_feedforward=2048, dropout=0.1, activation=F.relu,
                  layer_norm_eps=1e-5, batch_first=False, norm_first=False,
                  device=None, dtype=None) -> None:
         factory_kwargs = {'device': device, 'dtype': dtype}
         super(MyTransformerEncoderLayer, self).__init__()
-        self.self_attn = ContentMultiheadAttention(d_model, nhead, dropout=dropout, batch_first=batch_first,
-                                                   **factory_kwargs)
+        if attention_type == 'content':
+
+            self.attention_layer = ContentMultiheadAttention(d_model, nhead, dropout=dropout, batch_first=batch_first,
+                                                             **factory_kwargs)
+        elif attention_type == 'position':
+            self.attention_layer = PositionMultiHeadAttention(d_model, nhead, dropout=dropout, batch_first=batch_first,
+                                                              **factory_kwargs)
+        else:
+            raise Exception(f'{attention_type} attention type unsupported')
         # Implementation of Feedforward model
         self.linear1 = Linear(d_model, dim_feedforward, **factory_kwargs)
         self.dropout = Dropout(dropout)
@@ -63,18 +50,6 @@ class MyTransformerEncoderLayer(Module):
 
     def forward(self, src: Tensor, src_mask: Optional[Tensor] = None,
                 src_key_padding_mask: Optional[Tensor] = None) -> Tensor:
-        r"""Pass the input through the encoder layer.
-
-        Args:
-            src: the sequence to the encoder layer (required).
-            src_mask: the mask for the src sequence (optional).
-            src_key_padding_mask: the mask for the src keys per batch (optional).
-
-        Shape:
-            see the docs in Transformer class.
-        """
-
-        # see Fig. 1 of https://arxiv.org/pdf/2002.04745v1.pdf
 
         x = src
         if self.norm_first:
@@ -89,10 +64,15 @@ class MyTransformerEncoderLayer(Module):
     # self-attention block
     def _sa_block(self, x: Tensor,
                   attn_mask: Optional[Tensor], key_padding_mask: Optional[Tensor]) -> Tensor:
-        x = self.self_attn(x, x, x,
-                           attn_mask=attn_mask,
-                           key_padding_mask=key_padding_mask,
-                           need_weights=False)[0]
+        if isinstance(self.attention_layer, PositionMultiHeadAttention):
+            x = self.attention_layer(x,
+                                     attn_mask=attn_mask,
+                                     key_padding_mask=key_padding_mask,
+                                     need_weights=False)[0]
+        x = self.attention_layer(x, x, x,
+                                 attn_mask=attn_mask,
+                                 key_padding_mask=key_padding_mask,
+                                 need_weights=False)[0]
         return self.dropout1(x)
 
     # feed forward block

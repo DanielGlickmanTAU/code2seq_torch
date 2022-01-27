@@ -5,6 +5,8 @@ from dataset_transformations import DistanceCalculator, AdjStack
 from exp_utils import start_exp
 from torchvision import transforms
 
+from model.GraphTransformerEncoder import GraphTransformerEncoder
+
 torch = compute.get_torch()
 from pytorch_lightning.loggers import CometLogger
 from torch_geometric.loader import DataLoader
@@ -75,6 +77,7 @@ def main():
     parser = argparse.ArgumentParser(description='GNN baselines on ogbgmol* data with Pytorch Geometrics')
     add_args(parser)
     AdjStack.add_args(parser)
+    GraphTransformerEncoder.add_args(parser)
     parser.add_argument('--dataset', type=str, default="ogbg-molhiv",
                         help='dataset name (default: ogbg-molhiv)')
     args = parser.parse_args()
