@@ -9,7 +9,6 @@ from torchvision import transforms
 from model.GraphTransformerEncoder import GraphTransformerEncoder
 
 torch = compute.get_torch()
-from pytorch_lightning.loggers import CometLogger
 from torch_geometric.loader import DataLoader
 import torch.optim as optim
 
