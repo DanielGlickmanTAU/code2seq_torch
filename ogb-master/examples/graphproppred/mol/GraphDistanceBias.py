@@ -56,3 +56,7 @@ class GraphDistanceBias(nn.Module):
                     batched_data.distances]
 
         return [None for x in batched_data.distances]
+
+
+class AttentionRedirect(nn.Module):
+    pass

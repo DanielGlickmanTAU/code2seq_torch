@@ -3,6 +3,8 @@ from torch import nn
 
 from GraphDistanceBias import GraphDistanceBias
 from conv import GNN_node_Virtualnode, GNN_node
+from model.MyTransformerEncoder import MyTransformerEncoder
+from model.MyTransformerEncoderLayer import MyTransformerEncoderLayer
 from pygraph_utils import split_into_graphs
 
 
@@ -22,9 +24,10 @@ class GNNTransformer(nn.Module):
                                      gnn_type=gnn_type, node_encoder=node_encoder)
         self.num_transformer_layers = num_transformer_layers
         if num_transformer_layers:
-            encoder_layer = nn.TransformerEncoderLayer(d_model=self.emb_dim, nhead=args.num_heads,
-                                                       dim_feedforward=feed_forward_dim)
-            self.transformer = nn.TransformerEncoder(encoder_layer, num_layers=num_transformer_layers)
+            encoder_layers = [MyTransformerEncoderLayer(d_model=self.emb_dim, nhead=args.num_heads,
+                                                        dim_feedforward=feed_forward_dim) for _ in
+                              range(num_transformer_layers)]
+            self.transformer = MyTransformerEncoder(encoder_layers, num_layers=num_transformer_layers)
             self.distance_bias = GraphDistanceBias(args, num_heads=args.num_heads,
                                                    receptive_fields=args.receptive_fields)
 
