@@ -8,6 +8,8 @@ def start_exp(exp_name, args, model):
         project_name=exp_name,
         api_key='FvAd5fm5rJLIj6TtmfGHUJm4b',
         workspace="danielglickmantau",
+        offline=args.offline,
+        save_dir=None if not args.offline else './comet_exp'
     )
 
     # need this for starting the experiment

@@ -12,17 +12,20 @@ from model.positional.PositionMultiHeadAttention import PositionMultiHeadAttenti
 class MyTransformerEncoderLayer(Module):
     __constants__ = ['batch_first', 'norm_first']
 
-    def __init__(self, attention_type, d_model, nhead, dim_feedforward=2048, dropout=0.1, activation=F.relu,
-                 layer_norm_eps=1e-5, batch_first=False, norm_first=False,
+    def __init__(self, attention_type, d_model, nhead, num_adj_stacks=None, dim_feedforward=2048, dropout=0.1,
+                 activation=F.relu,
+                 layer_norm_eps=1e-5, batch_first=True, norm_first=False,
                  device=None, dtype=None) -> None:
         factory_kwargs = {'device': device, 'dtype': dtype}
         super(MyTransformerEncoderLayer, self).__init__()
         if attention_type == 'content':
-
-            self.attention_layer = ContentMultiheadAttention(d_model, nhead, dropout=dropout, batch_first=batch_first,
+            assert num_adj_stacks
+            self.attention_layer = ContentMultiheadAttention(d_model, nhead,
+                                                             dropout=dropout, batch_first=batch_first,
                                                              **factory_kwargs)
         elif attention_type == 'position':
-            self.attention_layer = PositionMultiHeadAttention(d_model, nhead, dropout=dropout, batch_first=batch_first,
+            self.attention_layer = PositionMultiHeadAttention(d_model, nhead, num_adj_stacks, dropout=dropout,
+                                                              batch_first=batch_first,
                                                               **factory_kwargs)
         else:
             raise Exception(f'{attention_type} attention type unsupported')
@@ -49,30 +52,32 @@ class MyTransformerEncoderLayer(Module):
         super(MyTransformerEncoderLayer, self).__setstate__(state)
 
     def forward(self, src: Tensor, src_mask: Optional[Tensor] = None,
-                src_key_padding_mask: Optional[Tensor] = None) -> Tensor:
+                src_key_padding_mask: Optional[Tensor] = None, adj_stack: Optional[Tensor] = None) -> Tensor:
 
         x = src
         if self.norm_first:
             x = x + self._sa_block(self.norm1(x), src_mask, src_key_padding_mask)
             x = x + self._ff_block(self.norm2(x))
         else:
-            x = self.norm1(x + self._sa_block(x, src_mask, src_key_padding_mask))
+            x = self.norm1(x + self._sa_block(x, src_mask, src_key_padding_mask, adj_stack))
             x = self.norm2(x + self._ff_block(x))
 
         return x
 
     # self-attention block
     def _sa_block(self, x: Tensor,
-                  attn_mask: Optional[Tensor], key_padding_mask: Optional[Tensor]) -> Tensor:
+                  attn_mask: Optional[Tensor], key_padding_mask: Optional[Tensor],
+                  adj_stack: Optional[Tensor] = None) -> Tensor:
         if isinstance(self.attention_layer, PositionMultiHeadAttention):
-            x = self.attention_layer(x,
+            x = self.attention_layer(x, adj_stack,
                                      attn_mask=attn_mask,
                                      key_padding_mask=key_padding_mask,
                                      need_weights=False)[0]
-        x = self.attention_layer(x, x, x,
-                                 attn_mask=attn_mask,
-                                 key_padding_mask=key_padding_mask,
-                                 need_weights=False)[0]
+        else:
+            x = self.attention_layer(x, x, x,
+                                     attn_mask=attn_mask,
+                                     key_padding_mask=key_padding_mask,
+                                     need_weights=False)[0]
         return self.dropout1(x)
 
     # feed forward block

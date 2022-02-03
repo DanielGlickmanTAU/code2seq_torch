@@ -1,7 +1,8 @@
 from code2seq.utils import compute ##import this first
 from GraphDistanceBias import GraphDistanceBias
 from args_parse import add_args
-from dataset_transformations import DistanceCalculator, AdjStack
+from dataset_transformations import DistanceCalculator
+from model.positional.positional_attention_weight import AdjStack
 
 from exp_utils import start_exp
 from torchvision import transforms

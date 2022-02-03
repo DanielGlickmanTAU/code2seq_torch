@@ -8,7 +8,6 @@ def bool_(s):
 
 
 def add_args(parser):
-
     parser.add_argument('--device', type=int, default=0,
                         help='which gpu to use if any (default: 0)')
     parser.add_argument('--gnn', type=str, default='gin',
@@ -45,3 +44,4 @@ def add_args(parser):
     parser.add_argument('--learning_rate', type=float, default=0.0001)
     parser.add_argument('--exp_name', type=str, default='graph-filter-network')
     parser.add_argument('--num_heads', type=int, default=4, help='attention heads')
+    parser.add_argument('--offline', type=bool_, default=False)
