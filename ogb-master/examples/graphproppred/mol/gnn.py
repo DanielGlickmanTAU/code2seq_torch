@@ -5,7 +5,6 @@ from torch_geometric.nn import global_add_pool, global_mean_pool, global_max_poo
 
 import decoding
 from GNN_transformer import GNNTransformer
-from pygraph_utils import get_spare_x
 
 
 class GNN(torch.nn.Module):

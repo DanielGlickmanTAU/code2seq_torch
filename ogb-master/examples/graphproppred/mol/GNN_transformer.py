@@ -1,12 +1,8 @@
-import torch
-import torch_geometric
 from torch import nn
 
-from GraphDistanceBias import GraphDistanceBias
 from conv import GNN_node_Virtualnode, GNN_node
 from model.GraphTransformerEncoder import GraphTransformerEncoder
 import pygraph_utils
-from pygraph_utils import split_into_graphs
 
 
 class GNNTransformer(nn.Module):
