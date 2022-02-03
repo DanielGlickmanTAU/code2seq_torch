@@ -21,7 +21,7 @@ def reshape_attention_mask_to_multihead(attention_mask, num_heads):
     batch_size, n, n2 = attention_mask.shape
     assert n == n2
 
-    return attention_mask.unsqueeze(1).contiguous().repeat(1, 4, 1, 1).view(batch_size * num_heads, n, n)
+    return attention_mask.unsqueeze(1).contiguous().repeat(1, num_heads, 1, 1).view(batch_size * num_heads, n, n)
 
 
 def split_into_graphs(batched_data, h_node):
@@ -71,13 +71,7 @@ def get_spare_x(dense_x, origin_mask):
     return real_nodes_selected
 
 
-# dense_x[i, 0:num_node] (106,300)
-# mask (122)
-# prev_h_node (228,300)
 def get_dense_adjstack(stack_list: list, batch):
-    # adjstack batch_size, (num_stacks,n,n)
-    batch_size = len(stack_list)
-
     largest_graph_size = max(get_graph_sizes(batch))
     padded_stacks = []
     for stack in stack_list:
