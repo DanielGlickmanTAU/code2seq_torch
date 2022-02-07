@@ -85,7 +85,7 @@ def main():
     test_loader = DataLoader(dataset[split_idx["test"]], batch_size=args.batch_size, shuffle=False,
                              num_workers=args.num_workers)
 
-    model = get_model(args, dataset, device)
+    model = get_model(args, dataset.num_tasks, device)
 
     optimizer = optim.Adam(model.parameters(), lr=args.learning_rate)
 
@@ -151,24 +151,24 @@ def main():
                     'Train': train_losses[best_val_epoch], 'BestTrain': best_train}, args.filename)
 
 
-def get_model(args, dataset, device):
+def get_model(args, num_tasks, device):
     if args.gnn == 'gin':
-        model = GNN(args, gnn_type='gin', num_tasks=dataset.num_tasks, num_layer=args.num_layer, emb_dim=args.emb_dim,
+        model = GNN(args, gnn_type='gin', num_tasks=num_tasks, num_layer=args.num_layer, emb_dim=args.emb_dim,
                     drop_ratio=args.drop_ratio, virtual_node=False, num_transformer_layers=args.num_transformer_layers,
                     feed_forward_dim=args.transformer_ff_dim, graph_pooling=args.graph_pooling,
                     residual=args.residual).to(device)
     elif args.gnn == 'gin-virtual':
-        model = GNN(args, gnn_type='gin', num_tasks=dataset.num_tasks, num_layer=args.num_layer, emb_dim=args.emb_dim,
+        model = GNN(args, gnn_type='gin', num_tasks=num_tasks, num_layer=args.num_layer, emb_dim=args.emb_dim,
                     drop_ratio=args.drop_ratio, virtual_node=True, num_transformer_layers=args.num_transformer_layers,
                     feed_forward_dim=args.transformer_ff_dim, graph_pooling=args.graph_pooling,
                     residual=args.residual).to(device)
     elif args.gnn == 'gcn':
-        model = GNN(args, gnn_type='gcn', num_tasks=dataset.num_tasks, num_layer=args.num_layer, emb_dim=args.emb_dim,
+        model = GNN(args, gnn_type='gcn', num_tasks=num_tasks, num_layer=args.num_layer, emb_dim=args.emb_dim,
                     drop_ratio=args.drop_ratio, virtual_node=False, num_transformer_layers=args.num_transformer_layers,
                     feed_forward_dim=args.transformer_ff_dim, graph_pooling=args.graph_pooling,
                     residual=args.residual).to(device)
     elif args.gnn == 'gcn-virtual':
-        model = GNN(args, gnn_type='gcn', num_tasks=dataset.num_tasks, num_layer=args.num_layer, emb_dim=args.emb_dim,
+        model = GNN(args, gnn_type='gcn', num_tasks=num_tasks, num_layer=args.num_layer, emb_dim=args.emb_dim,
                     drop_ratio=args.drop_ratio, virtual_node=True, num_transformer_layers=args.num_transformer_layers,
                     feed_forward_dim=args.transformer_ff_dim, graph_pooling=args.graph_pooling,
                     residual=args.residual).to(device)
