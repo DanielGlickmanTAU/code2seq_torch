@@ -46,35 +46,5 @@ class AdjStack(torch_geometric.transforms.BaseTransform):
         # need this for now
         adj_stack = adj_stack.numpy()
         data.adj_stack = adj_stack
-        "torch_geometric.utils.dense_to_sparse(torch.matrix_power(adj, 500)) 2.452"
-        "torch_geometric.utils.dense_to_sparse(adj_stack[-1]) size (2,218)"
-
-        #         edge_index, edge_attr = data.edge_index, data.edge_attr
-        #         N = data.num_nodes
-        #
-        #         value = edge_index.new_ones((edge_index.size(1), ), dtype=torch.float)
-        #
-        #         index, value = spspmm(edge_index, value, edge_index, value, N, N, N)
-        #         value.fill_(0)
-        #         index, value = remove_self_loops(index, value)
-        #
-        #         edge_index = torch.cat([edge_index, index], dim=1)
-        #         if edge_attr is None:
-        #             data.edge_index, _ = coalesce(edge_index, None, N, N)
-        #         else:
-        #             value = value.view(-1, *[1 for _ in range(edge_attr.dim() - 1)])
-        #             value = value.expand(-1, *list(edge_attr.size())[1:])
-        #             edge_attr = torch.cat([edge_attr, value], dim=0)
-        #             data.edge_index, edge_attr = coalesce(edge_index, edge_attr, N, N)
-        #             data.edge_attr = edge_attr
-        #
-        #         return data
-
-        "twoHop may be interesting"
-        "torch_geometric.utils.dense_to_sparse(adj) works"
-
-        "edge index (2,66)"
-        "torch_geometric.utils.dense_to_sparse(adj_stack) size (2,612) and batch thing (612)"
-        "adj_stack.permute(1,2,0)[edge_index] (2,66,30,5)"
 
         return data
