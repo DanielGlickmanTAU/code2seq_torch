@@ -102,7 +102,6 @@ def main():
         best_val_epoch = np.argmax(np.array(valid_curve))
     else:
         best_val_epoch = np.argmin(np.array(valid_curve))
-    best_train = min(train_losses)
 
     train_perf = evaluate(model, device, train_loader, evaluator)
 
