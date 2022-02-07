@@ -1,6 +1,6 @@
 from code2seq.utils import compute  ##import this first
-from GraphDistanceBias import GraphDistanceBias
-from args_parse import add_args
+from args_parse import get_default_args
+from data.dataloader_utils import get_train_val_test_loaders
 from dataset_transformations import DistanceCalculator
 from model.model_utils import get_model
 from model.positional.positional_attention_weight import AdjStack
@@ -8,16 +8,11 @@ from model.positional.positional_attention_weight import AdjStack
 from exp_utils import start_exp
 from torchvision import transforms
 
-from model.GraphTransformerEncoder import GraphTransformerEncoder
 from train import train_epoch, evaluate
 
 torch = compute.get_torch()
-from torch_geometric.loader import DataLoader
 import torch.optim as optim
 
-from gnn import GNN
-
-import argparse
 import numpy as np
 
 ### importing OGB
@@ -26,11 +21,7 @@ from ogb.graphproppred import PygGraphPropPredDataset, Evaluator
 
 def main():
     # Training settings
-    parser = argparse.ArgumentParser(description='GNN baselines on ogbgmol* data with Pytorch Geometrics')
-    add_args(parser)
-    AdjStack.add_args(parser)
-    GraphTransformerEncoder.add_args(parser)
-    GraphDistanceBias.add_args(parser)
+    parser = get_default_args()
     parser.add_argument('--dataset', type=str, default="ogbg-molhiv",
                         help='dataset name (default: ogbg-molhiv)')
     args = parser.parse_args()
@@ -44,13 +35,8 @@ def main():
     ### automatic evaluator. takes dataset name as input
     evaluator = Evaluator(args.dataset)
 
-    split_idx = dataset.get_idx_split()
-    train_loader = DataLoader(dataset[split_idx["train"]], batch_size=args.batch_size, shuffle=True,
-                              num_workers=args.num_workers)
-    valid_loader = DataLoader(dataset[split_idx["valid"]], batch_size=args.batch_size, shuffle=False,
-                              num_workers=args.num_workers)
-    test_loader = DataLoader(dataset[split_idx["test"]], batch_size=args.batch_size, shuffle=False,
-                             num_workers=args.num_workers)
+    test_loader, train_loader, valid_loader = get_train_val_test_loaders(dataset, num_workers=args.num_workers,
+                                                                         batch_size=args.batch_size)
 
     model = get_model(args, dataset.num_tasks, device)
 

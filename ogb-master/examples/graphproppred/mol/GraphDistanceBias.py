@@ -2,7 +2,7 @@ import numpy
 import torch
 from torch import nn
 
-from args_parse import bool_
+from arg_parse_utils import bool_
 from dataset_transformations import DistanceCalculator, unconnected
 
 

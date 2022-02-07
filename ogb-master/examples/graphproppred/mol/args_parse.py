@@ -1,10 +1,12 @@
+import argparse
+
+from GraphDistanceBias import GraphDistanceBias
+from arg_parse_utils import bool_
 from code2seq.utils import compute
+from model.GraphTransformerEncoder import GraphTransformerEncoder
+from model.positional.positional_attention_weight import AdjStack
 
 torch = compute.get_torch()
-
-
-def bool_(s):
-    return s and s.lower() != 'false'
 
 
 def add_args(parser):
@@ -45,3 +47,12 @@ def add_args(parser):
     parser.add_argument('--exp_name', type=str, default='graph-filter-network')
     parser.add_argument('--num_heads', type=int, default=4, help='attention heads')
     parser.add_argument('--offline', type=bool_, default=False)
+
+
+def get_default_args():
+    parser = argparse.ArgumentParser(description='GNN baselines on ogbgmol* data with Pytorch Geometrics')
+    add_args(parser)
+    AdjStack.add_args(parser)
+    GraphTransformerEncoder.add_args(parser)
+    GraphDistanceBias.add_args(parser)
+    return parser
