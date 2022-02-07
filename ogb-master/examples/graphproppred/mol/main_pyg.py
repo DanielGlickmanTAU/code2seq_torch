@@ -122,10 +122,7 @@ def main():
     steps_with_no_improvement = 0
 
     exp = start_exp(args.exp_name, args, model)
-    try:
-        print(f'#Params: {sum(p.numel() for p in model.parameters())}')
-    except:
-        print('fail print params')
+    print(f'#Params: {sum(p.numel() for p in model.parameters())}')
 
     for epoch in range(1, args.epochs + 1):
         print("=====Epoch {}".format(epoch))
