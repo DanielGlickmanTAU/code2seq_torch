@@ -40,14 +40,6 @@ def main():
     dataset = PygGraphPropPredDataset(name=args.dataset,
                                       transform=transforms.Compose([DistanceCalculator(), AdjStack(args)]))
 
-    if args.feature == 'full':
-        pass
-    elif args.feature == 'simple':
-        print('using simple feature')
-        # only retain the top two node/edge features
-        dataset.data.x = dataset.data.x[:, :2]
-        dataset.data.edge_attr = dataset.data.edge_attr[:, :2]
-
     ### automatic evaluator. takes dataset name as input
     evaluator = Evaluator(args.dataset)
 
