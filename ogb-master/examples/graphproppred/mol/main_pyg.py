@@ -2,6 +2,7 @@ from code2seq.utils import compute  ##import this first
 from GraphDistanceBias import GraphDistanceBias
 from args_parse import add_args
 from dataset_transformations import DistanceCalculator
+from model.model_utils import get_model
 from model.positional.positional_attention_weight import AdjStack
 
 from exp_utils import start_exp
@@ -115,32 +116,6 @@ def main():
     if not args.filename == '':
         torch.save({'Val': valid_curve[best_val_epoch], 'Test': test_curve[best_val_epoch],
                     'Train': train_losses[best_val_epoch], 'BestTrain': best_train}, args.filename)
-
-
-def get_model(args, num_tasks, device):
-    if args.gnn == 'gin':
-        model = GNN(args, gnn_type='gin', num_tasks=num_tasks, num_layer=args.num_layer, emb_dim=args.emb_dim,
-                    drop_ratio=args.drop_ratio, virtual_node=False, num_transformer_layers=args.num_transformer_layers,
-                    feed_forward_dim=args.transformer_ff_dim, graph_pooling=args.graph_pooling,
-                    residual=args.residual).to(device)
-    elif args.gnn == 'gin-virtual':
-        model = GNN(args, gnn_type='gin', num_tasks=num_tasks, num_layer=args.num_layer, emb_dim=args.emb_dim,
-                    drop_ratio=args.drop_ratio, virtual_node=True, num_transformer_layers=args.num_transformer_layers,
-                    feed_forward_dim=args.transformer_ff_dim, graph_pooling=args.graph_pooling,
-                    residual=args.residual).to(device)
-    elif args.gnn == 'gcn':
-        model = GNN(args, gnn_type='gcn', num_tasks=num_tasks, num_layer=args.num_layer, emb_dim=args.emb_dim,
-                    drop_ratio=args.drop_ratio, virtual_node=False, num_transformer_layers=args.num_transformer_layers,
-                    feed_forward_dim=args.transformer_ff_dim, graph_pooling=args.graph_pooling,
-                    residual=args.residual).to(device)
-    elif args.gnn == 'gcn-virtual':
-        model = GNN(args, gnn_type='gcn', num_tasks=num_tasks, num_layer=args.num_layer, emb_dim=args.emb_dim,
-                    drop_ratio=args.drop_ratio, virtual_node=True, num_transformer_layers=args.num_transformer_layers,
-                    feed_forward_dim=args.transformer_ff_dim, graph_pooling=args.graph_pooling,
-                    residual=args.residual).to(device)
-    else:
-        raise ValueError('Invalid GNN type')
-    return model
 
 
 if __name__ == "__main__":

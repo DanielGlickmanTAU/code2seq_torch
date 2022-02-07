@@ -64,7 +64,6 @@ class GNN(torch.nn.Module):
         # shape (num_graphs, out_dim)
 
         if self.task == 'mol':
-
             h_graph = self.pool(h_node, batched_data.batch)
             return self.graph_pred_linear(h_graph)
 
