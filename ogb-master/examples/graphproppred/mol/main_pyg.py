@@ -113,10 +113,6 @@ def main():
     train_score = train_perf[dataset.eval_metric]
     exp.log_metric(f'train_{dataset.eval_metric}', train_score)
 
-    if not args.filename == '':
-        torch.save({'Val': valid_curve[best_val_epoch], 'Test': test_curve[best_val_epoch],
-                    'Train': train_losses[best_val_epoch], 'BestTrain': best_train}, args.filename)
-
 
 if __name__ == "__main__":
     main()
