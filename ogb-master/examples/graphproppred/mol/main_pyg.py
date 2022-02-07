@@ -1,4 +1,4 @@
-from code2seq.utils import compute ##import this first
+from code2seq.utils import compute  ##import this first
 from GraphDistanceBias import GraphDistanceBias
 from args_parse import add_args
 from dataset_transformations import DistanceCalculator
@@ -8,6 +8,7 @@ from exp_utils import start_exp
 from torchvision import transforms
 
 from model.GraphTransformerEncoder import GraphTransformerEncoder
+from train.train import train_epoch
 
 torch = compute.get_torch()
 from torch_geometric.loader import DataLoader
@@ -20,32 +21,6 @@ import numpy as np
 
 ### importing OGB
 from ogb.graphproppred import PygGraphPropPredDataset, Evaluator
-
-cls_criterion = torch.nn.BCEWithLogitsLoss()
-reg_criterion = torch.nn.MSELoss()
-
-
-def train_epoch(model, device, loader, optimizer, task_type):
-    model.train()
-    losses = []
-    for step, batch in enumerate(tqdm(loader, desc="Iteration")):
-        batch = batch.to(device)
-
-        if batch.x.shape[0] == 1 or batch.batch[-1] == 0:
-            pass
-        else:
-            pred = model(batch)
-            optimizer.zero_grad()
-            ## ignore nan targets (unlabeled) when computing training loss.
-            is_labeled = batch.y == batch.y
-            if "classification" in task_type:
-                loss = cls_criterion(pred.to(torch.float32)[is_labeled], batch.y.to(torch.float32)[is_labeled])
-            else:
-                loss = reg_criterion(pred.to(torch.float32)[is_labeled], batch.y.to(torch.float32)[is_labeled])
-            loss.backward()
-            optimizer.step()
-            losses.append(loss.item())
-    return sum(losses) / len(losses)
 
 
 def eval(model, device, loader, evaluator):
@@ -98,7 +73,6 @@ def main():
         # only retain the top two node/edge features
         dataset.data.x = dataset.data.x[:, :2]
         dataset.data.edge_attr = dataset.data.edge_attr[:, :2]
-
 
     ### automatic evaluator. takes dataset name as input
     evaluator = Evaluator(args.dataset)
