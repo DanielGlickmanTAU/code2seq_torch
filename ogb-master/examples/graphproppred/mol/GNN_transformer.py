@@ -25,9 +25,7 @@ class GNNTransformer(nn.Module):
             self.transformer = GraphTransformerEncoder(args.attention_type, emb_dim, num_transformer_layers,
                                                        args.num_heads, len(args.adj_stacks),
                                                        feed_forward_dim)
-            # self.distance_bias = GraphDistanceBias(args, num_heads=args.num_heads,
-            #                                        receptive_fields=args.receptive_fields)
-
+    
     def forward(self, batched_data):
         h_node = self.gnn_node(batched_data)
 
@@ -39,17 +37,10 @@ class GNNTransformer(nn.Module):
         # (n_graph,max_nodes_in_graph,emb_dim), (n_graph,max_nodes_in_graph)
         h_node_batch, mask = pygraph_utils.get_dense_x_and_mask(h_node, batched_data.batch)
         adj_stack = pygraph_utils.get_dense_adjstack(batched_data.adj_stack, batched_data.batch)
-        # h_node_batch = split_into_graphs(batched_data, h_node)
 
-        transformer_result = []
-
-        # for x, distance_weights, adj_stack in zip(h_node_batch, distances_batched, batched_data.adj_stack):
-        # adj_stack = torch.tensor(adj_stack, device=x.device)
-        # unsqueeze(1) -> transformer needs batch size in second dim by default
         x = self.transformer(h_node_batch, mask=mask, adj_stack=adj_stack)
 
         # back to original dim, i.e pytorch geometric format
         spare_x = pygraph_utils.get_spare_x(x, mask)
         assert spare_x.shape == h_node.shape
-        # h_node = torch.cat(transformer_result, dim=0)
         return spare_x

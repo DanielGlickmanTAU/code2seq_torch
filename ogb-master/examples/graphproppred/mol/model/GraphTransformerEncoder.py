@@ -3,6 +3,7 @@ from typing import Optional, List
 from torch import Tensor
 from torch.nn import Module
 
+from code2seq.utils.compute import get_device
 from model.MyTransformerEncoderLayer import MyTransformerEncoderLayer
 
 
@@ -19,7 +20,7 @@ class GraphTransformerEncoder(Module):
         # TODO: dropout
         encoder_layers = [
             MyTransformerEncoderLayer(attention_type, d_model=d_model, nhead=num_head, num_adj_stacks=num_adj_stacks,
-                                      dim_feedforward=feed_forward_dim) for _ in
+                                      dim_feedforward=feed_forward_dim, device=get_device()) for _ in
             range(num_layers)]
         self.layers = encoder_layers
         self.num_layers = num_layers

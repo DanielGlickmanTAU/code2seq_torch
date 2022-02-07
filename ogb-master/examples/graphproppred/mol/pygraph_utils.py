@@ -53,7 +53,7 @@ def get_dense_x_and_mask(x, batch):
     x, node_mask = torch_geometric.utils.to_dense_batch(x, batch)
     batch_size, N = node_mask.shape
 
-    masks = torch.ones((batch_size, N, N), dtype=torch.bool)
+    masks = torch.ones((batch_size, N, N), dtype=torch.bool, device=x.device)
     for mask, real_size, in zip(masks, get_graph_sizes(batch)):
         mask[0:real_size, 0:real_size] = False
     return x, masks
