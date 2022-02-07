@@ -34,7 +34,7 @@ def main():
                         help='dataset name (default: ogbg-molhiv)')
     args = parser.parse_args()
 
-    device = torch.device("cuda:" + str(args.device)) if torch.cuda.is_available() else torch.device("cpu")
+    device = compute.get_device()
 
     ### automatic dataloading and splitting
     dataset = PygGraphPropPredDataset(name=args.dataset,
