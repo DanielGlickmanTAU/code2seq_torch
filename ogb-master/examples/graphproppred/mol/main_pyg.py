@@ -8,44 +8,19 @@ from exp_utils import start_exp
 from torchvision import transforms
 
 from model.GraphTransformerEncoder import GraphTransformerEncoder
-from train.train import train_epoch
+from train import train_epoch, evaluate
 
 torch = compute.get_torch()
 from torch_geometric.loader import DataLoader
 import torch.optim as optim
 
 from gnn import GNN
-from tqdm import tqdm
+
 import argparse
 import numpy as np
 
 ### importing OGB
 from ogb.graphproppred import PygGraphPropPredDataset, Evaluator
-
-
-def eval(model, device, loader, evaluator):
-    model.eval()
-    y_true = []
-    y_pred = []
-
-    for step, batch in enumerate(tqdm(loader, desc="Iteration")):
-        batch = batch.to(device)
-
-        if batch.x.shape[0] == 1:
-            pass
-        else:
-            with torch.no_grad():
-                pred = model(batch)
-
-            y_true.append(batch.y.view(pred.shape).detach().cpu())
-            y_pred.append(pred.detach().cpu())
-
-    y_true = torch.cat(y_true, dim=0).numpy()
-    y_pred = torch.cat(y_pred, dim=0).numpy()
-
-    input_dict = {"y_true": y_true, "y_pred": y_pred}
-
-    return evaluator.eval(input_dict)
 
 
 def main():
@@ -62,7 +37,6 @@ def main():
     device = torch.device("cuda:" + str(args.device)) if torch.cuda.is_available() else torch.device("cpu")
 
     ### automatic dataloading and splitting
-
     dataset = PygGraphPropPredDataset(name=args.dataset,
                                       transform=transforms.Compose([DistanceCalculator(), AdjStack(args)]))
 
@@ -104,9 +78,9 @@ def main():
         epoch_avg_loss = train_epoch(model, device, train_loader, optimizer, dataset.task_type)
 
         print('Evaluating...')
-        # train_perf = eval(model, device, train_loader, evaluator)
-        valid_perf = eval(model, device, valid_loader, evaluator)
-        test_perf = eval(model, device, test_loader, evaluator)
+        # train_perf = evaluate(model, device, train_loader, evaluator)
+        valid_perf = evaluate(model, device, valid_loader, evaluator)
+        test_perf = evaluate(model, device, test_loader, evaluator)
 
         # print({'Train': train_perf, 'Validation': valid_perf, 'Test': test_perf})
         print(f'epoch loss {epoch_avg_loss}')
@@ -137,7 +111,7 @@ def main():
         best_val_epoch = np.argmin(np.array(valid_curve))
     best_train = min(train_losses)
 
-    train_perf = eval(model, device, train_loader, evaluator)
+    train_perf = evaluate(model, device, train_loader, evaluator)
 
     print('Finished training!')
     print('Best validation score: {}'.format(valid_curve[best_val_epoch]))
