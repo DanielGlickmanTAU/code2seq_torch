@@ -25,10 +25,8 @@ class Test(TestCase):
     def test_can_overfit_molhiv(self):
         dataset_samples = 64
         # Training settings
-        parser = get_default_args()
-        parser.add_argument('--dataset', type=str, default="ogbg-molhiv",
-                            help='dataset name (default: ogbg-molhiv)')
-        args = parser.parse_args()
+        args = get_default_args()
+        args.dataset = "ogbg-molhiv"
         args.attention_type = 'position'
         args.num_layer = args.num_transformer_layers = 4
         args.drop_ratio = 0.
@@ -40,27 +38,45 @@ class Test(TestCase):
         evaluator = Evaluator(args.dataset)
 
         train_loader, valid_loader, test_loader = get_train_val_test_loaders(dataset, num_workers=args.num_workers,
-                                                                             batch_size=args.batch_size, limit=dataset_samples)
+                                                                             batch_size=args.batch_size,
+                                                                             limit=dataset_samples)
         model = get_model(args, dataset.num_tasks, device)
 
-        optimizer = optim.Adam(model.parameters(), lr=3e-3)
+        optimizer = optim.Adam(model.parameters(), lr=3e-5)
 
         def hook(model, input, output):
             if isinstance(output, tuple):
                 output = output[0]
             assert not output.isnan().any()
 
-
         torch.nn.modules.module.register_module_forward_hook(hook)
 
         for epoch in range(1, 100 + 1):
             epoch_avg_loss = train_epoch(model, device, train_loader, optimizer, dataset.task_type)
 
-            print('Evaluating...')
+            print(f'Evaluating epoch {epoch}')
             # train_perf = evaluate(model, device, train_loader, evaluator)
             rocauc = evaluate(model, device, test_loader, evaluator)['rocauc']
             print(rocauc)
         assert rocauc > 0.95
+
+    def test_content_position_model_dropout_defaults_to_same_as_overall_dropout(self):
+        args = get_default_args()
+        args.attention_type = 'position'
+        args.num_layer = args.num_transformer_layers = 2
+
+        model = get_model(args, 3, compute.get_device())
+        assert model.gnn_transformer.transformer.layers[
+                   0].dropout.p == model.gnn_transformer.gnn_node.drop_ratio == args.drop_ratio
+
+    def test_content_position_model_can_be_different_than_gnn_dropout(self):
+        args = get_default_args()
+        args.attention_type = 'position'
+        args.num_layer = args.num_transformer_layers = 2
+        args.transformer_encoder_dropout = 0.123
+
+        model = get_model(args, 3, compute.get_device())
+        assert model.gnn_transformer.transformer.layers[0].dropout.p != model.gnn_transformer.gnn_node.drop_ratio
 
 
 if __name__ == '__main__':

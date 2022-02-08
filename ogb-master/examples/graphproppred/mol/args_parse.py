@@ -48,6 +48,7 @@ def add_args(parser):
     parser.add_argument('--num_heads', type=int, default=4, help='attention heads')
     parser.add_argument('--offline', type=bool_, default=False)
     parser.add_argument('--seed',type=int,default=1)
+    parser.add_argument('--transformer_encoder_dropout',type=float)
 
 
 def get_default_args():
@@ -56,4 +57,8 @@ def get_default_args():
     AdjStack.add_args(parser)
     GraphTransformerEncoder.add_args(parser)
     GraphDistanceBias.add_args(parser)
-    return parser
+
+    args = parser.parse_args()
+    if not args.transformer_encoder_dropout:
+        args.transformer_encoder_dropout = args.drop_ratio
+    return args

@@ -24,8 +24,8 @@ class GNNTransformer(nn.Module):
         if num_transformer_layers:
             self.transformer = GraphTransformerEncoder(args.attention_type, emb_dim, num_transformer_layers,
                                                        args.num_heads, len(args.adj_stacks),
-                                                       feed_forward_dim)
-    
+                                                       feed_forward_dim, args.transformer_encoder_dropout)
+
     def forward(self, batched_data):
         h_node = self.gnn_node(batched_data)
 

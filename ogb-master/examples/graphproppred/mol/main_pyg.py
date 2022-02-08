@@ -23,10 +23,9 @@ from ogb.graphproppred import PygGraphPropPredDataset, Evaluator
 
 def main():
     # Training settings
-    parser = get_default_args()
-    parser.add_argument('--dataset', type=str, default="ogbg-molhiv",
-                        help='dataset name (default: ogbg-molhiv)')
-    args = parser.parse_args()
+    args = get_default_args()
+    args.dataset = "ogbg-molhiv"
+
     torch_geometric.seed_everything(args.seed)
 
     device = compute.get_device()
