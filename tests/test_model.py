@@ -54,10 +54,8 @@ class Test(TestCase):
         torch.nn.modules.module.register_module_forward_hook(hook)
 
         for epoch in range(1, 100 + 1):
-            print("=====Epoch {}".format(epoch))
-            print('Training...')
             epoch_avg_loss = train_epoch(model, device, train_loader, optimizer, dataset.task_type)
-            print(f'~~~~avg loss {epoch_avg_loss}')
+
             print('Evaluating...')
             # train_perf = evaluate(model, device, train_loader, evaluator)
             rocauc = evaluate(model, device, test_loader, evaluator)['rocauc']
