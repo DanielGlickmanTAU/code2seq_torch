@@ -1,6 +1,6 @@
+from code2seq.utils import compute  ##import this first
 import torch_geometric
 
-from code2seq.utils import compute  ##import this first
 from args_parse import get_default_args
 from data.dataloader_utils import get_train_val_test_loaders
 from dataset_transformations import DistanceCalculator
