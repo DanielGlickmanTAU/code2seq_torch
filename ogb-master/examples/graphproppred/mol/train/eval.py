@@ -14,8 +14,9 @@ def evaluate(model, device, loader, evaluator):
             pass
         else:
             with torch.no_grad():
-                pred = model(batch)
+                pred: torch.Tensor = model(batch)
 
+            assert not pred.isnan().any()
             y_true.append(batch.y.view(pred.shape).detach().cpu())
             y_pred.append(pred.detach().cpu())
 
