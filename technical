@@ -1,3 +1,8 @@
+was getting nan values in forward.
+Fixes:
+1) registered torch hook to find what module was causing the problem
+2) manually zeroed out nan values after softmax
+
 MultiheadAttention#forward : line 5101: attn_output, attn_output_weights = _scaled_dot_product_attention(q, k, v, attn_mask, dropout_p)
 att_output_weights shape is #nhead,n,n....attn_output_weights.sum(dim=-1) sums aprox 1(dropout)
 
