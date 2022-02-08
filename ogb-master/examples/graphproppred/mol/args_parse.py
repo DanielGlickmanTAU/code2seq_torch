@@ -47,6 +47,7 @@ def add_args(parser):
     parser.add_argument('--exp_name', type=str, default='graph-filter-network')
     parser.add_argument('--num_heads', type=int, default=4, help='attention heads')
     parser.add_argument('--offline', type=bool_, default=False)
+    parser.add_argument('--seed',type=int,default=1)
 
 
 def get_default_args():

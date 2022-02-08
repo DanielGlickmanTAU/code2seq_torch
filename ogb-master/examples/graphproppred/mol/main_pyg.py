@@ -1,3 +1,5 @@
+import torch_geometric
+
 from code2seq.utils import compute  ##import this first
 from args_parse import get_default_args
 from data.dataloader_utils import get_train_val_test_loaders
@@ -25,6 +27,7 @@ def main():
     parser.add_argument('--dataset', type=str, default="ogbg-molhiv",
                         help='dataset name (default: ogbg-molhiv)')
     args = parser.parse_args()
+    torch_geometric.seed_everything(args.seed)
 
     device = compute.get_device()
 
