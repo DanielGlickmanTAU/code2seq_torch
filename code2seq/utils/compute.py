@@ -81,7 +81,7 @@ def get_device():
     torch = get_torch()
 
     gpus = get_index_of_free_gpus()
-    print(gpus)
+    # print(gpus)
     return torch.device(compute_gpu_indent(gpus) if torch.cuda.is_available() else 'cpu')
 
 

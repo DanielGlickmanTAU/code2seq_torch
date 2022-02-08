@@ -4,14 +4,6 @@ att_output_weights shape is #nhead,n,n....attn_output_weights.sum(dim=-1) sums a
 issue:training with transofrmer layer initalize performed way worse
 fix: lower learning rate(saw that training loss was going up and down)
 
-Pooling:
-    GlobalAttention - recive gate nn(returns for each tensor the gate(0-1) and optinally another nn to transform values..
-
-    Set2Set
-
-
-paper used average graph pooling
-
 installing ogb manually:
 1) install torch 1.10.1
     on cpu:pip3 install torch torchvision torchaudio

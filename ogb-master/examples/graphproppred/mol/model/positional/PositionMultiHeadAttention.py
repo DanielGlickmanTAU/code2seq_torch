@@ -179,6 +179,8 @@ def weighted_average(values, attention_weights, attn_mask, training, dropout_p):
     if attn_mask is not None:
         attention_weights += attn_mask
     attn = softmax(attention_weights, dim=-1)
+    #fix bug where fake node(all masked) get NaN values after softmax
+    attn = attn.masked_fill(attn.isnan(), 0)
     if dropout_p > 0.0:
         attn = dropout(attn, p=dropout_p)
     # (B, Nt, Ns) x (B, Ns, E) -> (B, Nt, E)
