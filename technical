@@ -1,3 +1,7 @@
+issue: my nn.Module print was empty(showing no parameters)
+Cause: was keeping parameter in a regular list.
+Fix: use nn.ModuleList
+
 was getting nan values in forward.
 Fixes:
 1) registered torch hook to find what module was causing the problem
