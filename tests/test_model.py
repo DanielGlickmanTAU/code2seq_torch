@@ -55,7 +55,6 @@ class Test(TestCase):
             epoch_avg_loss = train_epoch(model, device, train_loader, optimizer, dataset.task_type)
 
             print(f'Evaluating epoch {epoch}')
-            # train_perf = evaluate(model, device, train_loader, evaluator)
             rocauc = evaluate(model, device, test_loader, evaluator)['rocauc']
             print(rocauc)
         assert rocauc > 0.95
