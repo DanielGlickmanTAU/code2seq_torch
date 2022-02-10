@@ -2,26 +2,31 @@ from typing import Union
 
 import torch
 import torch_geometric.transforms
+from torch import nn
 from torch_geometric.data import Data
 
 
 class AdjStackAttentionWeights(torch.nn.Module):
     _stack_dim = 1
 
-    def __init__(self, num_adj_stacks, num_heads, num_conv=None):
+    def __init__(self, num_adj_stacks, num_heads, bias=True):
         super(AdjStackAttentionWeights, self).__init__()
-        assert num_conv is None  # in progress
-        num_conv = num_adj_stacks
         self.num_adj_stacks = num_adj_stacks
         self.num_heads = num_heads
+        # 1,1 is for broadcasting
+        self.weight = nn.Linear(in_features=num_adj_stacks, out_features=num_heads, bias=bias)
 
     # stacks shape is (batch,num_adj_stacks,n,n)
-    #returns (batch,num_heads,n,n)
+    # returns (batch,num_heads,n,n)
     def forward(self, stacks: torch.Tensor):
         b, num_stacks, n, n1, = stacks.shape
         assert num_stacks == self.num_adj_stacks
-        stacks_ = stacks.float().mean(dim=1)
-        return stacks_.unsqueeze(1).repeat(1, self.num_heads, 1, 1)
+        # shape as (batch*n*n, num_stacks)
+        stacks = stacks.permute(0, 2, 3, 1).reshape(-1, self.num_adj_stacks)
+        stacks = self.weight(stacks)
+        # back to (batch,num_heads,n,n)
+        stacks = stacks.view(b, n, n, self.num_heads).permute(0, 3, 1, 2)
+        return stacks
 
 
 def compute_diag(A: torch.Tensor):
