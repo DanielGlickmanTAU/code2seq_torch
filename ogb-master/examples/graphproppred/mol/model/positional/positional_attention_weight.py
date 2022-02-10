@@ -15,12 +15,22 @@ class AdjStackAttentionWeights(torch.nn.Module):
         self.num_adj_stacks = num_adj_stacks
         self.num_heads = num_heads
 
+    # stacks shape is (batch,num_adj_stacks,n,n)
+    #returns (batch,num_heads,n,n)
     def forward(self, stacks: torch.Tensor):
+        b, num_stacks, n, n1, = stacks.shape
+        assert num_stacks == self.num_adj_stacks
         stacks_ = stacks.float().mean(dim=1)
         return stacks_.unsqueeze(1).repeat(1, self.num_heads, 1, 1)
 
 
+def compute_diag(A: torch.Tensor):
+    degrees = A.sum(dim=0)
+    return torch.diag_embed(degrees)
 
+
+def to_P_matrix(A: torch.Tensor):
+    return A / A.sum(dim=-1, keepdim=True)
 
 
 class AdjStack(torch_geometric.transforms.BaseTransform):
@@ -42,9 +52,24 @@ class AdjStack(torch_geometric.transforms.BaseTransform):
         adj[edge_index[0, :], edge_index[1, :]] = 1
         adj.fill_diagonal_(0)
 
+        adj = to_P_matrix(adj)
         adj_stack = torch.stack([torch.matrix_power(adj, exp) for exp in self.adj_stacks])
         # need this for now
         adj_stack = adj_stack.numpy()
         data.adj_stack = adj_stack
 
         return data
+
+
+def count_paths_cycles(A: torch.Tensor, p):
+    D = torch.zeros_like(A)
+    C1 = A.clone()
+    Cq = C1
+    for q in range(p):
+        C1Cq, CqC1 = C1 @ Cq, Cq @ C1
+
+        D = torch.diag_embed(C1Cq.diagonal())
+        # I think should be here something like  Cq = C1cQ and reduce previous cq
+        Cq = C1Cq + CqC1
+        Cq.fill_diagonal_(0)
+    return Cq, D
