@@ -1,17 +1,12 @@
 import unittest
 from unittest import TestCase
 
-from code2seq.utils import compute
-
-import torch_geometric
-from torch_geometric.data import Data
 from torch_geometric.datasets import FakeDataset
-from torch_geometric.loader import DataLoader
 import torch
 
 import pygraph_utils
 from model.positional.positional_attention_weight import AdjStack
-from pygraph_utils import get_dense_x_and_mask
+from tests.test_utils import as_pyg_batch
 
 
 class Test(TestCase):
@@ -22,9 +17,7 @@ class Test(TestCase):
         dataset = FakeDataset(num_graphs=4, avg_num_nodes=100, num_channels=embed_dim,
                               transform=AdjStack(list(range(num_stacks))))
 
-        loader = DataLoader(dataset, batch_size=batch_size)
-
-        first_batch = list(loader)[0]
+        first_batch = as_pyg_batch(dataset, batch_size)
 
         x, mask = pygraph_utils.get_dense_x_and_mask(first_batch.x, first_batch.batch)
 
@@ -76,9 +69,7 @@ class Test(TestCase):
         dataset = FakeDataset(num_graphs=4, avg_num_nodes=100, num_channels=embed_dim,
                               transform=AdjStack(list(range(num_stacks))))
 
-        loader = DataLoader(dataset, batch_size=batch_size)
-
-        first_batch = list(loader)[0]
+        first_batch = as_pyg_batch(dataset, batch_size)
 
         prev_x = first_batch.x
         x, mask = pygraph_utils.get_dense_x_and_mask(prev_x, first_batch.batch)

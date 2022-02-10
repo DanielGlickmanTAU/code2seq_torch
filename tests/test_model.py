@@ -78,5 +78,6 @@ class Test(TestCase):
         assert model.gnn_transformer.transformer.layers[0].dropout.p != model.gnn_transformer.gnn_node.drop_ratio
 
 
+
 if __name__ == '__main__':
     unittest.main()
