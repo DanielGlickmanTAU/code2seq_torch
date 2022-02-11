@@ -90,17 +90,18 @@ class PositionMultiHeadAttention(Module):
         if self.bias_v is not None:
             xavier_normal_(self.bias_v)
 
-    def forward(self, query: Tensor, adj_stack: Tensor, key_padding_mask: Optional[Tensor] = None,
+    def forward(self, value: Tensor, adj_stack: Tensor, key_padding_mask: Optional[Tensor] = None,
                 need_weights: bool = True, attn_mask: Optional[Tensor] = None) -> Tuple[Tensor, Optional[Tensor]]:
         if self.batch_first:
-            query = query.transpose(1, 0)
+            value = value.transpose(1, 0)
         assert self._qkv_same_embed_dim
 
         attention_weights = self.positional_bias(stacks=adj_stack, mask=attn_mask)
+        # (n,batch,d)
+        value = linear(value, self.in_proj_weight, self.in_proj_bias)
 
         attn_output, attn_output_weights = multi_head_positional_attention(
-            query, attention_weights, self.embed_dim, self.num_heads,
-            self.in_proj_weight, self.in_proj_bias,
+            value, attention_weights, self.embed_dim, self.num_heads,
             self.bias_k, self.bias_v,
             self.dropout, self.out_proj.weight, self.out_proj.bias,
             training=self.training,
@@ -114,12 +115,10 @@ class PositionMultiHeadAttention(Module):
 
 
 def multi_head_positional_attention(
-        query: Tensor,
+        value: Tensor,
         attention_weights: Tensor,
         embed_dim_to_check: int,
         num_heads: int,
-        in_proj_weight: Tensor,
-        in_proj_bias: Optional[Tensor],
         bias_k: Optional[Tensor],
         bias_v: Optional[Tensor],
         dropout_p: float,
@@ -132,11 +131,11 @@ def multi_head_positional_attention(
         use_separate_proj_weight: bool = False
 ) -> Tuple[Tensor, Optional[Tensor]]:
     # set up shape vars
-    tgt_len, bsz, embed_dim = query.shape
+    tgt_len, bsz, embed_dim = value.shape
     src_len = tgt_len
     head_dim = embed_dim // num_heads
-    _assertions(bias_k, bias_v, embed_dim, embed_dim_to_check, head_dim, in_proj_bias, in_proj_weight, num_heads,
-                out_proj_bias, out_proj_weight, query, use_separate_proj_weight, key_padding_mask, attention_weights,
+    _assertions(bias_k, bias_v, embed_dim, embed_dim_to_check, head_dim, num_heads,
+                out_proj_bias, out_proj_weight, value, use_separate_proj_weight, key_padding_mask, attention_weights,
                 src_len, bsz)
 
     assert attention_weights.shape == (bsz, num_heads, src_len, src_len)
@@ -146,10 +145,8 @@ def multi_head_positional_attention(
 
     attn_mask = prep_attention_mask(attn_mask, bsz, num_heads, src_len, tgt_len)
 
-    # (n,batch,d)
-    v = linear(query, in_proj_weight, in_proj_bias)
     # (batch*num_head, n , d/head)
-    v = pygraph_utils.reshape_to_multihead(v, num_heads)
+    v = pygraph_utils.reshape_to_multihead(value, num_heads)
 
     assert v.shape[0] == num_heads * bsz
     assert tgt_len == v.shape[1]
@@ -194,59 +191,6 @@ def weighted_average(values, attention_weights, attn_mask, training, dropout_p):
     return attn, attn_output
 
 
-def multi_head_attention_forward(
-        query: Tensor,
-        key: Tensor,
-        value: Tensor,
-        embed_dim_to_check: int,
-        num_heads: int,
-        in_proj_weight: Tensor,
-        in_proj_bias: Optional[Tensor],
-        bias_k: Optional[Tensor],
-        bias_v: Optional[Tensor],
-        dropout_p: float,
-        out_proj_weight: Tensor,
-        out_proj_bias: Optional[Tensor],
-        training: bool = True,
-        key_padding_mask: Optional[Tensor] = None,
-        need_weights: bool = True,
-        attn_mask: Optional[Tensor] = None,
-        use_separate_proj_weight: bool = False
-) -> Tuple[Tensor, Optional[Tensor]]:
-    # set up shape vars
-    tgt_len, bsz, embed_dim = query.shape
-    src_len, _, _ = key.shape
-    head_dim = embed_dim // num_heads
-    _assertions(bias_k, bias_v, embed_dim, embed_dim_to_check, head_dim, in_proj_bias, in_proj_weight, key, num_heads,
-                out_proj_bias, out_proj_weight, query, use_separate_proj_weight, value, key_padding_mask)
-
-    attn_mask = prep_attention_mask(attn_mask, bsz, num_heads, src_len, tgt_len)
-
-    q, k, v = _in_projection_packed(query, key, value, in_proj_weight, in_proj_bias)
-
-    q = q.contiguous().view(tgt_len, bsz * num_heads, head_dim).transpose(0, 1)
-    k = k.contiguous().view(k.shape[0], bsz * num_heads, head_dim).transpose(0, 1)
-    v = v.contiguous().view(v.shape[0], bsz * num_heads, head_dim).transpose(0, 1)
-
-    # adjust dropout probability
-    if not training:
-        dropout_p = 0.0
-
-    #
-    # (deep breath) calculate attention and out projection
-    #
-    attn_output, attn_output_weights = _scaled_dot_product_attention(q, k, v, attn_mask, dropout_p)
-    attn_output = attn_output.transpose(0, 1).contiguous().view(tgt_len, bsz, embed_dim)
-    attn_output = linear(attn_output, out_proj_weight, out_proj_bias)
-
-    if need_weights:
-        # average attention weights over heads
-        attn_output_weights = attn_output_weights.view(bsz, num_heads, tgt_len, src_len)
-        return attn_output, attn_output_weights.sum(dim=1) / num_heads
-    else:
-        return attn_output, None
-
-
 def prep_attention_mask(attn_mask, bsz, num_heads, src_len, tgt_len):
     if attn_mask is not None:
         if attn_mask.dtype == torch.uint8:
@@ -277,12 +221,11 @@ def prep_attention_mask(attn_mask, bsz, num_heads, src_len, tgt_len):
     return attn_mask
 
 
-def _assertions(bias_k, bias_v, embed_dim, embed_dim_to_check, head_dim, in_proj_bias, in_proj_weight, num_heads,
+def _assertions(bias_k, bias_v, embed_dim, embed_dim_to_check, head_dim, num_heads,
                 out_proj_bias, out_proj_weight, query, use_separate_proj_weight, key_padding_mask, attention_weights,
                 src_len, bsz):
     assert key_padding_mask is None
-    assert not has_torch_function(
-        (query, in_proj_weight, in_proj_bias, bias_k, bias_v, out_proj_weight, out_proj_bias))
+
     assert embed_dim == embed_dim_to_check, \
         f"was expecting embedding dimension of {embed_dim_to_check}, but got {embed_dim}"
     if isinstance(embed_dim, torch.Tensor):
