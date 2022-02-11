@@ -4,10 +4,9 @@ from typing import Optional, Tuple
 import torch
 from torch import Tensor
 from torch.nn import Module, Parameter
-from torch.nn.functional import _in_projection_packed, _scaled_dot_product_attention, linear, softmax, dropout
+from torch.nn.functional import linear, softmax, dropout
 from torch.nn.init import xavier_uniform_, constant_, xavier_normal_
 from torch.nn.modules.linear import NonDynamicallyQuantizableLinear
-from torch.overrides import has_torch_function
 
 import pygraph_utils
 from model.positional.positional_attention_weight import AdjStackAttentionWeights
