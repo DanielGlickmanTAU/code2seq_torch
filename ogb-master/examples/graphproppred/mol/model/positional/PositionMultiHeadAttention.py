@@ -96,7 +96,7 @@ class PositionMultiHeadAttention(Module):
             query = query.transpose(1, 0)
         assert self._qkv_same_embed_dim
 
-        attention_weights = self.positional_bias(stacks=adj_stack)
+        attention_weights = self.positional_bias(stacks=adj_stack, mask=attn_mask)
 
         attn_output, attn_output_weights = multi_head_positional_attention(
             query, attention_weights, self.embed_dim, self.num_heads,
@@ -173,14 +173,20 @@ def project_heads(attn_output, bsz, embed_dim, out_proj_bias, out_proj_weight, t
 
 
 def weighted_average(values, attention_weights, attn_mask, training, dropout_p):
+    def fix_nans(attn):
+        not_nan = ~attn.isnan()
+        attn_new = torch.zeros_like(attn, device=attn.device)
+        attn_new[not_nan] = attn[not_nan]
+        attn = attn.masked_fill(attn.isnan(), 0)
+        return attn
+
     # adjust dropout
     if not training:
         dropout_p = 0.0
     if attn_mask is not None:
         attention_weights += attn_mask
     attn = softmax(attention_weights, dim=-1)
-    #fix bug where fake node(all masked) get NaN values after softmax
-    attn = attn.masked_fill(attn.isnan(), 0)
+    attn = fix_nans(attn)
     if dropout_p > 0.0:
         attn = dropout(attn, p=dropout_p)
     # (B, Nt, Ns) x (B, Ns, E) -> (B, Nt, E)

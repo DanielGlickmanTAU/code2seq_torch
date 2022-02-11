@@ -19,7 +19,10 @@ def train_epoch(model, device, loader, optimizer, task_type):
             ## ignore nan targets (unlabeled) when computing training loss.
             is_labeled = batch.y == batch.y
             if "classification" in task_type:
-                loss = cls_criterion(pred.to(torch.float32)[is_labeled], batch.y.to(torch.float32)[is_labeled])
+                y = batch.y
+                if y.dim() == 1:
+                    y = y.unsqueeze(1)
+                loss = cls_criterion(pred.to(torch.float32)[is_labeled], y.to(torch.float32)[is_labeled])
             else:
                 loss = reg_criterion(pred.to(torch.float32)[is_labeled], batch.y.to(torch.float32)[is_labeled])
             loss.backward()

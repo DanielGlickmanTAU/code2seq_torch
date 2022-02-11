@@ -12,6 +12,10 @@ except ImportError:
 class Evaluator:
     def __init__(self, name):
         self.name = name
+        if name == 'PATTERN':
+            self.num_tasks = 1
+            self.eval_metric = 'acc'
+            return
 
         meta_info = pd.read_csv(os.path.join(os.path.dirname(__file__), 'master.csv'), index_col = 0)
         if not self.name in meta_info:

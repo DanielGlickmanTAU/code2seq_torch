@@ -5,8 +5,8 @@ import torch
 import networkx as nx
 import torch_geometric
 
-from DistanceCalculator import DistanceCalculator, unconnected
 from GraphDistanceBias import GraphDistanceBias
+from dataset_transformations import DistanceCalculator, unconnected
 
 
 class TestGraphDistanceBias(TestCase):

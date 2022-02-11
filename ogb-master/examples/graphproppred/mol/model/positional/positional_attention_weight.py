@@ -13,20 +13,27 @@ class AdjStackAttentionWeights(torch.nn.Module):
         super(AdjStackAttentionWeights, self).__init__()
         self.num_adj_stacks = num_adj_stacks
         self.num_heads = num_heads
-        # 1,1 is for broadcasting
         self.weight = nn.Linear(in_features=num_adj_stacks, out_features=num_heads, bias=bias)
 
     # stacks shape is (batch,num_adj_stacks,n,n)
+    # mask shape is (batch,n,n). True where should hide
     # returns (batch,num_heads,n,n)
-    def forward(self, stacks: torch.Tensor):
+    def forward(self, stacks: torch.Tensor, mask=None):
         b, num_stacks, n, n1, = stacks.shape
         assert num_stacks == self.num_adj_stacks
+        if mask is None:
+            mask = torch.zeros((b, n, n), device=stacks.device,dtype=torch.bool)
+        real_nodes_edge_mask = ~mask.view(-1)
         # shape as (batch*n*n, num_stacks)
         stacks = stacks.permute(0, 2, 3, 1).reshape(-1, self.num_adj_stacks)
-        stacks = self.weight(stacks)
+
+        adj_weights = self.weight(stacks[real_nodes_edge_mask])
+        new_adj = torch.zeros((b * n * n, self.num_heads), device=stacks.device)
+
+        new_adj[real_nodes_edge_mask] = adj_weights
         # back to (batch,num_heads,n,n)
-        stacks = stacks.view(b, n, n, self.num_heads).permute(0, 3, 1, 2)
-        return stacks
+        new_adj = new_adj.view(b, n, n, self.num_heads).permute(0, 3, 1, 2)
+        return new_adj
 
 
 def compute_diag(A: torch.Tensor):

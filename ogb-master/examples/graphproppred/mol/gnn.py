@@ -9,7 +9,7 @@ from GNN_transformer import GNNTransformer
 
 class GNN(torch.nn.Module):
 
-    def __init__(self, args, num_tasks, num_layer=5, emb_dim=300,
+    def __init__(self, args, num_tasks, task, num_layer=5, emb_dim=300,
                  gnn_type='gin', virtual_node=True, residual=False, drop_ratio=0.5, JK="last", graph_pooling="mean",
                  num_transformer_layers=0, feed_forward_dim=1024, node_encoder=None):
         '''
@@ -30,13 +30,14 @@ class GNN(torch.nn.Module):
         self.emb_dim = emb_dim
         self.num_tasks = num_tasks
         self.graph_pooling = graph_pooling
-
+        self.task = task
         self.gnn_transformer = GNNTransformer(JK, args, drop_ratio, emb_dim, feed_forward_dim, gnn_type, num_layer,
                                               num_transformer_layers, residual, virtual_node, node_encoder)
 
         if node_encoder:
             print('assuming code task')
-            self.task = 'code'
+            assert task == 'code'
+
             self.max_seq_len = args.max_seq_len
             # self.decoder = decoding.LSTMDecoder(input_dim=emb_dim, output_dim=self.num_tasks, hidden_dim=emb_dim,
             #                                     max_seq_len=self.max_seq_len)
@@ -49,7 +50,7 @@ class GNN(torch.nn.Module):
                                    teacher_forcing=1.0)
             self.decoder = decoding.LSTMDecoder(args, emb_dim, self.num_tasks, max_seq_len=10)
 
-        else:
+        elif self.task == 'mol':
             print('assuming mol task')
             self.task = 'mol'
             self.create_pooling(emb_dim)
@@ -58,6 +59,9 @@ class GNN(torch.nn.Module):
                 self.graph_pred_linear = torch.nn.Linear(2 * self.emb_dim, self.num_tasks)
             else:
                 self.graph_pred_linear = torch.nn.Linear(self.emb_dim, self.num_tasks)
+        else:
+            print(f'task is {self.task}')
+            self.graph_pred_linear = torch.nn.Linear(self.emb_dim, self.num_tasks)
 
     def forward(self, batched_data):
         h_node = self.gnn_transformer(batched_data)
@@ -66,8 +70,10 @@ class GNN(torch.nn.Module):
         if self.task == 'mol':
             h_graph = self.pool(h_node, batched_data.batch)
             return self.graph_pred_linear(h_graph)
-
-        return self.decoder(h_node, batched_data)
+        if self.task == 'code':
+            return self.decoder(h_node, batched_data)
+        #no pooling..
+        return self.graph_pred_linear(h_node)
 
     def create_pooling(self, emb_dim):
         ### Pooling function to generate whole-graph embeddings

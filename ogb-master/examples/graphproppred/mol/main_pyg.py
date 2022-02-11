@@ -40,7 +40,7 @@ def main():
     test_loader, train_loader, valid_loader = get_train_val_test_loaders(dataset, num_workers=args.num_workers,
                                                                          batch_size=args.batch_size)
 
-    model = get_model(args, dataset.num_tasks, device)
+    model = get_model(args, dataset.num_tasks, device, task='mol')
 
     optimizer = optim.Adam(model.parameters(), lr=args.learning_rate)
 

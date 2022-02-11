@@ -27,6 +27,13 @@ def reshape_attention_mask_to_multihead(attention_mask, num_heads):
     # return mask_duplicated_for_each_head_in_same_batch.view(batch_size * num_heads, n, n)
 
 
+def compute_batch_usage(batched_data):
+    sizes = get_graph_sizes(batched_data)
+    used = sum(sizes)
+    allocated = max(sizes) * len(sizes)
+    return used / allocated
+
+
 def split_into_graphs(batched_data, h_node):
     graph_end_indexes = get_graph_sizes(batched_data)
     graph_end_indexes_as_list = [x.item() for x in graph_end_indexes]
