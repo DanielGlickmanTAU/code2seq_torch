@@ -1,8 +1,10 @@
 import torch
 from tqdm import tqdm
 
+from ogb.graphproppred import Evaluator
 
-def evaluate(model, device, loader, evaluator):
+
+def evaluate(model, device, loader, evaluator: Evaluator):
     model.eval()
     y_true = []
     y_pred = []
