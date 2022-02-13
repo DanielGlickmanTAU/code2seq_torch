@@ -8,6 +8,7 @@ try:
 except ImportError:
     torch = None
 
+
 ### Evaluator for graph classification
 class Evaluator:
     def __init__(self, name):
@@ -17,7 +18,7 @@ class Evaluator:
             self.eval_metric = 'acc'
             return
 
-        meta_info = pd.read_csv(os.path.join(os.path.dirname(__file__), 'master.csv'), index_col = 0)
+        meta_info = pd.read_csv(os.path.join(os.path.dirname(__file__), 'master.csv'), index_col=0)
         if not self.name in meta_info:
             print(self.name)
             error_mssg = 'Invalid dataset name {}.\n'.format(self.name)
@@ -27,7 +28,6 @@ class Evaluator:
 
         self.num_tasks = int(meta_info[self.name]['num tasks'])
         self.eval_metric = meta_info[self.name]['eval metric']
-
 
     def _parse_and_check_input(self, input_dict):
         if self.eval_metric == 'rocauc' or self.eval_metric == 'ap' or self.eval_metric == 'rmse' or self.eval_metric == 'acc':
@@ -50,7 +50,6 @@ class Evaluator:
             if torch is not None and isinstance(y_pred, torch.Tensor):
                 y_pred = y_pred.detach().cpu().numpy()
 
-
             ## check type
             if not isinstance(y_true, np.ndarray):
                 raise RuntimeError('Arguments to Evaluator need to be either numpy ndarray or torch tensor')
@@ -62,7 +61,8 @@ class Evaluator:
                 raise RuntimeError('y_true and y_pred mush to 2-dim arrray, {}-dim array given'.format(y_true.ndim))
 
             if not y_true.shape[1] == self.num_tasks:
-                raise RuntimeError('Number of tasks for {} should be {} but {} given'.format(self.name, self.num_tasks, y_true.shape[1]))
+                raise RuntimeError('Number of tasks for {} should be {} but {} given'.format(self.name, self.num_tasks,
+                                                                                             y_true.shape[1]))
 
             return y_true, y_pred
 
@@ -87,7 +87,6 @@ class Evaluator:
 
         else:
             raise ValueError('Undefined eval metric %s ' % (self.eval_metric))
-
 
     def eval(self, input_dict):
 
@@ -176,17 +175,16 @@ class Evaluator:
         rocauc_list = []
 
         for i in range(y_true.shape[1]):
-            #AUC is only defined when there is at least one positive data.
-            if np.sum(y_true[:,i] == 1) > 0 and np.sum(y_true[:,i] == 0) > 0:
+            # AUC is only defined when there is at least one positive data.
+            if np.sum(y_true[:, i] == 1) > 0 and np.sum(y_true[:, i] == 0) > 0:
                 # ignore nan values
-                is_labeled = y_true[:,i] == y_true[:,i]
-                rocauc_list.append(roc_auc_score(y_true[is_labeled,i], y_pred[is_labeled,i]))
+                is_labeled = y_true[:, i] == y_true[:, i]
+                rocauc_list.append(roc_auc_score(y_true[is_labeled, i], y_pred[is_labeled, i]))
 
         if len(rocauc_list) == 0:
             raise RuntimeError('No positively labeled data available. Cannot compute ROC-AUC.')
 
-        return {'rocauc': sum(rocauc_list)/len(rocauc_list)}
-
+        return {'rocauc': sum(rocauc_list) / len(rocauc_list)}
 
     def _eval_ap(self, y_true, y_pred):
         '''
@@ -196,18 +194,18 @@ class Evaluator:
         ap_list = []
 
         for i in range(y_true.shape[1]):
-            #AUC is only defined when there is at least one positive data.
-            if np.sum(y_true[:,i] == 1) > 0 and np.sum(y_true[:,i] == 0) > 0:
+            # AUC is only defined when there is at least one positive data.
+            if np.sum(y_true[:, i] == 1) > 0 and np.sum(y_true[:, i] == 0) > 0:
                 # ignore nan values
-                is_labeled = y_true[:,i] == y_true[:,i]
-                ap = average_precision_score(y_true[is_labeled,i], y_pred[is_labeled,i])
+                is_labeled = y_true[:, i] == y_true[:, i]
+                ap = average_precision_score(y_true[is_labeled, i], y_pred[is_labeled, i])
 
                 ap_list.append(ap)
 
         if len(ap_list) == 0:
             raise RuntimeError('No positively labeled data available. Cannot compute Average Precision.')
 
-        return {'ap': sum(ap_list)/len(ap_list)}
+        return {'ap': sum(ap_list) / len(ap_list)}
 
     def _eval_rmse(self, y_true, y_pred):
         '''
@@ -217,20 +215,20 @@ class Evaluator:
 
         for i in range(y_true.shape[1]):
             # ignore nan values
-            is_labeled = y_true[:,i] == y_true[:,i]
-            rmse_list.append(np.sqrt(((y_true[is_labeled] - y_pred[is_labeled])**2).mean()))
+            is_labeled = y_true[:, i] == y_true[:, i]
+            rmse_list.append(np.sqrt(((y_true[is_labeled] - y_pred[is_labeled]) ** 2).mean()))
 
-        return {'rmse': sum(rmse_list)/len(rmse_list)}
+        return {'rmse': sum(rmse_list) / len(rmse_list)}
 
     def _eval_acc(self, y_true, y_pred):
         acc_list = []
 
         for i in range(y_true.shape[1]):
-            is_labeled = y_true[:,i] == y_true[:,i]
-            correct = y_true[is_labeled,i] == y_pred[is_labeled,i]
-            acc_list.append(float(np.sum(correct))/len(correct))
+            is_labeled = y_true[:, i] == y_true[:, i]
+            correct = y_true[is_labeled, i] == y_pred[is_labeled, i]
+            acc_list.append(float(np.sum(correct)) / len(correct))
 
-        return {'acc': sum(acc_list)/len(acc_list)}
+        return {'acc': sum(acc_list) / len(acc_list)}
 
     def _eval_F1(self, seq_ref, seq_pred):
         # '''
@@ -276,7 +274,8 @@ if __name__ == '__main__':
     print(evaluator.expected_input_format)
     print(evaluator.expected_output_format)
     seq_ref = [['tom', 'is'], ['he'], ['he'], ['hey', 'fea', 'he'], ['alpha'], ['fe4qfq', 'beta'], ['aa']]
-    seq_pred = [['tom', 'is'], ['he'], ['he'], ['hey', 'he', 'fea'], ['alpha'], ['beta', 'fe4qfq'], ['aa']] # [['tom', 'is'] , ['he'], ['the', 'he'], ['hey', 'fea', 'he'], ['alpha'], ['beta', 'fe4qfq', 'c', 'fe4qf'], ['']]
+    seq_pred = [['tom', 'is'], ['he'], ['he'], ['hey', 'he', 'fea'], ['alpha'], ['beta', 'fe4qfq'], [
+        'aa']]  # [['tom', 'is'] , ['he'], ['the', 'he'], ['hey', 'fea', 'he'], ['alpha'], ['beta', 'fe4qfq', 'c', 'fe4qf'], ['']]
     input_dict = {'seq_ref': seq_ref, 'seq_pred': seq_pred}
     result = evaluator.eval(input_dict)
     print(result)
@@ -286,8 +285,8 @@ if __name__ == '__main__':
     evaluator = Evaluator('ogbg-molpcba')
     print(evaluator.expected_input_format)
     print(evaluator.expected_output_format)
-    y_true = torch.tensor(np.random.randint(2, size = (100,128)))
-    y_pred = torch.tensor(np.random.randn(100,128))
+    y_true = torch.tensor(np.random.randint(2, size=(100, 128)))
+    y_pred = torch.tensor(np.random.randn(100, 128))
     input_dict = {'y_true': y_true, 'y_pred': y_pred}
     result = evaluator.eval(input_dict)
     print(result)
@@ -295,8 +294,8 @@ if __name__ == '__main__':
     evaluator = Evaluator('ogbg-molhiv')
     print(evaluator.expected_input_format)
     print(evaluator.expected_output_format)
-    y_true = torch.tensor(np.random.randint(2, size = (100,1)))
-    y_pred = torch.tensor(np.random.randn(100,1))
+    y_true = torch.tensor(np.random.randint(2, size=(100, 1)))
+    y_pred = torch.tensor(np.random.randn(100, 1))
     input_dict = {'y_true': y_true, 'y_pred': y_pred}
     result = evaluator.eval(input_dict)
     print(result)
@@ -305,8 +304,8 @@ if __name__ == '__main__':
     evaluator = Evaluator('ogbg-mollipo')
     print(evaluator.expected_input_format)
     print(evaluator.expected_output_format)
-    y_true = np.random.randn(100,1)
-    y_pred = np.random.randn(100,1)
+    y_true = np.random.randn(100, 1)
+    y_pred = np.random.randn(100, 1)
     input_dict = {'y_true': y_true, 'y_pred': y_pred}
     result = evaluator.eval(input_dict)
     print(result)
@@ -315,11 +314,8 @@ if __name__ == '__main__':
     evaluator = Evaluator('ogbg-ppa')
     print(evaluator.expected_input_format)
     print(evaluator.expected_output_format)
-    y_true = np.random.randint(5, size = (100,1))
-    y_pred = np.random.randint(5, size = (100,1))
+    y_true = np.random.randint(5, size=(100, 1))
+    y_pred = np.random.randint(5, size=(100, 1))
     input_dict = {'y_true': y_true, 'y_pred': y_pred}
     result = evaluator.eval(input_dict)
     print(result)
-
-
-
