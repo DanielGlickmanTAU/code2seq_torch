@@ -129,11 +129,11 @@ class Test(TestCase):
         torch.autograd.set_detect_anomaly(False)
 
     def test_can_overfit_molhiv_with_gnn(self):
-        dataset_samples = 64
+        dataset_samples = 32*20
         # Training settings
         args = get_default_args()
         args.dataset = "ogbg-molhiv"
-        args.num_layer = 4
+        args.num_layer = 6
         args.num_transformer_layers = 0
         args.drop_ratio = 0.
         torch.autograd.set_detect_anomaly(True)
@@ -141,7 +141,7 @@ class Test(TestCase):
         torch.autograd.set_detect_anomaly(False)
 
 
-    def assert_overfit(self, args, dataset_samples):
+    def assert_overfit(self, args, dataset_samples, score_needed=0.95):
         dataset = PygGraphPropPredDataset(name=args.dataset,
                                           transform=AdjStack(args))
         device = compute.get_device()
@@ -156,10 +156,10 @@ class Test(TestCase):
 
             print(f'Evaluating epoch {epoch}')
             rocauc = evaluate(model, device, test_loader, evaluator)['rocauc']
-            if rocauc > 0.95:
+            if rocauc > score_needed:
                 break
             print(rocauc)
-        assert rocauc > 0.95
+        assert rocauc > score_needed
 
     def test_content_position_model_dropout_defaults_to_same_as_overall_dropout(self):
         args = get_default_args()
