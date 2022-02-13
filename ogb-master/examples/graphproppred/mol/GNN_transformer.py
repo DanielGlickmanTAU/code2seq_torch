@@ -1,6 +1,6 @@
 from torch import nn
 
-from conv import GNN_node_Virtualnode, GNN_node
+from conv import GNN_node
 from model.GraphTransformerEncoder import GraphTransformerEncoder
 import pygraph_utils
 
@@ -14,9 +14,7 @@ class GNNTransformer(nn.Module):
         self.emb_dim = emb_dim
         super(GNNTransformer, self).__init__()
         if virtual_node:
-            self.gnn_node = GNN_node_Virtualnode(num_layer, emb_dim, JK=JK, drop_ratio=drop_ratio,
-                                                 residual=residual,
-                                                 gnn_type=gnn_type)
+            raise Exception('not supported')
         else:
             self.gnn_node = GNN_node(num_layer, emb_dim, JK=JK, drop_ratio=drop_ratio, residual=residual,
                                      gnn_type=gnn_type, node_encoder=node_encoder)
