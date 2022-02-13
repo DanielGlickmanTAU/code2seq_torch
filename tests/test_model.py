@@ -18,6 +18,8 @@ from ogb.graphproppred import Evaluator, PygGraphPropPredDataset
 from train import train_epoch, evaluate
 
 
+
+
 class Test(TestCase):
 
     def test_grads_and_outputs_content_attention(self):
@@ -112,6 +114,33 @@ class Test(TestCase):
 
         self.assert_overfit(args, dataset_samples)
 
+    def test_can_overfit_molhiv_with_2_gnn_and_content_attention(self):
+        dataset_samples = 64
+        # Training settings
+        args = get_default_args()
+        args.dataset = "ogbg-molhiv"
+        args.attention_type = 'content'
+        args.num_layer = 4
+        args.num_transformer_layers = 3
+        args.drop_ratio = 0.
+        args.transformer_encoder_dropout = 0.
+        torch.autograd.set_detect_anomaly(True)
+        self.assert_overfit(args, dataset_samples)
+        torch.autograd.set_detect_anomaly(False)
+
+    def test_can_overfit_molhiv_with_gnn(self):
+        dataset_samples = 64
+        # Training settings
+        args = get_default_args()
+        args.dataset = "ogbg-molhiv"
+        args.num_layer = 4
+        args.num_transformer_layers = 0
+        args.drop_ratio = 0.
+        torch.autograd.set_detect_anomaly(True)
+        self.assert_overfit(args, dataset_samples)
+        torch.autograd.set_detect_anomaly(False)
+
+
     def assert_overfit(self, args, dataset_samples):
         dataset = PygGraphPropPredDataset(name=args.dataset,
                                           transform=AdjStack(args))
@@ -190,4 +219,5 @@ class Test(TestCase):
 
 
 if __name__ == '__main__':
-    unittest.main()
+    # unittest.main()
+    Test().test_can_overfit_molhiv_with_1_gnn_and_content_attention()
