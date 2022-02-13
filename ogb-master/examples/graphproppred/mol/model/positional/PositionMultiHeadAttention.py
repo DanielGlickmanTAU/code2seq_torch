@@ -96,8 +96,11 @@ class PositionMultiHeadAttention(Module):
         assert self._qkv_same_embed_dim
 
         attention_weights = self.positional_bias(stacks=adj_stack, mask=attn_mask)
+        b, heads, n1, n2 = attention_weights.shape
+        attention_weights = attention_weights.contiguous().view(b * self.num_heads, n1, n1)
         # (n,batch,d)
         value = linear(value, self.in_proj_weight, self.in_proj_bias)
+        attn_mask = pygraph_utils.reshape_attention_mask_to_multihead(attn_mask, self.num_heads)
 
         attn_output, attn_output_weights = multi_head_positional_attention(
             value, attention_weights, self.embed_dim, self.num_heads,
@@ -134,14 +137,11 @@ def multi_head_positional_attention(
     src_len = tgt_len
     head_dim = embed_dim // num_heads
     _assertions(bias_k, bias_v, embed_dim, embed_dim_to_check, head_dim, num_heads,
-                out_proj_bias, out_proj_weight, value, use_separate_proj_weight, key_padding_mask, attention_weights,
-                src_len, bsz)
+                use_separate_proj_weight, key_padding_mask)
 
-    assert attention_weights.shape == (bsz, num_heads, src_len, src_len)
     "expect attention weights to be of shape (batch *num_head,tgt_len,tgt_len)"
-    attn_mask = pygraph_utils.reshape_attention_mask_to_multihead(attn_mask, num_heads)
-    attention_weights = attention_weights.contiguous().view(bsz * num_heads, src_len, src_len)
-
+    assert attention_weights.shape == (bsz * num_heads, src_len, src_len)
+    assert attn_mask.shape == attention_weights.shape
     attn_mask = prep_attention_mask(attn_mask, bsz, num_heads, src_len, tgt_len)
 
     # (batch*num_head, n , d/head)
@@ -173,8 +173,8 @@ def weighted_average(values, attention_weights, attn_mask, training, dropout_p):
         not_nan = ~attn.isnan()
         attn_new = torch.zeros_like(attn, device=attn.device)
         attn_new[not_nan] = attn[not_nan]
-        attn = attn.masked_fill(attn.isnan(), 0)
-        return attn
+        # attn = attn.masked_fill(attn.isnan(), 0)
+        return attn_new
 
     # adjust dropout
     if not training:
@@ -221,8 +221,7 @@ def prep_attention_mask(attn_mask, bsz, num_heads, src_len, tgt_len):
 
 
 def _assertions(bias_k, bias_v, embed_dim, embed_dim_to_check, head_dim, num_heads,
-                out_proj_bias, out_proj_weight, query, use_separate_proj_weight, key_padding_mask, attention_weights,
-                src_len, bsz):
+                use_separate_proj_weight, key_padding_mask):
     assert key_padding_mask is None
 
     assert embed_dim == embed_dim_to_check, \
