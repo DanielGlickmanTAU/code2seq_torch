@@ -18,8 +18,6 @@ from ogb.graphproppred import Evaluator, PygGraphPropPredDataset
 from train import train_epoch, evaluate
 
 
-
-
 class Test(TestCase):
 
     def test_grads_and_outputs_content_attention(self):
@@ -120,16 +118,16 @@ class Test(TestCase):
         args = get_default_args()
         args.dataset = "ogbg-molhiv"
         args.attention_type = 'content'
-        args.num_layer = 4
-        args.num_transformer_layers = 3
+        args.num_layer = 6
+        args.num_transformer_layers = 2
         args.drop_ratio = 0.
         args.transformer_encoder_dropout = 0.
-        torch.autograd.set_detect_anomaly(True)
+        # torch.autograd.set_detect_anomaly(True)
         self.assert_overfit(args, dataset_samples)
-        torch.autograd.set_detect_anomaly(False)
+        # torch.autograd.set_detect_anomaly(False)
 
     def test_can_overfit_molhiv_with_gnn(self):
-        dataset_samples = 32*20
+        dataset_samples = 32 * 10
         # Training settings
         args = get_default_args()
         args.dataset = "ogbg-molhiv"
@@ -137,9 +135,8 @@ class Test(TestCase):
         args.num_transformer_layers = 0
         args.drop_ratio = 0.
         torch.autograd.set_detect_anomaly(True)
-        self.assert_overfit(args, dataset_samples)
+        self.assert_overfit(args, dataset_samples,score_needed=0.8)
         torch.autograd.set_detect_anomaly(False)
-
 
     def assert_overfit(self, args, dataset_samples, score_needed=0.95):
         dataset = PygGraphPropPredDataset(name=args.dataset,
@@ -151,8 +148,9 @@ class Test(TestCase):
                                                                              limit=dataset_samples)
         model = get_model(args, dataset.num_tasks, device, task='mol')
         optimizer = optim.Adam(model.parameters(), lr=3e-4)
-        for epoch in range(1, 100 + 1):
+        for epoch in range(1, 200 + 1):
             epoch_avg_loss = train_epoch(model, device, train_loader, optimizer, dataset.task_type)
+            print(f'loss is {epoch_avg_loss}')
 
             print(f'Evaluating epoch {epoch}')
             rocauc = evaluate(model, device, test_loader, evaluator)['rocauc']
