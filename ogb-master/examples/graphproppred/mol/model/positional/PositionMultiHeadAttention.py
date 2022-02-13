@@ -215,7 +215,8 @@ def prep_attention_mask(attn_mask, bsz, num_heads, src_len, tgt_len):
             # convert mask to float
         if attn_mask.dtype == torch.bool:
             new_attn_mask = torch.zeros_like(attn_mask, dtype=torch.float)
-            new_attn_mask.masked_fill_(attn_mask, float("-inf"))
+            # new_attn_mask.masked_fill_(attn_mask, float("-inf"))
+            new_attn_mask.masked_fill_(attn_mask, -1e6)
             attn_mask = new_attn_mask
     return attn_mask
 
