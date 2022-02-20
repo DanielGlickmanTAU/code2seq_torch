@@ -128,7 +128,7 @@ class Test(TestCase):
         args.num_layer = 6
         args.num_transformer_layers = 0
         torch.autograd.set_detect_anomaly(True)
-        self.assert_overfit_on_train(args, dataset_samples, score_needed=0.8)
+        self.assert_overfit_on_train(args, dataset_samples)
         torch.autograd.set_detect_anomaly(False)
 
     def assert_overfit_on_train(self, args, dataset_samples, score_needed=0.95):
