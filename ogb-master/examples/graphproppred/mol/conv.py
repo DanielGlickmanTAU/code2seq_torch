@@ -25,7 +25,10 @@ class GINConv(MessagePassing):
             self.edge_encoder = torch.nn.Linear(2, emb_dim)
 
     def forward(self, x, edge_index, edge_attr):
-        edge_embedding = self.edge_encoder(edge_attr)
+        if edge_attr is not None:
+            edge_embedding = self.edge_encoder(edge_attr)
+        else:
+            edge_embedding = torch.zeros(( edge_index.shape[-1],x.shape[-1]), device=x.device)
         out = self.mlp((1 + self.eps) * x + self.propagate(edge_index, x=x, edge_attr=edge_embedding))
 
         return out
