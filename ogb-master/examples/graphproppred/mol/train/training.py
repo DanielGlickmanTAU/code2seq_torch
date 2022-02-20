@@ -6,6 +6,7 @@ reg_criterion = torch.nn.MSELoss()
 
 
 def train_epoch(model, device, loader, optimizer, task_type):
+    assert task_type in {'binary classification', 'regression', 'node classification'}, f'{task_type} not supported'
     model.train()
     losses = []
     for step, batch in enumerate(tqdm(loader, desc="Iteration")):
