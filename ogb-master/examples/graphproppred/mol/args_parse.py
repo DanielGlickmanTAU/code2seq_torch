@@ -33,7 +33,7 @@ def add_args(parser):
                         help='input batch size for training (default: 32)')
     parser.add_argument('--epochs', type=int, default=100,
                         help='number of epochs to train (default: 100)')
-    parser.add_argument('--patience', type=int, default=8,
+    parser.add_argument('--patience', type=int, default=15,
                         help='training early stopping patience')
     parser.add_argument('--lr_reduce_factor', type=float, default=0.5,
                         help='will set learning_rate = lr_reduce_factor * learning_rate every lr_schedule_patience epochs that the validation does not decrease')
