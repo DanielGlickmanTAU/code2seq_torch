@@ -196,51 +196,48 @@ class Test(TestCase):
 
         device = compute.get_device()
         from torchvision import transforms
-        def to_int(data):
-            data.x = data.x.int()
-            return data
 
         train_loader, _, __ = dataloader_utils.pyg_get_train_val_test_loaders(args.dataset,
                                                                               num_workers=args.num_workers,
                                                                               batch_size=args.batch_size,
                                                                               limit=dataset_samples,
                                                                               transform=transforms.Compose(
-                                                                                  [to_int, AdjStack(
+                                                                                  [self.to_one_hot, AdjStack(
                                                                                       args)]))
 
         evaluator = Evaluator(args.dataset)
         model = get_model(args, 1, device, task='pattern')
         self._train_and_assert_overfit_on_train(model, train_loader, evaluator, 'node classification')
 
+    def to_one_hot(self, data):
+        data.x = data.x.argmax(dim=-1)
+        return data
+
     def test_can_overfit_pattern_dataset_with_gnn(self):
         dataset_samples = 32 * 100
-        # dataset_samples = 2
         args = get_default_args()
         args.dataset = "PATTERN"
         args.num_layer = 2
         args.num_transformer_layers = 0
         args.drop_ratio = 0.
-        # todo need better embedding...! now using strange embedding for atoms
         args.emb_dim = 30
         args.num_heads = 1
 
         device = compute.get_device()
         from torchvision import transforms
-        def to_int(data):
-            data.x = data.x.int()
-            return data
 
         train_loader, _, __ = dataloader_utils.pyg_get_train_val_test_loaders(args.dataset,
                                                                               num_workers=args.num_workers,
                                                                               batch_size=args.batch_size,
                                                                               limit=dataset_samples,
                                                                               transform=transforms.Compose(
-                                                                                  [to_int, AdjStack(
+                                                                                  [self.to_one_hot, AdjStack(
                                                                                       args)]))
 
         evaluator = Evaluator(args.dataset)
         model = get_model(args, 1, device, task='pattern')
-        self._train_and_assert_overfit_on_train(model, train_loader, evaluator, 'node classification',score_needed=0.88)
+        self._train_and_assert_overfit_on_train(model, train_loader, evaluator, 'node classification',
+                                                score_needed=0.88)
 
     if __name__ == '__main__':
         unittest.main()
