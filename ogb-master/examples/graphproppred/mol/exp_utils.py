@@ -16,6 +16,10 @@ def start_exp(exp_name, args, model):
     exp = comet_logger.experiment
 
     exp.set_model_graph(model)
-    print(f'#Params: {sum(p.numel() for p in model.parameters())}')
+    print(f'#Params: {num_model_params(model)}')
     exp.log_parameters(args)
     return exp
+
+
+def num_model_params(model):
+    return sum(p.numel() for p in model.parameters())
