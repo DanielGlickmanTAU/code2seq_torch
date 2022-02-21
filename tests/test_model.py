@@ -1,21 +1,18 @@
-from code2seq.utils import compute
-import argparse
 import unittest
 from unittest import TestCase
 
 import torch
 from torch import optim
 
+from code2seq.utils import compute
 from args_parse import get_default_args
-
 from data import dataloader_utils
 from data.dataloader_utils import get_train_val_test_loaders
-from model.ContentMultiHeadAttention import ContentMultiheadAttention
 from model.model_utils import get_model
-from model.positional.PositionMultiHeadAttention import PositionMultiHeadAttention
-from model.positional.positional_attention_weight import AdjStack, AdjStackAttentionWeights
+from model.positional.positional_attention_weight import AdjStack
 from ogb.graphproppred import Evaluator, PygGraphPropPredDataset
-from train import train_epoch, evaluate
+from train.eval import evaluate
+from train.training import train_epoch
 
 
 class Test(TestCase):
@@ -143,15 +140,26 @@ class Test(TestCase):
                                                          batch_size=args.batch_size,
                                                          limit=dataset_samples)
         model = get_model(args, dataset.num_tasks, device, task='mol')
+        self._train_and_assert_overfit_on_train(model, train_loader, evaluator, dataset.task_type, score_needed)
+
+    def _train_and_assert_overfit_on_train(self, model, train_loader, evaluator, task_type, score_needed=0.9):
+        device = compute.get_device()
         optimizer = optim.Adam(model.parameters(), lr=3e-4)
         for epoch in range(1, 200 + 1):
-            epoch_avg_loss = train_epoch(model, device, train_loader, optimizer, dataset.task_type)
+            epoch_avg_loss = train_epoch(model, device, train_loader, optimizer, task_type)
             print(f'loss is {epoch_avg_loss}')
 
-            rocauc = evaluate(model, device, train_loader, evaluator)['rocauc']
+            eval_dict = evaluate(model, device, train_loader, evaluator)
+            assert len(eval_dict) == 1
+            if 'rocauc' in eval_dict:
+                metric = 'rocauc'
+            elif 'acc' in eval_dict:
+                metric = 'acc'
+
+            rocauc = eval_dict[metric]
             if rocauc > score_needed:
                 break
-            print(f'Evaluating epoch {epoch}...rocauc: {rocauc}')
+            print(f'Evaluating epoch {epoch}...{metric}: {rocauc}')
         assert rocauc > score_needed
 
     def test_content_position_model_dropout_defaults_to_same_as_overall_dropout(self):
@@ -172,20 +180,19 @@ class Test(TestCase):
         model = get_model(args, 3, compute.get_device(), task='mol')
         assert model.gnn_transformer.transformer.layers[0].dropout.p != model.gnn_transformer.gnn_node.drop_ratio
 
-    def test_pattern_dataset(self):
+    def test_can_overfit_pattern_dataset_with_position_attention(self):
         dataset_samples = 32 * 100
+        # dataset_samples = 2
         # Training settings
         args = get_default_args()
         args.dataset = "PATTERN"
         args.attention_type = 'position'
         args.num_layer = args.num_transformer_layers = 2
         args.drop_ratio = 0.
+        args.transformer_encoder_dropout = 0.
         # todo need better embedding...! now using strange embedding for atoms
-        args.emb_dim = 3
+        args.emb_dim = 30
         args.num_heads = 1
-
-        # dataset = PygGraphPropPredDataset(name=args.dataset,
-        #                                   transform=AdjStack(args))
 
         device = compute.get_device()
         from torchvision import transforms
@@ -193,25 +200,48 @@ class Test(TestCase):
             data.x = data.x.int()
             return data
 
-        train_loader, valid_loader, test_loader = dataloader_utils.pyg_get_train_val_test_loaders(args.dataset,
-                                                                                                  num_workers=args.num_workers,
-                                                                                                  batch_size=args.batch_size,
-                                                                                                  limit=dataset_samples,
-                                                                                                  transform=transforms.Compose(
-                                                                                                      [to_int, AdjStack(
-                                                                                                          args)]))
+        train_loader, _, __ = dataloader_utils.pyg_get_train_val_test_loaders(args.dataset,
+                                                                              num_workers=args.num_workers,
+                                                                              batch_size=args.batch_size,
+                                                                              limit=dataset_samples,
+                                                                              transform=transforms.Compose(
+                                                                                  [to_int, AdjStack(
+                                                                                      args)]))
 
         evaluator = Evaluator(args.dataset)
         model = get_model(args, 1, device, task='pattern')
+        self._train_and_assert_overfit_on_train(model, train_loader, evaluator, 'node classification')
 
-        optimizer = optim.Adam(model.parameters(), lr=3e-5)
-        for epoch in range(1, 20):
-            epoch_avg_loss = train_epoch(model, device, train_loader, optimizer, "node classification")
+    def test_can_overfit_pattern_dataset_with_gnn(self):
+        dataset_samples = 32 * 100
+        # dataset_samples = 2
+        args = get_default_args()
+        args.dataset = "PATTERN"
+        args.num_layer = 2
+        args.num_transformer_layers = 0
+        args.drop_ratio = 0.
+        # todo need better embedding...! now using strange embedding for atoms
+        args.emb_dim = 30
+        args.num_heads = 1
 
-            print(f'Evaluating epoch {epoch}')
-            print(evaluate(model, device, test_loader, evaluator))
+        device = compute.get_device()
+        from torchvision import transforms
+        def to_int(data):
+            data.x = data.x.int()
+            return data
 
+        train_loader, _, __ = dataloader_utils.pyg_get_train_val_test_loaders(args.dataset,
+                                                                              num_workers=args.num_workers,
+                                                                              batch_size=args.batch_size,
+                                                                              limit=dataset_samples,
+                                                                              transform=transforms.Compose(
+                                                                                  [to_int, AdjStack(
+                                                                                      args)]))
 
-if __name__ == '__main__':
-    unittest.main()
-    # Test().test_can_overfit_molhiv_with_1_gnn_and_content_attention()
+        evaluator = Evaluator(args.dataset)
+        model = get_model(args, 1, device, task='pattern')
+        self._train_and_assert_overfit_on_train(model, train_loader, evaluator, 'node classification',score_needed=0.88)
+
+    if __name__ == '__main__':
+        unittest.main()
+        # Test().test_can_overfit_molhiv_with_1_gnn_and_content_attention()

@@ -1,10 +1,11 @@
+from exp_utils import start_exp
 import numpy as np
 from torch import optim as optim
 from tqdm import tqdm
 import torch
 
-from exp_utils import start_exp
-from train import evaluate
+# from train import evaluate
+from train.eval import evaluate
 
 cls_criterion = torch.nn.BCEWithLogitsLoss()
 reg_criterion = torch.nn.MSELoss()
@@ -58,7 +59,6 @@ def full_train_flow(args, dataset, device, evaluator, model, test_loader, train_
         epoch_avg_loss = train_epoch(model, device, train_loader, optimizer, dataset.task_type)
 
         print('Evaluating...')
-        # train_perf = evaluate(model, device, train_loader, evaluator)
         valid_perf = evaluate(model, device, valid_loader, evaluator)
         test_perf = evaluate(model, device, test_loader, evaluator)
 
