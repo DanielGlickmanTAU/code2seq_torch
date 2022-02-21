@@ -180,7 +180,7 @@ def weighted_average(values, attention_weights, attn_mask, training, dropout_p):
     if not training:
         dropout_p = 0.0
     if attn_mask is not None:
-        attention_weights += attn_mask
+        attention_weights = attention_weights + attn_mask
     attn = softmax(attention_weights, dim=-1)
     attn = fix_nans(attn)
     if dropout_p > 0.0:
