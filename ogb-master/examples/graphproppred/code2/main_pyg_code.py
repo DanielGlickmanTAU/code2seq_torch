@@ -158,7 +158,7 @@ def main():
     node_encoder = ASTNodeEncoder(args.emb_dim, num_nodetypes=len(nodetypes_mapping['type']),
                                   num_nodeattributes=len(nodeattributes_mapping['attr']), max_depth=20)
     #for later
-    model.utils.get_model()
+    model_utils.get_model()
 
     exp = start_exp(args.exp_name, args, model)
 
