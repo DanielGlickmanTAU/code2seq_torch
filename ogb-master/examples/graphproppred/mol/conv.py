@@ -28,7 +28,7 @@ class GINConv(MessagePassing):
         if edge_attr is not None:
             edge_embedding = self.edge_encoder(edge_attr)
         else:
-            edge_embedding = torch.zeros(( edge_index.shape[-1],x.shape[-1]), device=x.device)
+            edge_embedding = torch.zeros((edge_index.shape[-1], x.shape[-1]), device=x.device)
         out = self.mlp((1 + self.eps) * x + self.propagate(edge_index, x=x, edge_attr=edge_embedding))
 
         return out
@@ -82,8 +82,8 @@ class GNN_node(torch.nn.Module):
         node representations
     """
 
-    def __init__(self, num_layer, emb_dim, drop_ratio=0.5, JK="last", residual=False, gnn_type='gin',
-                 node_encoder=None):
+    def __init__(self, task, num_layer, emb_dim, node_encoder, drop_ratio=0.5, JK="last", residual=False,
+                 gnn_type='gin'):
         '''
             emb_dim (int): node embedding dimensionality
             num_layer (int): number of GNN message passing layers
@@ -96,13 +96,9 @@ class GNN_node(torch.nn.Module):
         self.JK = JK
         ### add residual connection or not
         self.residual = residual
+        self.node_encoder = node_encoder
 
-        if node_encoder is None:
-            self.node_encoder = AtomEncoder(emb_dim)
-            self.task = 'mol'
-        else:
-            self.node_encoder = node_encoder
-            self.task = 'code'
+        self.task = task
 
         ###List of GNNs
         self.convs = torch.nn.ModuleList()
@@ -121,12 +117,12 @@ class GNN_node(torch.nn.Module):
             self.batch_norms.append(torch.nn.BatchNorm1d(emb_dim))
 
     def forward(self, batched_data):
-        if self.task == 'mol':
-            x, edge_index, edge_attr, batch = batched_data.x, batched_data.edge_index, batched_data.edge_attr, batched_data.batch
-            h_list = [self.node_encoder(x)]
-        else:
+        if self.task == 'code':
             x, edge_index, edge_attr, node_depth, batch = batched_data.x, batched_data.edge_index, batched_data.edge_attr, batched_data.node_depth, batched_data.batch
             h_list = [self.node_encoder(x, node_depth.view(-1, ))]
+        else:
+            x, edge_index, edge_attr, batch = batched_data.x, batched_data.edge_index, batched_data.edge_attr, batched_data.batch
+            h_list = [self.node_encoder(x)]
 
         for layer in range(self.num_layer):
 

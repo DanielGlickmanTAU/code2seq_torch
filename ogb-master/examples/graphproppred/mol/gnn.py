@@ -32,11 +32,11 @@ class GNN(torch.nn.Module):
         self.graph_pooling = graph_pooling
         self.task = task
         self.gnn_transformer = GNNTransformer(JK, args, drop_ratio, emb_dim, feed_forward_dim, gnn_type, num_layer,
-                                              num_transformer_layers, residual, virtual_node, node_encoder)
+                                              num_transformer_layers, residual, virtual_node, node_encoder,task)
 
-        if node_encoder:
-            print('assuming code task')
-            assert task == 'code'
+        if self.task == 'code':
+
+
 
             self.max_seq_len = args.max_seq_len
             # self.decoder = decoding.LSTMDecoder(input_dim=emb_dim, output_dim=self.num_tasks, hidden_dim=emb_dim,
@@ -72,7 +72,7 @@ class GNN(torch.nn.Module):
             return self.graph_pred_linear(h_graph)
         if self.task == 'code':
             return self.decoder(h_node, batched_data)
-        #no pooling..
+        # no pooling..
         return self.graph_pred_linear(h_node)
 
     def create_pooling(self, emb_dim):
