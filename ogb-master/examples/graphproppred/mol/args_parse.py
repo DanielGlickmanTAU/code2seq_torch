@@ -35,6 +35,9 @@ def add_args(parser):
                         help='number of epochs to train (default: 100)')
     parser.add_argument('--patience', type=int, default=8,
                         help='training early stopping patience')
+    parser.add_argument('--lr_reduce_factor', type=float, default=0.5,
+                        help='will set learning_rate = lr_reduce_factor * learning_rate every lr_schedule_patience epochs that the validation does not decrease')
+    parser.add_argument('--lr_schedule_patience', type=int, default=5, help='see lr_reduce_factor')
     parser.add_argument('--num_workers', type=int, default=4 * torch.cuda.device_count(),
                         help='number of workers (default: 0)')
     parser.add_argument('--feature', type=str, default="full",
@@ -47,8 +50,8 @@ def add_args(parser):
     parser.add_argument('--exp_name', type=str, default='graph-filter-network')
     parser.add_argument('--num_heads', type=int, default=4, help='attention heads')
     parser.add_argument('--offline', type=bool_, default=False)
-    parser.add_argument('--seed',type=int,default=1)
-    parser.add_argument('--transformer_encoder_dropout',type=float)
+    parser.add_argument('--seed', type=int, default=1)
+    parser.add_argument('--transformer_encoder_dropout', type=float)
 
 
 def get_default_args():

@@ -39,6 +39,10 @@ def train_epoch(model, device, loader, optimizer, task_type):
 
 def full_train_flow(args, dataset, device, evaluator, model, test_loader, train_loader, valid_loader):
     optimizer = optim.Adam(model.parameters(), lr=args.learning_rate)
+    scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min',
+                                                     factor=args.lr_reduce_factor,
+                                                     patience=args.lr_schedule_patience,
+                                                     verbose=True)
     exp = start_exp(args.exp_name, args, model)
 
     print(f'#Params: {sum(p.numel() for p in model.parameters())}')
@@ -62,7 +66,7 @@ def full_train_flow(args, dataset, device, evaluator, model, test_loader, train_
         print(f'epoch loss {epoch_avg_loss}')
         print({'Validation': valid_perf, 'Test': test_perf})
 
-        validation_score = valid_perf[dataset.eval_metric]
+        validation_score: float = valid_perf[dataset.eval_metric]
         test_score = test_perf[dataset.eval_metric]
         train_losses.append(epoch_avg_loss)
         valid_curve.append(validation_score)
@@ -72,6 +76,8 @@ def full_train_flow(args, dataset, device, evaluator, model, test_loader, train_
         exp.log_metric(f'epoch_loss', epoch_avg_loss)
         exp.log_metric(f'val_{dataset.eval_metric}', validation_score)
         exp.log_metric(f'test_{dataset.eval_metric}', test_score)
+
+        scheduler.step(validation_score)
 
         if validation_score > best_so_far:
             best_so_far = validation_score
