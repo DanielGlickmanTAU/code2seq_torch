@@ -63,7 +63,8 @@ class Evaluator:
             if not y_true.shape[1] == self.num_tasks:
                 raise RuntimeError('Number of tasks for {} should be {} but {} given'.format(self.name, self.num_tasks,
                                                                                              y_true.shape[1]))
-
+            if self.eval_metric == 'acc' and self.num_tasks == 1:
+                y_pred = (y_pred > 0.5)
             return y_true, y_pred
 
         elif self.eval_metric == 'F1':
