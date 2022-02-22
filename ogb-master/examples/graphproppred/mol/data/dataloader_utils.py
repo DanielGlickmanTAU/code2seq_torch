@@ -24,9 +24,9 @@ def pyg_get_train_val_test_loaders(name, batch_size, num_workers, transform=None
     val_dataset = GNNBenchmarkDataset(root=name, name=('%s' % name), split='val', transform=transform)
     test_dataset = GNNBenchmarkDataset(root=name, name=('%s' % name), split='test', transform=transform)
 
-    train_dataset = train_dataset[: limit] if limit else train_dataset["train"]
-    val_dataset = val_dataset[: limit] if limit else val_dataset["valid"]
-    test_dataset = test_dataset[: limit] if limit else test_dataset["test"]
+    train_dataset = train_dataset[: limit] if limit else train_dataset
+    val_dataset = val_dataset[: limit] if limit else val_dataset
+    test_dataset = test_dataset[: limit] if limit else test_dataset
 
     train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True,
                               num_workers=num_workers)
