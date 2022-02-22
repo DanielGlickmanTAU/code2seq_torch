@@ -15,7 +15,7 @@ class GINConv(MessagePassing):
 
         super(GINConv, self).__init__(aggr="add")
 
-        hidden_dim = args.gin_conv_mlp_hidden_breath * emb_dim
+        hidden_dim = int(args.gin_conv_mlp_hidden_breath * emb_dim)
         self.mlp = torch.nn.Sequential(torch.nn.Linear(emb_dim, hidden_dim), torch.nn.BatchNorm1d(hidden_dim),
                                        torch.nn.ReLU(), torch.nn.Linear(hidden_dim, emb_dim))
         self.eps = torch.nn.Parameter(torch.Tensor([0]))
