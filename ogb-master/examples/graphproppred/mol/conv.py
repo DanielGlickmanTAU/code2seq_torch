@@ -16,8 +16,9 @@ class GINConv(MessagePassing):
 
         super(GINConv, self).__init__(aggr="add")
 
-        self.mlp = torch.nn.Sequential(torch.nn.Linear(emb_dim, 2 * emb_dim), torch.nn.BatchNorm1d(2 * emb_dim),
-                                       torch.nn.ReLU(), torch.nn.Linear(2 * emb_dim, emb_dim))
+        hidden_dim = 2 * emb_dim
+        self.mlp = torch.nn.Sequential(torch.nn.Linear(emb_dim, hidden_dim), torch.nn.BatchNorm1d(hidden_dim),
+                                       torch.nn.ReLU(), torch.nn.Linear(hidden_dim, emb_dim))
         self.eps = torch.nn.Parameter(torch.Tensor([0]))
         if type == 'mol':
             self.edge_encoder = BondEncoder(emb_dim=emb_dim)
