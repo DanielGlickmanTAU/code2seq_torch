@@ -1,5 +1,6 @@
 def get_benchmarking_gnns_hyperparam_search_space(multiple_random_seeds: bool):
     return {
+        'residual': [True],
         'learning_rate': [1e-3, 1e-4],
         'gin_conv_mlp_hidden_breath': 1.,
         'lr_schedule_patience': 5,
