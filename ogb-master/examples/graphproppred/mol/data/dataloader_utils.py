@@ -35,3 +35,8 @@ def pyg_get_train_val_test_loaders(name, batch_size, num_workers, transform=None
     test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False,
                              num_workers=num_workers)
     return train_loader, valid_loader, test_loader
+
+
+def transform_to_one_hot(data):
+    data.x = data.x.argmax(dim=-1)
+    return data

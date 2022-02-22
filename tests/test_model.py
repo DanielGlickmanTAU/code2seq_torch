@@ -7,7 +7,7 @@ from torch import optim
 from code2seq.utils import compute
 from args_parse import get_default_args
 from data import dataloader_utils
-from data.dataloader_utils import get_train_val_test_loaders
+from data.dataloader_utils import get_train_val_test_loaders, transform_to_one_hot
 from model.model_utils import get_model
 from model.positional.positional_attention_weight import AdjStack
 from ogb.graphproppred import Evaluator, PygGraphPropPredDataset
@@ -202,16 +202,12 @@ class Test(TestCase):
                                                                               batch_size=args.batch_size,
                                                                               limit=dataset_samples,
                                                                               transform=transforms.Compose(
-                                                                                  [self.to_one_hot, AdjStack(
+                                                                                  [transform_to_one_hot, AdjStack(
                                                                                       args)]))
 
         evaluator = Evaluator(args.dataset)
         model = get_model(args, 1, device, task='pattern')
         self._train_and_assert_overfit_on_train(model, train_loader, evaluator, 'node classification')
-
-    def to_one_hot(self, data):
-        data.x = data.x.argmax(dim=-1)
-        return data
 
     def test_can_overfit_pattern_dataset_with_gnn(self):
         dataset_samples = 32 * 100
@@ -231,7 +227,7 @@ class Test(TestCase):
                                                                               batch_size=args.batch_size,
                                                                               limit=dataset_samples,
                                                                               transform=transforms.Compose(
-                                                                                  [self.to_one_hot, AdjStack(
+                                                                                  [transform_to_one_hot, AdjStack(
                                                                                       args)]))
 
         evaluator = Evaluator(args.dataset)
