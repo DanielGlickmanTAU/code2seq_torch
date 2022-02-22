@@ -8,14 +8,14 @@ from ogb.graphproppred.mol_encoder import BondEncoder
 
 ### GIN convolution along the graph structure
 class GINConv(MessagePassing):
-    def __init__(self, emb_dim, type='mol'):
+    def __init__(self, args, emb_dim, type='mol'):
         '''
             emb_dim (int): node embedding dimensionality
         '''
 
         super(GINConv, self).__init__(aggr="add")
 
-        hidden_dim = 2 * emb_dim
+        hidden_dim = args.gin_conv_mlp_hidden_breath * emb_dim
         self.mlp = torch.nn.Sequential(torch.nn.Linear(emb_dim, hidden_dim), torch.nn.BatchNorm1d(hidden_dim),
                                        torch.nn.ReLU(), torch.nn.Linear(hidden_dim, emb_dim))
         self.eps = torch.nn.Parameter(torch.Tensor([0]))
@@ -82,7 +82,7 @@ class GNN_node(torch.nn.Module):
         node representations
     """
 
-    def __init__(self, task, num_layer, emb_dim, node_encoder, drop_ratio=0.5, JK="last", residual=False,
+    def __init__(self, args, task, num_layer, emb_dim, node_encoder, drop_ratio=0.5, JK="last", residual=False,
                  gnn_type='gin'):
         '''
             emb_dim (int): node embedding dimensionality
@@ -106,7 +106,7 @@ class GNN_node(torch.nn.Module):
 
         for layer in range(num_layer):
             if gnn_type == 'gin':
-                self.convs.append(GINConv(emb_dim, self.task))
+                self.convs.append(GINConv(args, emb_dim, self.task))
             elif gnn_type == 'gcn':
                 self.convs.append(GCNConv(emb_dim, self.task))
             elif gnn_type == 'gatv2':

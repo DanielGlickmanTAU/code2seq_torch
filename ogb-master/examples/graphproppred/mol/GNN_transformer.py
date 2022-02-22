@@ -16,7 +16,7 @@ class GNNTransformer(nn.Module):
         if virtual_node:
             raise Exception('not supported')
         else:
-            self.gnn_node = GNN_node(task, num_layer, emb_dim, JK=JK, drop_ratio=drop_ratio, residual=residual,
+            self.gnn_node = GNN_node(args, task, num_layer, emb_dim, JK=JK, drop_ratio=drop_ratio, residual=residual,
                                      gnn_type=gnn_type, node_encoder=node_encoder)
         self.num_transformer_layers = num_transformer_layers
         if num_transformer_layers:

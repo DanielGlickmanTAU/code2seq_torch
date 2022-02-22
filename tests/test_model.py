@@ -181,6 +181,7 @@ class Test(TestCase):
         assert model.gnn_transformer.transformer.layers[0].dropout.p != model.gnn_transformer.gnn_node.drop_ratio
 
     def test_can_overfit_pattern_dataset_with_position_attention(self):
+        # assert False
         dataset_samples = 32 * 100
         # dataset_samples = 2
         # Training settings
@@ -190,8 +191,7 @@ class Test(TestCase):
         args.num_layer = args.num_transformer_layers = 2
         args.drop_ratio = 0.
         args.transformer_encoder_dropout = 0.
-        # todo need better embedding...! now using strange embedding for atoms
-        args.emb_dim = 30
+        args.emb_dim = 100
         args.num_heads = 1
 
         device = compute.get_device()
@@ -239,6 +239,40 @@ class Test(TestCase):
         self._train_and_assert_overfit_on_train(model, train_loader, evaluator, 'node classification',
                                                 score_needed=0.88)
 
-    if __name__ == '__main__':
-        unittest.main()
-        # Test().test_can_overfit_molhiv_with_1_gnn_and_content_attention()
+    "comparing with" \
+    "https://arxiv.org/pdf/2003.00982.pdf" \
+    " https://github.com/graphdeeplearning/benchmarking-gnns/blob/master/nets/SBMs_node_classification/gin_net.py" \
+    "https://github.com/graphdeeplearning/benchmarking-gnns/blob/master/configs/SBMs_node_clustering_GIN_PATTERN_500k.json"
+
+    def test_gnn_size_like_benchmarking_gnn_paper(self):
+        args = get_default_args()
+        args.num_layer = 16
+        args.num_transformer_layers = 0
+        args.emb_dim = 124
+        args.num_heads = 1
+
+        device = compute.get_device()
+        args.gin_conv_mlp_hidden_breath = 1
+        model = get_model(args, 1, device, task='pattern')
+        n_params = sum(p.numel() for p in model.parameters())
+        k_n_params = n_params / 1_000
+        self.assertTrue(0.9 * 500 <= k_n_params <= 1.1 * 500)
+
+    def test_gnn_gin_hidden_size_taken_from_param(self):
+        args = get_default_args()
+        args.num_layer = 16
+        args.num_transformer_layers = 0
+        args.emb_dim = 124
+        args.num_heads = 1
+
+        device = compute.get_device()
+        # this is the change from the test above
+        args.gin_conv_mlp_hidden_breath = 2
+        model = get_model(args, 1, device, task='pattern')
+        n_params = sum(p.numel() for p in model.parameters())
+        k_n_params = n_params / 1_000
+        self.assertTrue(k_n_params > 1.1 * 500)
+
+
+if __name__ == '__main__':
+    unittest.main()

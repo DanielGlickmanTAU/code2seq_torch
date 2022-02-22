@@ -52,6 +52,8 @@ def add_args(parser):
     parser.add_argument('--offline', type=bool_, default=False)
     parser.add_argument('--seed', type=int, default=1)
     parser.add_argument('--transformer_encoder_dropout', type=float)
+    parser.add_argument('--gin_conv_mlp_hidden_breath', type=float, default=1.,
+                        help='the size of the hidden dim of gin layers MLP')
 
 
 def get_default_args():
