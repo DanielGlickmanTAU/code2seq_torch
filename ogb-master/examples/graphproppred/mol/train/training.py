@@ -54,6 +54,8 @@ def full_train_flow(args, device, evaluator, model, test_loader, train_loader, v
     train_losses = []
     best_so_far = 0.
     steps_with_no_improvement = 0
+
+    print_first_valid_loss(device, evaluator, model, valid_loader)
     for epoch in range(1, args.epochs + 1):
         print("=====Epoch {}".format(epoch))
         print('Training...')
@@ -97,3 +99,8 @@ def full_train_flow(args, device, evaluator, model, test_loader, train_loader, v
     exp.log_metric(f'last_test_', test_curve[best_val_epoch])
     train_score = train_perf[eval_metric]
     exp.log_metric(f'train_{eval_metric}', train_score)
+
+
+def print_first_valid_loss(device, evaluator, model, valid_loader):
+    valid_perf = evaluate(model, device, valid_loader, evaluator)
+    print(f'first valid loss is {valid_perf}')
