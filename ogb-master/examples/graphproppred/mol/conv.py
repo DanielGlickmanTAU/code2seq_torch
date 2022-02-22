@@ -1,10 +1,9 @@
 import torch
 from torch_geometric.nn import MessagePassing, GATv2Conv
 import torch.nn.functional as F
-from torch_geometric.nn import global_add_pool
 from torch_geometric.utils import degree
 
-from ogb.graphproppred.mol_encoder import AtomEncoder, BondEncoder
+from ogb.graphproppred.mol_encoder import BondEncoder
 
 
 ### GIN convolution along the graph structure
