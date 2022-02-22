@@ -1,4 +1,4 @@
-from sklearn.metrics import roc_auc_score, average_precision_score
+from sklearn.metrics import roc_auc_score, average_precision_score, confusion_matrix
 import pandas as pd
 import os
 import numpy as np
@@ -15,7 +15,8 @@ class Evaluator:
         self.name = name
         if name == 'PATTERN':
             self.num_tasks = 1
-            self.eval_metric = 'acc'
+            # self.eval_metric = 'acc'
+            self.eval_metric = 'smb'
             return
 
         meta_info = pd.read_csv(os.path.join(os.path.dirname(__file__), 'master.csv'), index_col=0)
@@ -30,7 +31,7 @@ class Evaluator:
         self.eval_metric = meta_info[self.name]['eval metric']
 
     def _parse_and_check_input(self, input_dict):
-        if self.eval_metric == 'rocauc' or self.eval_metric == 'ap' or self.eval_metric == 'rmse' or self.eval_metric == 'acc':
+        if self.eval_metric == 'rocauc' or self.eval_metric == 'ap' or self.eval_metric == 'rmse' or self.eval_metric == 'acc' or self.eval_metric == 'smb':
             if not 'y_true' in input_dict:
                 raise RuntimeError('Missing key of y_true')
             if not 'y_pred' in input_dict:
@@ -63,8 +64,8 @@ class Evaluator:
             if not y_true.shape[1] == self.num_tasks:
                 raise RuntimeError('Number of tasks for {} should be {} but {} given'.format(self.name, self.num_tasks,
                                                                                              y_true.shape[1]))
-            if self.eval_metric == 'acc' and self.num_tasks == 1:
-                y_pred = (y_pred > 0.5)
+            # if self.eval_metric == 'acc' and self.num_tasks == 1:
+            #     y_pred = (y_pred > 0.5)
             return y_true, y_pred
 
         elif self.eval_metric == 'F1':
@@ -103,6 +104,9 @@ class Evaluator:
         elif self.eval_metric == 'acc':
             y_true, y_pred = self._parse_and_check_input(input_dict)
             return self._eval_acc(y_true, y_pred)
+        elif self.eval_metric == 'smb':
+            y_true, y_pred = self._parse_and_check_input(input_dict)
+            return self._accuracy_SBM(y_pred, y_true)
         elif self.eval_metric == 'F1':
             seq_ref, seq_pred = self._parse_and_check_input(input_dict)
             return self._eval_F1(seq_ref, seq_pred)
@@ -230,6 +234,24 @@ class Evaluator:
             acc_list.append(float(np.sum(correct)) / len(correct))
 
         return {'acc': sum(acc_list) / len(acc_list)}
+
+    def _accuracy_SBM(self, scores, targets):
+        S = targets.copy()
+        C = np.argmax(torch.nn.Softmax(dim=1)(torch.tensor(scores)).cpu().detach().numpy(), axis=1)
+        CM = confusion_matrix(S, C).astype(np.float32)
+        nb_classes = CM.shape[0]
+        nb_non_empty_classes = 0
+        pr_classes = np.zeros(nb_classes)
+        for r in range(nb_classes):
+            cluster = np.where(targets == r)[0]
+            if cluster.shape[0] != 0:
+                pr_classes[r] = CM[r, r] / float(cluster.shape[0])
+                if CM[r, r] > 0:
+                    nb_non_empty_classes += 1
+            else:
+                pr_classes[r] = 0.0
+        acc = 100. * np.sum(pr_classes) / float(nb_classes)
+        return acc
 
     def _eval_F1(self, seq_ref, seq_pred):
         # '''

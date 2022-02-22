@@ -103,4 +103,4 @@ def full_train_flow(args, device, evaluator, model, test_loader, train_loader, v
 
 def print_first_valid_loss(device, evaluator, model, valid_loader):
     valid_perf = evaluate(model, device, valid_loader, evaluator)
-    print(f'first valid loss is {valid_perf}')
+    print(f'first valid score is {valid_perf}')
