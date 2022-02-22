@@ -38,7 +38,8 @@ def main():
 
     model = get_model(args, dataset.num_tasks, device, task='mol')
 
-    full_train_flow(args, dataset, device, evaluator, model, test_loader, train_loader, valid_loader)
+    full_train_flow(args, device, evaluator, model, test_loader, train_loader, valid_loader,
+                    task_type=dataset.task_type, eval_metric=dataset.eval_metric)
 
 
 if __name__ == "__main__":

@@ -38,8 +38,9 @@ def train_epoch(model, device, loader, optimizer, task_type):
     return sum(losses) / len(losses)
 
 
-def full_train_flow(args, dataset, device, evaluator, model, test_loader, train_loader, valid_loader):
+def full_train_flow(args, device, evaluator, model, test_loader, train_loader, valid_loader, task_type, eval_metric):
     optimizer = optim.Adam(model.parameters(), lr=args.learning_rate)
+    # todo, check if need this in hiv
     scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min',
                                                      factor=args.lr_reduce_factor,
                                                      patience=args.lr_schedule_patience,
@@ -56,7 +57,7 @@ def full_train_flow(args, dataset, device, evaluator, model, test_loader, train_
     for epoch in range(1, args.epochs + 1):
         print("=====Epoch {}".format(epoch))
         print('Training...')
-        epoch_avg_loss = train_epoch(model, device, train_loader, optimizer, dataset.task_type)
+        epoch_avg_loss = train_epoch(model, device, train_loader, optimizer, task_type)
 
         print('Evaluating...')
         valid_perf = evaluate(model, device, valid_loader, evaluator)
@@ -66,16 +67,15 @@ def full_train_flow(args, dataset, device, evaluator, model, test_loader, train_
         print(f'epoch loss {epoch_avg_loss}')
         print({'Validation': valid_perf, 'Test': test_perf})
 
-        validation_score: float = valid_perf[dataset.eval_metric]
-        test_score = test_perf[dataset.eval_metric]
+        validation_score: float = valid_perf[eval_metric]
+        test_score = test_perf[eval_metric]
         train_losses.append(epoch_avg_loss)
         valid_curve.append(validation_score)
         test_curve.append(test_score)
 
-        # train_score = train_perf[dataset.eval_metric]
         exp.log_metric(f'epoch_loss', epoch_avg_loss)
-        exp.log_metric(f'val_{dataset.eval_metric}', validation_score)
-        exp.log_metric(f'test_{dataset.eval_metric}', test_score)
+        exp.log_metric(f'val_{eval_metric}', validation_score)
+        exp.log_metric(f'test_{eval_metric}', test_score)
 
         scheduler.step(validation_score)
 
@@ -86,7 +86,7 @@ def full_train_flow(args, dataset, device, evaluator, model, test_loader, train_
             steps_with_no_improvement += 1
             if steps_with_no_improvement > args.patience:
                 break
-    if 'classification' in dataset.task_type:
+    if 'classification' in task_type:
         best_val_epoch = np.argmax(np.array(valid_curve))
     else:
         best_val_epoch = np.argmin(np.array(valid_curve))
@@ -95,5 +95,5 @@ def full_train_flow(args, dataset, device, evaluator, model, test_loader, train_
     print('Best validation score: {}'.format(valid_curve[best_val_epoch]))
     print('Test score: {}'.format(test_curve[best_val_epoch]))
     exp.log_metric(f'last_test_', test_curve[best_val_epoch])
-    train_score = train_perf[dataset.eval_metric]
-    exp.log_metric(f'train_{dataset.eval_metric}', train_score)
+    train_score = train_perf[eval_metric]
+    exp.log_metric(f'train_{eval_metric}', train_score)
