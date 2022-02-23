@@ -13,6 +13,7 @@ from model.positional.positional_attention_weight import AdjStack
 from ogb.graphproppred import Evaluator, PygGraphPropPredDataset
 from train.eval import evaluate
 from train.training import train_epoch
+from torchvision import transforms
 
 
 class Test(TestCase):
@@ -21,7 +22,7 @@ class Test(TestCase):
         # Training settings
         args = get_default_args()
         args.attention_type = 'content'
-        self._assert_output_and_grad(args)
+        self._assert_output_and_grad(args, dataset="ogbg-molhiv")
 
     def test_grads_and_outputs_position_attention(self):
         def callback(model):
@@ -34,7 +35,7 @@ class Test(TestCase):
         # Training settings
         args = get_default_args()
         args.attention_type = 'position'
-        self._assert_output_and_grad(args, callback)
+        self._assert_output_and_grad(args, callback, "ogbg-molhiv")
 
     @staticmethod
     def assert_not_nan_or_inf(input_tensor):
@@ -44,9 +45,9 @@ class Test(TestCase):
                 assert not input_tensor.isnan().any()
                 assert not input_tensor.isinf().any()
 
-    def _assert_output_and_grad(self, args, model_callback=None):
+    def _assert_output_and_grad(self, args, dataset, model_callback=None):
         dataset_samples = 64
-        args.dataset = "ogbg-molhiv"
+        args.dataset = dataset
         args.num_layer = args.num_transformer_layers = 4
         args.drop_ratio = 0.
         args.transformer_encoder_dropout = 0.
@@ -194,7 +195,6 @@ class Test(TestCase):
         args.num_heads = 1
 
         device = compute.get_device()
-        from torchvision import transforms
 
         train_loader, _, __ = dataloader_utils.pyg_get_train_val_test_loaders(args.dataset,
                                                                               num_workers=args.num_workers,
@@ -219,7 +219,6 @@ class Test(TestCase):
         args.num_heads = 1
 
         device = compute.get_device()
-        from torchvision import transforms
 
         train_loader, _, __ = dataloader_utils.pyg_get_train_val_test_loaders(args.dataset,
                                                                               num_workers=args.num_workers,
