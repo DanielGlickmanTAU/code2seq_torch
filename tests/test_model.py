@@ -22,7 +22,7 @@ class Test(TestCase):
         # Training settings
         args = get_default_args()
         args.attention_type = 'content'
-        self._assert_output_and_grad(args, dataset="ogbg-molhiv")
+        self._assert_output_and_grad(args)
 
     def test_grads_and_outputs_position_attention(self):
         def callback(model):
@@ -35,7 +35,7 @@ class Test(TestCase):
         # Training settings
         args = get_default_args()
         args.attention_type = 'position'
-        self._assert_output_and_grad(args, callback, "ogbg-molhiv")
+        self._assert_output_and_grad(args, callback)
 
     @staticmethod
     def assert_not_nan_or_inf(input_tensor):
@@ -45,9 +45,9 @@ class Test(TestCase):
                 assert not input_tensor.isnan().any()
                 assert not input_tensor.isinf().any()
 
-    def _assert_output_and_grad(self, args, dataset, model_callback=None):
+    def _assert_output_and_grad(self, args, model_callback=None):
         dataset_samples = 64
-        args.dataset = dataset
+        args.dataset = "ogbg-molhiv"
         args.num_layer = args.num_transformer_layers = 4
         args.drop_ratio = 0.
         args.transformer_encoder_dropout = 0.
