@@ -12,7 +12,7 @@ cls_criterion = torch.nn.BCEWithLogitsLoss()
 reg_criterion = torch.nn.MSELoss()
 
 
-def train_epoch(model, device, loader, optimizer, task_type):
+def train_epoch(model, device, loader, optimizer, task_type, assert_no_zero_grad=False):
     assert task_type in {'binary classification', 'regression', 'node classification'}, f'{task_type} not supported'
     model.train()
     losses = []
@@ -37,9 +37,16 @@ def train_epoch(model, device, loader, optimizer, task_type):
             else:
                 loss = reg_criterion(pred.to(torch.float32)[is_labeled], batch.y.to(torch.float32)[is_labeled])
             loss.backward()
+            if assert_no_zero_grad:
+                _assert_no_zero_grad(model)
             optimizer.step()
             losses.append(loss.item())
     return sum(losses) / len(losses)
+
+def _assert_no_zero_grad(model):
+    for name, p in model.named_parameters():
+        if (p.grad == 0).all():
+            raise Exception(f'found all zero grads in {name}, shape: {p.shape}')
 
 
 def full_train_flow(args, device, evaluator, model, test_loader, train_loader, valid_loader, task_type, eval_metric):

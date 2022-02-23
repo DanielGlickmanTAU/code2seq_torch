@@ -80,9 +80,9 @@ class Test(TestCase):
         if model_callback:
             model_callback(model)
 
-        train_epoch(model, device, train_loader, optimizer, dataset.task_type)
-        train_epoch(model, device, train_loader, optimizer, dataset.task_type)
-        train_epoch(model, device, train_loader, optimizer, dataset.task_type)
+        train_epoch(model, device, train_loader, optimizer, dataset.task_type, assert_no_zero_grad=True)
+        train_epoch(model, device, train_loader, optimizer, dataset.task_type, assert_no_zero_grad=True)
+        train_epoch(model, device, train_loader, optimizer, dataset.task_type, assert_no_zero_grad=True)
 
     def test_can_overfit_molhiv_with_positional_attention(self):
         dataset_samples = 64
