@@ -32,7 +32,7 @@ def main():
                                                                                                        args)]))
 
     evaluator = Evaluator(dataset_name)
-    model = get_model(args, num_tasks=2, device=device, task='pattern')
+    model = get_model(args, num_tasks=1, device=device, task='pattern')
 
     full_train_flow(args, device, evaluator, model, test_loader, train_loader, valid_loader, 'node classification',
                     'acc')
