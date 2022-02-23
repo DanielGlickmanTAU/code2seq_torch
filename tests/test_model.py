@@ -162,7 +162,7 @@ class Test(TestCase):
             print(f'Evaluating epoch {epoch}...{metric}: {rocauc}')
         assert rocauc > score_needed
 
-    def test_content_position_model_dropout_defaults_to_same_as_overall_dropout(self):
+    def test_position_model_dropout_defaults_to_same_as_overall_dropout(self):
         args = get_default_args()
         args.attention_type = 'position'
         args.num_layer = args.num_transformer_layers = 2
@@ -171,7 +171,7 @@ class Test(TestCase):
         assert model.gnn_transformer.transformer.layers[
                    0].dropout.p == model.gnn_transformer.gnn_node.drop_ratio == args.drop_ratio
 
-    def test_content_position_model_dropout_can_be_different_than_gnn_dropout(self):
+    def test_position_model_dropout_can_be_different_than_gnn_dropout(self):
         args = get_default_args()
         args.attention_type = 'position'
         args.num_layer = args.num_transformer_layers = 2
