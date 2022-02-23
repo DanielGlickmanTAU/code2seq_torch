@@ -18,9 +18,5 @@ def sbm_loss(pred, label):
     weight = (V - cluster_sizes).float() / V
     weight *= (cluster_sizes > 0).float()
 
-    # weighted cross-entropy for unbalanced classes
-    # criterion = nn.CrossEntropyLoss(weight=weight)
-    # loss = criterion(pred, label)
     loss = nn.BCEWithLogitsLoss(weight=weight)(pred, label.float())
-
     return loss
