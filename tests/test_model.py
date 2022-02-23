@@ -53,7 +53,6 @@ class Test(TestCase):
         dataset = PygGraphPropPredDataset(name=args.dataset,
                                           transform=AdjStack(args))
         device = compute.get_device()
-        evaluator = Evaluator(args.dataset)
         train_loader, valid_loader, test_loader = get_train_val_test_loaders(dataset, num_workers=args.num_workers,
                                                                              batch_size=args.batch_size,
                                                                              limit=dataset_samples)
