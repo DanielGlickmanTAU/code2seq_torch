@@ -252,6 +252,23 @@ class Test(TestCase):
         k_n_params = n_params / 1_000
         self.assertTrue(0.9 * 500 <= k_n_params <= 1.1 * 500)
 
+    def test_position_transformer_size_like_4_layer_gnn(self):
+        args = get_default_args()
+        args.num_layer = 4
+        args.num_transformer_layers = 4
+        args.attention_type = 'position'
+        args.emb_dim = 60
+        args.transformer_ff_dim = 4 * args.emb_dim
+        args.num_heads = 4
+
+        device = compute.get_device()
+        args.gin_conv_mlp_hidden_breath = 1
+        model = get_model(args, 1, device, task='pattern')
+        n_params = sum(p.numel() for p in model.parameters())
+        k_n_params = n_params / 1_000
+        k_params_in_4_layer_gnn = 126.5
+        self.assertTrue(0.8 * k_params_in_4_layer_gnn <= k_n_params <= 1.2 * k_params_in_4_layer_gnn)
+
     def test_gnn_gin_hidden_size_taken_from_param(self):
         args = get_default_args()
         args.num_layer = 16
