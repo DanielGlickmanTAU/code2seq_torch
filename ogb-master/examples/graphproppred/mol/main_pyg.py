@@ -22,8 +22,6 @@ def main():
     args = get_default_args()
     args.dataset = "ogbg-molhiv"
 
-    torch_geometric.seed_everything(args.seed)
-
     device = compute.get_device()
 
     ### automatic dataloading and splitting

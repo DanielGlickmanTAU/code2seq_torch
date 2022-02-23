@@ -7,7 +7,7 @@ from model.GraphTransformerEncoder import GraphTransformerEncoder
 from model.positional.positional_attention_weight import AdjStack
 
 torch = compute.get_torch()
-
+import torch_geometric
 
 def add_args(parser):
     parser.add_argument('--device', type=int, default=0,
@@ -67,4 +67,6 @@ def get_default_args():
     args = parser.parse_args()
     if not args.transformer_encoder_dropout:
         args.transformer_encoder_dropout = args.drop_ratio
+
+    torch_geometric.seed_everything(args.seed)
     return args
