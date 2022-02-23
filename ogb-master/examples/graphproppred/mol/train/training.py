@@ -6,6 +6,7 @@ import torch
 
 # from train import evaluate
 from train.eval import evaluate
+from train.loss import sbm_loss
 
 cls_criterion = torch.nn.BCEWithLogitsLoss()
 reg_criterion = torch.nn.MSELoss()
@@ -25,10 +26,13 @@ def train_epoch(model, device, loader, optimizer, task_type):
             optimizer.zero_grad()
             ## ignore nan targets (unlabeled) when computing training loss.
             is_labeled = batch.y == batch.y
-            if "classification" in task_type:
-                y = batch.y
-                if y.dim() == 1:
-                    y = y.unsqueeze(1)
+            y = batch.y
+            if y.dim() == 1:
+                y = y.unsqueeze(1)
+            if 'node classification' == task_type:
+                assert is_labeled.all()
+                loss = sbm_loss(pred.squeeze(), y.squeeze())
+            elif "classification" in task_type:
                 loss = cls_criterion(pred.to(torch.float32)[is_labeled], y.to(torch.float32)[is_labeled])
             else:
                 loss = reg_criterion(pred.to(torch.float32)[is_labeled], batch.y.to(torch.float32)[is_labeled])
@@ -40,7 +44,6 @@ def train_epoch(model, device, loader, optimizer, task_type):
 
 def full_train_flow(args, device, evaluator, model, test_loader, train_loader, valid_loader, task_type, eval_metric):
     optimizer = optim.Adam(model.parameters(), lr=args.learning_rate)
-    # todo, check if need this in hiv
     scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min',
                                                      factor=args.lr_reduce_factor,
                                                      patience=args.lr_schedule_patience,
