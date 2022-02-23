@@ -54,6 +54,7 @@ def add_args(parser):
     parser.add_argument('--transformer_encoder_dropout', type=float)
     parser.add_argument('--gin_conv_mlp_hidden_breath', type=float, default=1.,
                         help='the size of the hidden dim of gin layers MLP')
+    parser.add_argument('--limit_examples', type=int, help='limit dataset sizes, for debugging')
 
 
 def get_default_args():
