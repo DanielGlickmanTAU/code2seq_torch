@@ -18,3 +18,14 @@ def get_params_for_position_transformer_search():
         # 'distance_bias': [True],
         'num_heads': [1, 4]
     }
+
+
+def get_params_for_content_transformer_search():
+    return {
+        'attention_type': 'content',
+        ('num_layer', 'num_transformer_layers'): [(1, 1), (4, 4)],
+        'emb_dim': 52,
+        'transformer_ff_dim': 4 * 52,
+        # 'distance_bias': [True],
+        'num_heads': [1, 4]
+    }
