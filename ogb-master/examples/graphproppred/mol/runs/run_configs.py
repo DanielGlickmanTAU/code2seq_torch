@@ -28,3 +28,15 @@ def get_params_for_vanilla_transformer_search():
         'transformer_ff_dim': 4 * 52,
         'num_heads': [1, 4]
     }
+
+
+def get_params_for_content_transformer_with_distance_bias_search():
+    return {
+        'attention_type': 'content',
+        'use_distance_bias': True,
+        'adj_stacks': range(4),
+        ('num_layer', 'num_transformer_layers'): [(1, 1), (4, 4)],
+        'emb_dim': 52,
+        'transformer_ff_dim': 4 * 52,
+        'num_heads': [1, 4]
+    }
