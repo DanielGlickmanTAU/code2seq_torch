@@ -4,17 +4,16 @@ from code2seq.utils.gridsearch import gridsearch
 from code2seq.utils.slurm import run_on_slurm
 import os
 
-from runs.run_configs import get_benchmarking_gnns_hyperparam_search_space
+from runs.run_configs import get_benchmarking_gnns_hyperparam_search_space, get_params_for_position_transformer_search, \
+    get_params_for_content_transformer_search
 
-params_for_grid_search = {
-    'num_layer': [1, 2, 4],
-    # 'residual': [True],
-    # 'distance_bias': [True],
-    # 'num_heads': [75, 150, 300]
-}
+# params_for_grid_search = get_params_for_position_transformer_search()
+params_for_grid_search = get_params_for_content_transformer_search()
 
 params = {
-    'exp_name': 'gin-pattern-base',
+    'drop_ratio': 0.,
+    'patience': 40,
+    'exp_name': 'gin-pattern',
     'gnn': 'gin',
     'graph_pooling': 'sum',
 }
@@ -26,11 +25,11 @@ assert not set(graph_benchmark_search_params.keys()).intersection(
 params_for_grid_search.update(graph_benchmark_search_params)
 
 os.chdir('..')
-job_name = '''main_pyg.py'''
+job_name = '''main_pattern.py'''
 ids = []
 for p in gridsearch(params, params_for_grid_search):
     id = run_on_slurm(job_name, p, slurm=True, sleep=True)
-    ids.append(ids)
+    ids.append(id)
 print(f'submited {len(gridsearch(params, params_for_grid_search))} jobs')
 while True:
     running = os.popen("squeue |grep glick | awk '{print $1}' | xargs").read()

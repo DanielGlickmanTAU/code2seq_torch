@@ -5,24 +5,33 @@ from code2seq.utils.slurm import run_on_slurm
 import os
 
 params_for_grid_search = {
-    'num_layer': [6],
-    'num_transformer_layers': [6],
-    # 'num_transformer_layers': [0],
-    'transformer_ff_dim': [2400],
-    'residual': [True],
-    'distance_bias': [True],
-    'num_heads': [75, 150, 300]
-    # 'num_heads': [10, 30]
-    # 'receptive_fields': ['1 2 4 8', '1 1 40 40', '1 4 6 40', '1 2 40 40']
-    # 'receptive_fields': ['4 4 4 4', '1 1 1 1']
+    'num_layer': [1, 2, 4],
+    # 'num_transformer_layers': [6],
+    # 'transformer_ff_dim': [2400],
+    # 'residual': [True],
+    # 'distance_bias': [True],
+    # 'num_heads': [75, 150, 300]
 }
 
 params = {
     'exp_name': 'graph-filter-network-distance',
     'gnn': 'gin',
     'graph_pooling': 'attention',
-    'max_graph_dist': 20
 }
+
+graph_benchmark_search_params = {
+    'learning_rate': [1e-3, 1e-4],
+    'gin_conv_mlp_hidden_breath': 1.,
+    'lr_schedule_patience': 5,
+    'lr_reduce_factor': 0.5,
+
+    # 'seed':list(range(4))
+}
+
+assert not set(graph_benchmark_search_params.keys()).intersection(
+    params_for_grid_search.keys()), 'defined hyper params twice'
+params_for_grid_search.update(graph_benchmark_search_params)
+
 os.chdir('..')
 job_name = '''main_pyg.py'''
 ids = []
