@@ -1,5 +1,12 @@
+from dataclasses import dataclass
 from typing import Dict, List
 from itertools import product
+
+
+@dataclass
+class ListArgument:
+    # will paste as is, without parathansis
+    argument: list
 
 
 def gridsearch(default_params: Dict, params_to_grid_search: Dict[object, List]) -> List[Dict]:
@@ -10,6 +17,9 @@ def gridsearch(default_params: Dict, params_to_grid_search: Dict[object, List]) 
                 values.append(v)
             elif isinstance(v, str):
                 values.append([f'"{v}"'])
+            elif isinstance(v, ListArgument):
+                list_as_str_in_arg_parse_format = str(v.argument)[1:-1].replace(',', ' ').replace('  ', ' ')
+                values.append([list_as_str_in_arg_parse_format])
             else:
                 values.append([v])
         return product(*values)

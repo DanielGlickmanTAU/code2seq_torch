@@ -1,3 +1,6 @@
+from code2seq.utils.gridsearch import ListArgument
+
+
 def get_benchmarking_gnns_hyperparam_search_space(multiple_random_seeds: bool):
     return {
         'residual': [True],
@@ -12,7 +15,18 @@ def get_benchmarking_gnns_hyperparam_search_space(multiple_random_seeds: bool):
 def get_params_for_position_transformer_search():
     return {
         'attention_type': 'position',
-        'adj_stacks': range(4),
+        'adj_stacks': ListArgument([0, 1, 2, 3, 4]),
+        ('num_layer', 'num_transformer_layers'): [(1, 1), (4, 4)],
+        'emb_dim': 60,
+        'transformer_ff_dim': 4 * 60,
+        'num_heads': [1, 4]
+    }
+
+
+def get_params_for_position_transformer_with_large_distance_search():
+    return {
+        'attention_type': 'position',
+        'adj_stacks': ListArgument([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 20, 30]),
         ('num_layer', 'num_transformer_layers'): [(1, 1), (4, 4)],
         'emb_dim': 60,
         'transformer_ff_dim': 4 * 60,
@@ -34,7 +48,19 @@ def get_params_for_content_transformer_with_distance_bias_search():
     return {
         'attention_type': 'content',
         'use_distance_bias': True,
-        'adj_stacks': range(4),
+        'adj_stacks': ListArgument([0, 1, 2, 3, 4]),
+        ('num_layer', 'num_transformer_layers'): [(1, 1), (4, 4)],
+        'emb_dim': 52,
+        'transformer_ff_dim': 4 * 52,
+        'num_heads': [1, 4]
+    }
+
+
+def get_params_for_content_transformer_with_large_distance_bias_search():
+    return {
+        'attention_type': 'content',
+        'use_distance_bias': True,
+        'adj_stacks': ListArgument([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 20, 30]),
         ('num_layer', 'num_transformer_layers'): [(1, 1), (4, 4)],
         'emb_dim': 52,
         'transformer_ff_dim': 4 * 52,
