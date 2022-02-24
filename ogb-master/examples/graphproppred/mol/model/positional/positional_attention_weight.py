@@ -22,7 +22,7 @@ class AdjStackAttentionWeights(torch.nn.Module):
         b, num_stacks, n, n1, = stacks.shape
         assert num_stacks == self.num_adj_stacks
         if mask is None:
-            mask = torch.zeros((b, n, n), device=stacks.device,dtype=torch.bool)
+            mask = torch.zeros((b, n, n), device=stacks.device, dtype=torch.bool)
         real_nodes_edge_mask = ~mask.view(-1)
         # shape as (batch*n*n, num_stacks)
         stacks = stacks.permute(0, 2, 3, 1).reshape(-1, self.num_adj_stacks)
@@ -50,9 +50,15 @@ class AdjStack(torch_geometric.transforms.BaseTransform):
     def add_args(parser):
         parser.add_argument('--adj_stacks', nargs='+', type=int, default=[0, 1, 2, 3, 4],
                             help='list of powers to raise and stack the adj matrix.')
+        parser.add_argument('--use_distance_bias', type=str, default=False)
 
-    def __init__(self, args: Union[object, list]):
-        self.adj_stacks = args if isinstance(args, list) else args.adj_stacks
+    def __init__(self, args: Union[object, list], use_distance_bias=False):
+        if isinstance(args, list):
+            self.adj_stacks = args
+            self.use_distance_bias = use_distance_bias
+        else:
+            self.adj_stacks = args.adj_stacks
+            self.use_distance_bias = args.use_distance_bias
         assert len(self.adj_stacks) == len(set(self.adj_stacks)), f'duplicate power in {self.adj_stacks}'
 
     def __call__(self, data: Data):
@@ -66,11 +72,38 @@ class AdjStack(torch_geometric.transforms.BaseTransform):
 
         adj = to_P_matrix(adj)
         adj_stack = torch.stack([torch.matrix_power(adj, exp) for exp in self.adj_stacks])
+        if self.use_distance_bias:
+            adj_stack = self._turn_shortest_distance_one_hot(adj_stack, N)
+
         # need this for now
         adj_stack = adj_stack.numpy()
+
         data.adj_stack = adj_stack
 
         return data
+
+    def _turn_shortest_distance_one_hot(self, adj_stack, N):
+        # first dim is distance
+        # second dim is source node
+        # 3ed dim is target node
+        # we want the same output format: (distance,source,target)
+        # but rather than first dim being a vector of probabilities
+        # i.e adj_stack[d,a,b] is prob of getting from a to b in d steps,
+        # we want it to be 1 iff d is shortest distance between a and b
+        num_stacks = len(self.adj_stacks)
+        flatten_adjstack_with_distance_dim_last = adj_stack.permute(1, 2, 0).view(-1, num_stacks)
+        for distance_tensor in flatten_adjstack_with_distance_dim_last:
+            # mutate with for loop
+            non_zero_entry_visited = False
+            for i in range(len(distance_tensor)):
+                if non_zero_entry_visited:
+                    distance_tensor[i] = 0.
+                elif distance_tensor[i] > 0.:
+                    non_zero_entry_visited = True
+                    distance_tensor[i] = 1.
+        # back to original shape
+        return flatten_adjstack_with_distance_dim_last.view(N, N, num_stacks).permute(2, 0, 1)
+
 
 
 def count_paths_cycles(A: torch.Tensor, p):
