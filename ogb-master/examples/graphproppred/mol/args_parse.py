@@ -1,6 +1,5 @@
 import argparse
 
-from GraphDistanceBias import GraphDistanceBias
 from arg_parse_utils import bool_
 from code2seq.utils import compute
 from model.GraphTransformerEncoder import GraphTransformerEncoder
@@ -62,7 +61,6 @@ def get_default_args():
     add_args(parser)
     AdjStack.add_args(parser)
     GraphTransformerEncoder.add_args(parser)
-    GraphDistanceBias.add_args(parser)
 
     args = parser.parse_args()
     if not args.transformer_encoder_dropout:
