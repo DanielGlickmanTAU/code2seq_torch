@@ -15,11 +15,12 @@ class MyTransformerEncoderLayer(Module):
     def __init__(self, attention_type, d_model, nhead, num_adj_stacks=None, dim_feedforward=2048, dropout=0.1,
                  activation=F.relu,
                  layer_norm_eps=1e-5, batch_first=True, norm_first=False,
-                 device=None, dtype=None) -> None:
+                 device=None, dtype=None, use_distance_bias=False) -> None:
         factory_kwargs = {'device': device, 'dtype': dtype}
         super(MyTransformerEncoderLayer, self).__init__()
         if attention_type == 'content':
-            self.attention_layer = ContentMultiheadAttention(d_model, nhead,
+            self.attention_layer = ContentMultiheadAttention(d_model, nhead, use_distance_bias=use_distance_bias,
+                                                             num_adj_stacks=num_adj_stacks,
                                                              dropout=dropout, batch_first=batch_first,
                                                              **factory_kwargs)
         elif attention_type == 'position':
@@ -75,6 +76,7 @@ class MyTransformerEncoderLayer(Module):
                                      need_weights=False)[0]
         else:
             x = self.attention_layer(x, x, x,
+                                     adj_stack=adj_stack,
                                      attn_mask=attn_mask,
                                      key_padding_mask=key_padding_mask,
                                      need_weights=False)[0]

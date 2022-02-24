@@ -12,6 +12,7 @@ from torch.overrides import has_torch_function, handle_torch_function
 
 import pygraph_utils
 from model.positional.PositionMultiHeadAttention import multi_head_positional_attention
+from model.positional.positional_attention_weight import AdjStackAttentionWeights
 
 
 class ContentMultiheadAttention(torch.nn.Module):
@@ -21,7 +22,9 @@ class ContentMultiheadAttention(torch.nn.Module):
 
     def __init__(self, embed_dim, num_heads, dropout=0., bias=True, add_bias_kv=False,
                  add_zero_attn=False,
-                 kdim=None, vdim=None, batch_first=False, device=None, dtype=None) -> None:
+                 kdim=None, vdim=None, batch_first=False, device=None, dtype=None, use_distance_bias=False,
+                 num_adj_stacks=0) -> None:
+
         factory_kwargs = {'device': device, 'dtype': dtype}
         super(ContentMultiheadAttention, self).__init__()
         self.embed_dim = embed_dim
@@ -60,6 +63,10 @@ class ContentMultiheadAttention(torch.nn.Module):
 
         self.add_zero_attn = add_zero_attn
 
+        self.use_distance_bias = use_distance_bias
+        if use_distance_bias:
+            self.positional_bias = AdjStackAttentionWeights(num_adj_stacks, num_heads, use_distance_bias)
+
         self._reset_parameters()
 
     def _reset_parameters(self):
@@ -79,7 +86,8 @@ class ContentMultiheadAttention(torch.nn.Module):
             xavier_normal_(self.bias_v)
 
     def forward(self, query: Tensor, key: Tensor, value: Tensor, key_padding_mask: Optional[Tensor] = None,
-                need_weights: bool = True, attn_mask: Optional[Tensor] = None) -> Tuple[Tensor, Optional[Tensor]]:
+                need_weights: bool = True, attn_mask: Optional[Tensor] = None, adj_stack: Optional[Tensor] = None) -> \
+            Tuple[Tensor, Optional[Tensor]]:
         if self.batch_first:
             query, key, value = [x.transpose(1, 0) for x in (query, key, value)]
 
@@ -100,7 +108,10 @@ class ContentMultiheadAttention(torch.nn.Module):
             attn = torch.bmm(q, k.transpose(-2, -1))
             assert not attn.isinf().any()
             assert not attn.isnan().any()
-            # attn = attention_weights.contiguous().view(bsz * num_heads, src_len, src_len)
+
+            if self.use_distance_bias:
+                attn = attn + self._positional_bias_f(adj_stack)
+
             attn_mask = pygraph_utils.reshape_attention_mask_to_multihead(attn_mask, self.num_heads)
             new_attn = torch.zeros_like(attn, device=attn.device)
             new_attn[~attn_mask] = attn[~attn_mask]
@@ -116,3 +127,10 @@ class ContentMultiheadAttention(torch.nn.Module):
             return attn_output.transpose(1, 0), attn_output_weights
         else:
             return attn_output, attn_output_weights
+
+    def _positional_bias_f(self, adj_stack):
+        distance_bias = self.positional_bias(adj_stack)
+        # collapse togeter first(batch) and second(head) dim
+        distance_bias = distance_bias.reshape(distance_bias.shape[0] * distance_bias.shape[1],
+                                              distance_bias.shape[-1], distance_bias.shape[-1])
+        return distance_bias
