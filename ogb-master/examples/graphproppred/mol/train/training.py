@@ -43,6 +43,7 @@ def train_epoch(model, device, loader, optimizer, task_type, assert_no_zero_grad
             losses.append(loss.item())
     return sum(losses) / len(losses)
 
+
 def _assert_no_zero_grad(model):
     for name, p in model.named_parameters():
         if (p.grad == 0).all():
@@ -88,8 +89,7 @@ def full_train_flow(args, device, evaluator, model, test_loader, train_loader, v
         exp.log_metric(f'epoch_loss', epoch_avg_loss)
         exp.log_metric(f'val_{eval_metric}', validation_score)
         exp.log_metric(f'test_{eval_metric}', test_score)
-
-        scheduler.step(validation_score)
+        exp.log_metric('learning_rate', optimizer.param_groups[0]['lr'])
 
         if validation_score > best_so_far:
             best_so_far = validation_score
