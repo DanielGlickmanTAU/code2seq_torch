@@ -21,10 +21,10 @@ def reshape_attention_mask_to_multihead(attention_mask, num_heads):
     batch_size, n, n2 = attention_mask.shape
     assert n == n2
 
-    return attention_mask.view(batch_size, 1, n, n).expand(-1, num_heads, -1, -1).reshape(batch_size * num_heads, n, n)
-    # contiguous_mask = attention_mask.unsqueeze(1).contiguous()
-    # mask_duplicated_for_each_head_in_same_batch = contiguous_mask.repeat(1, num_heads, 1, 1)
-    # return mask_duplicated_for_each_head_in_same_batch.view(batch_size * num_heads, n, n)
+    return attention_mask \
+        .view(batch_size, 1, n, n) \
+        .expand(-1, num_heads, -1, -1) \
+        .reshape(batch_size * num_heads, n, n)
 
 
 def compute_batch_usage(batched_data):
