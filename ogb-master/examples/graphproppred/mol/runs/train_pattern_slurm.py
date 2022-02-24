@@ -5,10 +5,10 @@ from code2seq.utils.slurm import run_on_slurm
 import os
 
 from runs.run_configs import get_benchmarking_gnns_hyperparam_search_space, get_params_for_position_transformer_search, \
-    get_params_for_content_transformer_search
+    get_params_for_vanilla_transformer_search
 
 # params_for_grid_search = get_params_for_position_transformer_search()
-params_for_grid_search = get_params_for_content_transformer_search()
+params_for_grid_search = get_params_for_vanilla_transformer_search()
 
 params = {
     'drop_ratio': 0.,

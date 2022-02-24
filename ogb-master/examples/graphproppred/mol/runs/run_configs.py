@@ -19,7 +19,7 @@ def get_params_for_position_transformer_search():
     }
 
 
-def get_params_for_content_transformer_search():
+def get_params_for_vanilla_transformer_search():
     return {
         'attention_type': 'content',
         ('num_layer', 'num_transformer_layers'): [(1, 1), (4, 4)],
