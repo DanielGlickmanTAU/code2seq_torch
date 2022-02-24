@@ -30,8 +30,8 @@ def add_args(parser):
     parser.add_argument('--residual', type=bool_, default=True)
     parser.add_argument('--batch_size', type=int, default=32,
                         help='input batch size for training (default: 32)')
-    parser.add_argument('--epochs', type=int, default=100,
-                        help='number of epochs to train (default: 100)')
+    parser.add_argument('--epochs', type=int, default=200,
+                        help='number of epochs to train (default: 200)')
     parser.add_argument('--patience', type=int, default=15,
                         help='training early stopping patience')
     parser.add_argument('--lr_reduce_factor', type=float, default=0.5,
