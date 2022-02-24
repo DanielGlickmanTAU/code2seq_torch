@@ -152,7 +152,7 @@ def multi_head_positional_attention(
     assert embed_dim == out_proj_weight.shape[-1]
 
     attn, attn_output = weighted_average(v, attention_weights, attn_mask, training, dropout_p)
-    attn_output = project_heads(attn_output, bsz, embed_dim, out_proj_bias, out_proj_weight, tgt_len)
+    attn_output = project_heads(attn_output, bsz, embed_dim, out_proj_bias, out_proj_weight)
 
     if need_weights:
         # average attention weights over heads
@@ -162,8 +162,8 @@ def multi_head_positional_attention(
         return attn_output, None
 
 
-def project_heads(attn_output, bsz, embed_dim, out_proj_bias, out_proj_weight, tgt_len):
-    attn_output = attn_output.transpose(0, 1).contiguous().view(tgt_len, bsz, embed_dim)
+def project_heads(attn_output, bsz, embed_dim, out_proj_bias, out_proj_weight):
+    attn_output = attn_output.transpose(0, 1).contiguous().view(bsz, bsz, embed_dim)
     attn_output = linear(attn_output, out_proj_weight, out_proj_bias)
     return attn_output
 
