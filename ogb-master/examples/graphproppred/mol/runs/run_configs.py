@@ -12,6 +12,14 @@ def get_benchmarking_gnns_hyperparam_search_space(multiple_random_seeds: bool):
     }
 
 
+def get_plain_4_gnn_hyperparam_search_space():
+    return {
+        'num_layer': 4,
+        'num_transformer_layers': 0,
+        'emb_dim': 110,
+    }
+
+
 def get_params_for_position_transformer_search():
     return {
         'attention_type': 'position',
