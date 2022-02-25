@@ -1,3 +1,5 @@
+import sys
+
 from code2seq.utils import compute
 import comet_ml
 from pytorch_lightning.loggers import CometLogger
@@ -18,6 +20,8 @@ def start_exp(exp_name, args, model):
     exp.set_model_graph(model)
     num_params = num_model_params(model)
     print(f'#Params: {num_params}')
+    print(' '.join(sys.argv))
+
     exp.log_parameters(args)
     exp.log_parameters({'k_params': num_params / 1000})
     return exp
