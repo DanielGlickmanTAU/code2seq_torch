@@ -93,7 +93,7 @@ def full_train_flow(args, device, evaluator, model, test_loader, train_loader, v
         exp.log_metric(f'test_{eval_metric}', test_score)
         exp.log_metric('learning_rate', optimizer.param_groups[0]['lr'])
 
-        scheduler.step(validation_score)
+        scheduler.step(validation_score - 0.00001 * epoch)
 
         if validation_score > best_so_far:
             best_so_far = validation_score
