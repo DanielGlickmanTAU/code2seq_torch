@@ -24,6 +24,13 @@ class Test(TestCase):
         args.attention_type = 'content'
         self._assert_output_and_grad(args)
 
+    def test_grads_and_outputs_content_attention_with_distance(self):
+        # Training settings
+        args = get_default_args()
+        args.attention_type = 'content'
+        args.use_distance_bias = True
+        self._assert_output_and_grad(args)
+
     def test_grads_and_outputs_position_attention(self):
         def callback(model):
             def position_attention_backwards_hook(module, grad_input, grad_output):
