@@ -42,9 +42,10 @@ class PositionMultiHeadAttention(Module):
     bias_k: Optional[torch.Tensor]
     bias_v: Optional[torch.Tensor]
 
-    def __init__(self, embed_dim, num_heads, num_adj_stacks, dropout=0., bias=True, add_bias_kv=False,
+    def __init__(self, args, embed_dim, num_heads, num_adj_stacks, dropout=0., bias=True, add_bias_kv=False,
                  add_zero_attn=False,
                  kdim=None, vdim=None, batch_first=False, device=None, dtype=None) -> None:
+        self.args = args
         factory_kwargs = {'device': device, 'dtype': dtype}
         super(PositionMultiHeadAttention, self).__init__()
         self.embed_dim = embed_dim

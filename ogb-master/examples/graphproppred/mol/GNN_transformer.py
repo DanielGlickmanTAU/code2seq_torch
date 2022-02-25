@@ -20,7 +20,7 @@ class GNNTransformer(nn.Module):
                                      gnn_type=gnn_type, node_encoder=node_encoder)
         self.num_transformer_layers = num_transformer_layers
         if num_transformer_layers:
-            self.transformer = GraphTransformerEncoder(args.attention_type, emb_dim, num_transformer_layers,
+            self.transformer = GraphTransformerEncoder(args, args.attention_type, emb_dim, num_transformer_layers,
                                                        args.num_heads, len(args.adj_stacks),
                                                        feed_forward_dim, args.transformer_encoder_dropout,
                                                        use_distance_bias=args.use_distance_bias)

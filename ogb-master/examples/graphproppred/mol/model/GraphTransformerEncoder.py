@@ -14,7 +14,7 @@ class GraphTransformerEncoder(nn.Module):
 
     __constants__ = ['norm']
 
-    def __init__(self, attention_type, d_model, num_layers, num_head, num_adj_stacks, feed_forward_dim, dropout,
+    def __init__(self, args, attention_type, d_model, num_layers, num_head, num_adj_stacks, feed_forward_dim, dropout,
                  norm=None, use_distance_bias=False):
         super(GraphTransformerEncoder, self).__init__()
         encoder_layers = nn.ModuleList([

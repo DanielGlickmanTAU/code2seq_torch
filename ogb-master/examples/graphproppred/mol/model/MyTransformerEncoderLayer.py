@@ -12,7 +12,7 @@ from model.positional.PositionMultiHeadAttention import PositionMultiHeadAttenti
 class MyTransformerEncoderLayer(Module):
     __constants__ = ['batch_first', 'norm_first']
 
-    def __init__(self, attention_type, d_model, nhead, num_adj_stacks=None, dim_feedforward=2048, dropout=0.1,
+    def __init__(self, args, attention_type, d_model, nhead, num_adj_stacks=None, dim_feedforward=2048, dropout=0.1,
                  activation=F.relu,
                  layer_norm_eps=1e-5, batch_first=True, norm_first=False,
                  device=None, dtype=None, use_distance_bias=False) -> None:
