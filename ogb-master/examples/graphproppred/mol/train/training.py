@@ -22,6 +22,7 @@ def train_epoch(model, device, loader, optimizer, task_type, assert_no_zero_grad
         if batch.x.shape[0] == 1 or batch.batch[-1] == 0:
             pass
         else:
+
             pred = model(batch)
             optimizer.zero_grad()
             ## ignore nan targets (unlabeled) when computing training loss.
@@ -39,6 +40,7 @@ def train_epoch(model, device, loader, optimizer, task_type, assert_no_zero_grad
             loss.backward()
             if assert_no_zero_grad:
                 _assert_no_zero_grad(model)
+            torch.nn.utils.clip_grad_norm_(model.parameters(), 5.0)
             optimizer.step()
             losses.append(loss.item())
     return sum(losses) / len(losses)
