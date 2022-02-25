@@ -19,13 +19,13 @@ class MyTransformerEncoderLayer(Module):
         factory_kwargs = {'device': device, 'dtype': dtype}
         super(MyTransformerEncoderLayer, self).__init__()
         if attention_type == 'content':
-            self.attention_layer = ContentMultiheadAttention(d_model, nhead, use_distance_bias=use_distance_bias,
+            self.attention_layer = ContentMultiheadAttention(args, d_model, nhead, use_distance_bias=use_distance_bias,
                                                              num_adj_stacks=num_adj_stacks,
                                                              dropout=dropout, batch_first=batch_first,
                                                              **factory_kwargs)
         elif attention_type == 'position':
             assert num_adj_stacks
-            self.attention_layer = PositionMultiHeadAttention(d_model, nhead, num_adj_stacks, dropout=dropout,
+            self.attention_layer = PositionMultiHeadAttention(args, d_model, nhead, num_adj_stacks, dropout=dropout,
                                                               batch_first=batch_first,
                                                               **factory_kwargs)
         else:

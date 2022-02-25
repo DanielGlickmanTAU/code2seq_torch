@@ -18,7 +18,8 @@ class GraphTransformerEncoder(nn.Module):
                  norm=None, use_distance_bias=False):
         super(GraphTransformerEncoder, self).__init__()
         encoder_layers = nn.ModuleList([
-            MyTransformerEncoderLayer(attention_type, d_model=d_model, nhead=num_head, num_adj_stacks=num_adj_stacks,
+            MyTransformerEncoderLayer(args, attention_type, d_model=d_model, nhead=num_head,
+                                      num_adj_stacks=num_adj_stacks,
                                       dim_feedforward=feed_forward_dim, device=get_device(), dropout=dropout,
                                       use_distance_bias=use_distance_bias) for _ in
             range(num_layers)])
