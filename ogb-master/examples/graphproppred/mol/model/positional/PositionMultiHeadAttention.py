@@ -177,15 +177,20 @@ def weighted_average(values, attention_weights, attn_mask, training, dropout_p):
         # attn = attn.masked_fill(attn.isnan(), 0)
         return attn_new
 
+    if attn_mask is not None:
+        attention_weights = attention_weights + attn_mask
+
+    attn = softmax(attention_weights, dim=-1)
+
     # adjust dropout
     if not training:
         dropout_p = 0.0
-    if attn_mask is not None:
-        attention_weights = attention_weights + attn_mask
-    attn = softmax(attention_weights, dim=-1)
+
     attn = fix_nans(attn)
+
     if dropout_p > 0.0:
         attn = dropout(attn, p=dropout_p)
+
     # (B, Nt, Ns) x (B, Ns, E) -> (B, Nt, E)
     attn_output = torch.bmm(attn, values)
     return attn, attn_output
