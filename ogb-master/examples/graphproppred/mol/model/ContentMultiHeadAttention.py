@@ -107,8 +107,8 @@ class ContentMultiheadAttention(torch.nn.Module):
             q = q / math.sqrt(E)
             # (B, Nt, E) x (B, E, Ns) -> (B, Nt, Ns)
             attn = torch.bmm(q, k.transpose(-2, -1))
-            assert not attn.isinf().any()
-            assert not attn.isnan().any()
+            assert not attn.isinf().any(), attn
+            assert not attn.isnan().any(), attn
 
             if self.use_distance_bias:
                 attn = attn + self._positional_bias_f(adj_stack)
