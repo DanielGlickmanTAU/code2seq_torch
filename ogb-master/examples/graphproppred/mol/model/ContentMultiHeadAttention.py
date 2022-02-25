@@ -25,9 +25,9 @@ class ContentMultiheadAttention(torch.nn.Module):
                  kdim=None, vdim=None, batch_first=False, device=None, dtype=None, use_distance_bias=False,
                  num_adj_stacks=0) -> None:
 
-        self.args = args
         factory_kwargs = {'device': device, 'dtype': dtype}
         super(ContentMultiheadAttention, self).__init__()
+        self.args = args
         self.embed_dim = embed_dim
         self.kdim = kdim if kdim is not None else embed_dim
         self.vdim = vdim if vdim is not None else embed_dim
