@@ -110,7 +110,7 @@ class PositionMultiHeadAttention(Module):
             self.dropout, self.out_proj.weight, self.out_proj.bias,
             training=self.training,
             key_padding_mask=key_padding_mask, need_weights=need_weights,
-            attn_mask=attn_mask)
+            attn_mask=attn_mask, scale_by_sqrt_n=self.args.scale_positional_attention)
 
         if self.batch_first:
             return attn_output.transpose(1, 0), attn_output_weights
@@ -132,7 +132,8 @@ def multi_head_positional_attention(
         key_padding_mask: Optional[Tensor] = None,
         need_weights: bool = True,
         attn_mask: Optional[Tensor] = None,
-        use_separate_proj_weight: bool = False
+        use_separate_proj_weight: bool = False,
+        scale_by_sqrt_n: bool = False
 ) -> Tuple[Tensor, Optional[Tensor]]:
     # set up shape vars
     tgt_len, bsz, embed_dim = value.shape
@@ -144,7 +145,10 @@ def multi_head_positional_attention(
     "expect attention weights to be of shape (batch *num_head,tgt_len,tgt_len)"
     assert attention_weights.shape == (bsz * num_heads, src_len, src_len)
     assert attn_mask.shape == attention_weights.shape
+    old_mask = attn_mask
     attn_mask = prep_attention_mask(attn_mask, bsz, num_heads, src_len, tgt_len)
+    if scale_by_sqrt_n:
+        attention_weights = _scale(attention_weights)
 
     # (batch*num_head, n , d/head)
     v = pygraph_utils.reshape_to_multihead(value, num_heads)
@@ -164,6 +168,14 @@ def multi_head_positional_attention(
         return attn_output, None
 
 
+def _scale(attention_weights):
+    # scale = old_mask.sum(dim=-1, keepdim=True).sqrt()
+    # attention_weights =
+    # q = q / math.sqrt(E)
+    attention_weights = attention_weights
+    return attention_weights
+
+
 def project_heads(attn_output, bsz, embed_dim, out_proj_bias, out_proj_weight, tgt_len):
     attn_output = attn_output.transpose(0, 1).contiguous().view(tgt_len, bsz, embed_dim)
     attn_output = linear(attn_output, out_proj_weight, out_proj_bias)
@@ -177,6 +189,7 @@ def weighted_average(values, attention_weights, attn_mask, training, dropout_p):
         attn_new[not_nan] = attn[not_nan]
         # attn = attn.masked_fill(attn.isnan(), 0)
         return attn_new
+
     if attn_mask is not None:
         attention_weights = attention_weights + attn_mask
 
