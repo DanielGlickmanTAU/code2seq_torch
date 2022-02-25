@@ -170,17 +170,13 @@ def project_heads(attn_output, bsz, embed_dim, out_proj_bias, out_proj_weight, t
     return attn_output
 
 
-def weighted_average(values, attention_weights, attn_mask, training, dropout_p, clip=False):
+def weighted_average(values, attention_weights, attn_mask, training, dropout_p):
     def fix_nans(attn):
         not_nan = ~attn.isnan()
         attn_new = torch.zeros_like(attn, device=attn.device)
         attn_new[not_nan] = attn[not_nan]
         # attn = attn.masked_fill(attn.isnan(), 0)
         return attn_new
-
-    if clip:
-        pass
-
     if attn_mask is not None:
         attention_weights = attention_weights + attn_mask
 
