@@ -8,22 +8,17 @@ from runs import run_configs
 from runs.run_configs import get_benchmarking_gnns_hyperparam_search_space, get_params_for_position_transformer_search, \
     get_params_for_vanilla_transformer_search, get_params_for_content_transformer_with_distance_bias_search
 
-params_for_grid_search = get_params_for_position_transformer_search()
-# params_for_grid_search = get_params_for_vanilla_transformer_search()
-# params_for_grid_search = get_params_for_content_transformer_with_distance_bias_search()
-# params_for_grid_search = run_configs.get_params_for_position_transformer_with_large_distance_search()
-# params_for_grid_search = run_configs.get_params_for_content_transformer_with_large_distance_bias_search()
-# params_for_grid_search = run_configs.get_plain_4_gnn_hyperparam_search_space()
+params_for_grid_search = run_configs.get_plain_4_gnn_hyperparam_search_space()
 
 params = {
     'drop_ratio': 0.,
     'patience': 60,
-    'exp_name': 'gin-pattern',
+    'exp_name': 'gnn-4-restore-benchmark',
     'gnn': 'gin',
     'graph_pooling': 'sum',
 }
 
-graph_benchmark_search_params = get_benchmarking_gnns_hyperparam_search_space(False)
+graph_benchmark_search_params = get_benchmarking_gnns_hyperparam_search_space(True)
 
 assert not set(graph_benchmark_search_params.keys()).intersection(
     params_for_grid_search.keys()), 'defined hyper params twice'

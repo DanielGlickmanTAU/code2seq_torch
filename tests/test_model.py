@@ -259,6 +259,19 @@ class Test(TestCase):
         k_n_params = n_params / 1_000
         self.assertTrue(0.9 * 500 <= k_n_params <= 1.1 * 500)
 
+    def test_gnn_small_size_like_benchmarking_gnn_paper(self):
+        args = get_default_args()
+        args.num_layer = 4
+        args.num_transformer_layers = 0
+        args.emb_dim = 110
+
+        device = compute.get_device()
+        args.gin_conv_mlp_hidden_breath = 1
+        model = get_model(args, 1, device, task='pattern')
+        n_params = sum(p.numel() for p in model.parameters())
+        k_n_params = n_params / 1_000
+        self.assertTrue(0.9 * 100 <= k_n_params <= 1.1 * 100)
+
     def test_position_transformer_size_like_4_layer_gnn(self):
         args = get_default_args()
         args.num_layer = 4
