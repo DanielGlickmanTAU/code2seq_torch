@@ -40,8 +40,7 @@ def add_args(parser):
     parser.add_argument('--lr_schedule_patience', type=int, default=5, help='see lr_reduce_factor')
     parser.add_argument('--num_workers', type=int, default=4 * torch.cuda.device_count(),
                         help='number of workers (default: 0)')
-    parser.add_argument('--feature', type=str, default="full",
-                        help='full feature or simple feature')
+
     parser.add_argument('--filename', type=str, default="",
                         help='filename to output result (default: )')
     parser.add_argument('--max_graph_dist', type=int, default=20)
