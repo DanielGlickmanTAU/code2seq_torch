@@ -78,7 +78,6 @@ def full_train_flow(args, device, evaluator, model, test_loader, train_loader, v
         valid_perf = evaluate(model, device, valid_loader, evaluator)
         test_perf = evaluate(model, device, test_loader, evaluator)
 
-        # print({'Train': train_perf, 'Validation': valid_perf, 'Test': test_perf})
         print(f'epoch loss {epoch_avg_loss}')
         print({'Validation': valid_perf, 'Test': test_perf})
 
@@ -94,9 +93,10 @@ def full_train_flow(args, device, evaluator, model, test_loader, train_loader, v
         exp.log_metric('learning_rate', optimizer.param_groups[0]['lr'])
         for key in valid_perf:
             if key.startswith('acc_'):
-                exp.log_metric(key,valid_perf[key])
+                exp.log_metric(key, valid_perf[key])
 
-        scheduler.step(validation_score - 0.00001 * epoch)
+        # scheduler.step(validation_score - 0.00001 * epoch)
+        scheduler.step(validation_score)
 
         if validation_score > best_so_far:
             best_so_far = validation_score
