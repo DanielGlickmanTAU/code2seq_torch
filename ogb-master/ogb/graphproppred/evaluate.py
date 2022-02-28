@@ -248,7 +248,9 @@ class Evaluator:
             else:
                 pr_classes[r] = 0.0
         acc = 100. * np.sum(pr_classes) / float(nb_classes)
-        return {'acc': acc}
+        pr_per_class = {f'acc_{i}':k for i,k in enumerate(nb_classes)}
+        pr_per_class['acc'] = acc
+        return pr_per_class
 
     def _eval_F1(self, seq_ref, seq_pred):
         # '''
