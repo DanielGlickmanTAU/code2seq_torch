@@ -22,9 +22,20 @@ def start_exp(exp_name, args, model):
     print(f'#Params: {num_params}')
     print(' '.join(sys.argv))
 
+    grouped_hparams = create_hparam_id(args)
+
     exp.log_parameters(args)
     exp.log_parameters({'k_params': num_params / 1000})
+    exp.log_other('hparams_id', grouped_hparams)
     return exp
+
+
+def create_hparam_id(args):
+    non_relevant_hparams = ['filename', 'num_workers', 'offline', 'seed', 'exp_name', 'device']
+    hparams_ = [f'{k}:{v}' for k, v in vars(args).items() if k not in non_relevant_hparams]
+    hparams_ = sorted(hparams_)
+    grouped_hparams = '_'.join(hparams_)
+    return grouped_hparams
 
 
 def num_model_params(model):
