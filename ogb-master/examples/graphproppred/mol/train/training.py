@@ -12,19 +12,19 @@ cls_criterion = torch.nn.BCEWithLogitsLoss()
 reg_criterion = torch.nn.MSELoss()
 
 
-def train_epoch(model, device, loader, optimizer, task_type, assert_no_zero_grad=False):
+def train_epoch(model, device, loader, optimizer, task_type, assert_no_zero_grad=False, grad_accum_steps=1):
     assert task_type in {'binary classification', 'regression', 'node classification'}, f'{task_type} not supported'
     model.train()
     losses = []
+    optimizer.zero_grad()
     for step, batch in enumerate(tqdm(loader, desc="Iteration")):
         batch = batch.to(device)
 
         if batch.x.shape[0] == 1 or batch.batch[-1] == 0:
             pass
         else:
-
             pred = model(batch)
-            optimizer.zero_grad()
+
             ## ignore nan targets (unlabeled) when computing training loss.
             is_labeled = batch.y == batch.y
             y = batch.y
@@ -37,11 +37,17 @@ def train_epoch(model, device, loader, optimizer, task_type, assert_no_zero_grad
                 loss = cls_criterion(pred.to(torch.float32)[is_labeled], y.to(torch.float32)[is_labeled])
             else:
                 loss = reg_criterion(pred.to(torch.float32)[is_labeled], batch.y.to(torch.float32)[is_labeled])
+            loss = loss / grad_accum_steps
             loss.backward()
-            if assert_no_zero_grad:
-                _assert_no_zero_grad(model)
-            torch.nn.utils.clip_grad_norm_(model.parameters(), 5.0)
-            optimizer.step()
+
+            should_step = (step + 1) % grad_accum_steps == 0
+            if should_step:
+                if assert_no_zero_grad:
+                    _assert_no_zero_grad(model)
+                torch.nn.utils.clip_grad_norm_(model.parameters(), 5.0)
+                optimizer.step()
+                optimizer.zero_grad()
+
             losses.append(loss.item())
     return sum(losses) / len(losses)
 
@@ -72,7 +78,8 @@ def full_train_flow(args, device, evaluator, model, test_loader, train_loader, v
     for epoch in range(1, args.epochs + 1):
         print("=====Epoch {}".format(epoch))
         print('Training...')
-        epoch_avg_loss = train_epoch(model, device, train_loader, optimizer, task_type)
+        epoch_avg_loss = train_epoch(model, device, train_loader, optimizer, task_type,
+                                     grad_accum_steps=args.grad_accum_steps)
 
         print('Evaluating...')
         valid_perf = evaluate(model, device, valid_loader, evaluator)
@@ -96,6 +103,7 @@ def full_train_flow(args, device, evaluator, model, test_loader, train_loader, v
                 exp.log_metric(key, valid_perf[key])
 
         # scheduler.step(validation_score - 0.00001 * epoch)
+
         scheduler.step(validation_score)
 
         if validation_score > best_so_far:
