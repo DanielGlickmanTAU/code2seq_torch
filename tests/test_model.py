@@ -157,7 +157,6 @@ class Test(TestCase):
             print(f'loss is {epoch_avg_loss}')
 
             eval_dict = evaluate(model, device, train_loader, evaluator)
-            assert len(eval_dict) == 1
             if 'rocauc' in eval_dict:
                 metric = 'rocauc'
             elif 'acc' in eval_dict:
