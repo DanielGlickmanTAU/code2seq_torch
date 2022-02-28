@@ -5,27 +5,31 @@ from code2seq.utils.slurm import run_on_slurm
 import os
 
 params_for_grid_search = {
-    'num_layer': [1, 2, 4],
-    # 'num_transformer_layers': [6],
-    # 'transformer_ff_dim': [2400],
-    # 'residual': [True],
-    # 'distance_bias': [True],
-    # 'num_heads': [75, 150, 300]
+    'num_layer': [4],
+    'num_transformer_layers': [4],
+    # 'attention_type': 'position',
+    'attention_type': 'content',
+    'use_distance_bias': True,
+    'emb_dim': 128,
+    'transformer_ff_dim': 600,
+    'num_heads': 4,
+    'residual': [True],
+    'drop_ratio': 0.3
 }
 
 params = {
-    'exp_name': 'graph-filter-network-distance',
+    'exp_name': 'gnn-position-base-molhiv',
     'gnn': 'gin',
     'graph_pooling': 'attention',
 }
 
 graph_benchmark_search_params = {
     'learning_rate': [1e-3, 1e-4],
-    'gin_conv_mlp_hidden_breath': 1.,
-    'lr_schedule_patience': 5,
+    # 'gin_conv_mlp_hidden_breath': 1.,
+    'lr_schedule_patience': 10,
     'lr_reduce_factor': 0.5,
 
-    # 'seed':list(range(4))
+    'seed': [0]
 }
 
 assert not set(graph_benchmark_search_params.keys()).intersection(
