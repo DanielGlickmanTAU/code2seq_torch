@@ -5,6 +5,8 @@ import torch_geometric.transforms
 from torch import nn
 from torch_geometric.data import Data
 
+import global_config
+
 
 class AdjStackAttentionWeights(torch.nn.Module):
     _stack_dim = 1
@@ -19,6 +21,8 @@ class AdjStackAttentionWeights(torch.nn.Module):
     # mask shape is (batch,n,n). True where should hide
     # returns (batch,num_heads,n,n)
     def forward(self, stacks: torch.Tensor, mask=None):
+        if global_config.print_position_weights:
+            print(self.weight.weight,self.weight.bias)
         b, num_stacks, n, n1, = stacks.shape
         assert num_stacks == self.num_adj_stacks
         if mask is None:
@@ -103,7 +107,6 @@ class AdjStack(torch_geometric.transforms.BaseTransform):
                     distance_tensor[i] = 1.
         # back to original shape
         return flatten_adjstack_with_distance_dim_last.view(N, N, num_stacks).permute(2, 0, 1)
-
 
 
 def count_paths_cycles(A: torch.Tensor, p):
