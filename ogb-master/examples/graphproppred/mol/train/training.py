@@ -20,7 +20,7 @@ def visualize_activations_and_grads(model, exp):
     def calc_norm(tensor):
         return torch.norm(tensor) if tensor is not None else None
 
-    print('----START ACTIVATIONS------')
+    print('\n----START ACTIVATIONS------')
     for name, param in model.named_parameters():
         weight_norm = calc_norm(param.data)
         grad_norm = calc_norm(param.grad)
