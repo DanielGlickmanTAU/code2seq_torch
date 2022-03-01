@@ -1,5 +1,6 @@
 from torch import nn
 
+from GIN_clone import GINNet
 from gnn import GNN
 from ogb.graphproppred.mol_encoder import AtomEncoder
 
@@ -10,6 +11,9 @@ def get_model(args, num_tasks, device, task):
     elif task == 'pattern':
         pattern_in_dim = 3
         node_encoder = nn.Embedding(pattern_in_dim, args.emb_dim)
+
+    if args.gnn == 'gin-cloned':
+        return GINNet(args)
 
     if args.gnn == 'gin':
         model = GNN(args,JK=args.JK, task=task, gnn_type='gin', num_tasks=num_tasks, num_layer=args.num_layer,
