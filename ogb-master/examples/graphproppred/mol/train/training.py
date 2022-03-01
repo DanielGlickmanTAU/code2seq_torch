@@ -28,7 +28,7 @@ def visualize_activations_and_grads(model):
         print(f'weight norm: {weight_norm}')
         print(f'grad norm: {grad_norm}')
         print(
-            f'weight norm /grad norm: {(weight_norm / grad_norm) if (weight_norm is not None and grad_norm is not None) else None}')
+            f' grad norm/weight norm: {( grad_norm/weight_norm ) if (weight_norm is not None and grad_norm is not None) else None}')
         print('_________________')
     print('----END ACTIVATIONS------')
 
