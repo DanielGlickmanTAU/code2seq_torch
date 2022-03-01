@@ -17,6 +17,8 @@ def get_plain_4_gnn_hyperparam_search_space():
         'num_layer': 4,
         'num_transformer_layers': 0,
         'emb_dim': 110,
+        'batch_size': 32,
+        'grad_accum_steps': 4
     }
 
 
