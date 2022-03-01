@@ -18,7 +18,7 @@ def visualize_activations_and_grads(model):
         return
 
     def calc_norm(tensor):
-        return torch.norm(tensor) if tensor else None
+        return torch.norm(tensor) if tensor is not None else None
 
     print('----START ACTIVATIONS------')
     for name, param in model.named_parameters():
