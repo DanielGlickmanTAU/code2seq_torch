@@ -130,7 +130,7 @@ def full_train_flow(args, device, evaluator, model, test_loader, train_loader, v
 
         exp.log_metric(f'val_{eval_metric}', validation_score)
         exp.log_metric(f'test_{eval_metric}', test_score)
-        exp.log_metric('learning_rate', optimizer.param_groups[0]['lr'])
+        exp.log_metric('learning_rate_', optimizer.param_groups[0]['lr'])
         for key in valid_perf:
             if key.startswith('acc_'):
                 exp.log_metric(key, valid_perf[key])
