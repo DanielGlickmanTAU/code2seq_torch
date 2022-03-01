@@ -12,19 +12,6 @@ def get_benchmarking_gnns_hyperparam_search_space(multiple_random_seeds: bool):
     }
 
 
-def get_benchmarking_gnns_hyperparam_search_space_alternative():
-    return {
-        'residual': [True],
-        'learning_rate': [5e-4],
-        'gin_conv_mlp_hidden_breath': 1.,
-        'lr_schedule_patience': 25,
-        'lr_reduce_factor': 0.5,
-        'seed': [41],
-        'epochs': 1_000,
-        'batch_size':50
-    }
-
-
 def get_plain_4_gnn_hyperparam_search_space():
     return {
         'num_layer': 4,
