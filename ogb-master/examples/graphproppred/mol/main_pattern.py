@@ -1,3 +1,4 @@
+import consts
 from code2seq.utils import compute  ##import this first
 import torch_geometric
 
@@ -32,7 +33,7 @@ def main():
                                                                                                        args)]))
 
     evaluator = Evaluator(dataset_name)
-    model = get_model(args, num_tasks=1, device=device, task='pattern')
+    model = get_model(args, num_tasks=consts.pattern_num_tasks, device=device, task='pattern')
 
     full_train_flow(args, device, evaluator, model, test_loader, train_loader, valid_loader, 'node classification',
                     'acc')
