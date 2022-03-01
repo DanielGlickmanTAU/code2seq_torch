@@ -13,10 +13,13 @@ def sbm_loss(pred, label):
     V = label.size(0)
     label_count = torch.bincount(label)
     label_count = label_count[label_count.nonzero()].squeeze()
-    cluster_sizes = torch.zeros_like(label).long().to(pred.device)
+    cluster_sizes = torch.zeros(n_classes).long().to(pred.device)
     cluster_sizes[torch.unique(label)] = label_count
     weight = (V - cluster_sizes).float() / V
     weight *= (cluster_sizes > 0).float()
 
-    loss = nn.BCEWithLogitsLoss(weight=weight)(pred, label.float())
+    # weighted cross-entropy for unbalanced classes
+    criterion = nn.CrossEntropyLoss(weight=weight)
+    loss = criterion(pred, label)
+
     return loss

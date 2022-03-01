@@ -19,7 +19,10 @@ def evaluate(model, device, loader, evaluator: Evaluator):
                 pred: torch.Tensor = model(batch)
 
             assert not pred.isnan().any()
-            y_true.append(batch.y.view(pred.shape).detach().cpu())
+            if evaluator.eval_metric == 'smb':
+                y_true.append(batch.y.detach().cpu())
+            else:
+                y_true.append(batch.y.view(pred.shape).detach().cpu())
             y_pred.append(pred.detach().cpu())
 
     y_true = torch.cat(y_true, dim=0).numpy()

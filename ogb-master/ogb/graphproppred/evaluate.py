@@ -55,6 +55,9 @@ class Evaluator:
             if not isinstance(y_true, np.ndarray):
                 raise RuntimeError('Arguments to Evaluator need to be either numpy ndarray or torch tensor')
 
+            if self.eval_metric == 'smb':
+                return y_true,y_pred
+
             if not y_true.shape == y_pred.shape:
                 raise RuntimeError('Shape of y_true and y_pred must be the same')
 
@@ -237,7 +240,8 @@ class Evaluator:
 
     def _accuracy_SBM(self, scores, targets):
         S = targets.copy()
-        C = (torch.tensor(scores).sigmoid() > 0.5).int().numpy()
+        # C = (torch.tensor(scores).sigmoid() > 0.5).int().numpy()
+        C = np.argmax( torch.nn.Softmax(dim=1)(torch.tensor(scores)).cpu().detach().numpy() , axis=1 )
         CM = confusion_matrix(S, C).astype(np.float32)
         nb_classes = CM.shape[0]
         pr_classes = np.zeros(nb_classes)
