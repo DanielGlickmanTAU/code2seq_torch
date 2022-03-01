@@ -56,6 +56,9 @@ def add_args(parser):
                         help='the size of the hidden dim of gin layers MLP')
     parser.add_argument('--limit_examples', type=int, help='limit dataset sizes, for debugging')
     parser.add_argument('--scale_positional_attention', type=bool_, default=False)
+    parser.add_argument('--JK', type=str, default='last')
+    parser.add_argument('--scheduler_use_max', type=bool_, default=True)
+
 
 
 def get_default_args():

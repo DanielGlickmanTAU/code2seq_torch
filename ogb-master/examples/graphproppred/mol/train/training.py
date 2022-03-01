@@ -1,3 +1,4 @@
+import global_config
 from exp_utils import start_exp
 import numpy as np
 from torch import optim as optim
@@ -60,7 +61,7 @@ def _assert_no_zero_grad(model):
 
 def full_train_flow(args, device, evaluator, model, test_loader, train_loader, valid_loader, task_type, eval_metric):
     optimizer = optim.Adam(model.parameters(), lr=args.learning_rate)
-    scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min',
+    scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='max' if args.scheduler_use_max else 'min',
                                                      factor=args.lr_reduce_factor,
                                                      patience=args.lr_schedule_patience,
                                                      verbose=True)
@@ -84,6 +85,8 @@ def full_train_flow(args, device, evaluator, model, test_loader, train_loader, v
         print('Evaluating...')
         valid_perf = evaluate(model, device, valid_loader, evaluator)
         test_perf = evaluate(model, device, test_loader, evaluator)
+        if global_config.log_train_acc:
+            train_pref = evaluate(model, device, train_loader, evaluator)
 
         print(f'epoch loss {epoch_avg_loss}')
         print({'Validation': valid_perf, 'Test': test_perf})
@@ -95,6 +98,9 @@ def full_train_flow(args, device, evaluator, model, test_loader, train_loader, v
         test_curve.append(test_score)
 
         exp.log_metric(f'epoch_loss', epoch_avg_loss)
+        if global_config.log_train_acc:
+            exp.log_metric(f'train_{eval_metric}', train_pref[eval_metric])
+
         exp.log_metric(f'val_{eval_metric}', validation_score)
         exp.log_metric(f'test_{eval_metric}', test_score)
         exp.log_metric('learning_rate', optimizer.param_groups[0]['lr'])
