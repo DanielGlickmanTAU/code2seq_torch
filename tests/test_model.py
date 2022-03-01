@@ -4,6 +4,7 @@ from unittest import TestCase
 import torch
 from torch import optim
 
+import consts
 from code2seq.utils import compute
 from args_parse import get_default_args
 from data import dataloader_utils
@@ -135,6 +136,7 @@ class Test(TestCase):
         self.assert_overfit_on_train(args, dataset_samples)
         torch.autograd.set_detect_anomaly(False)
 
+    #works only on molhiv
     def assert_overfit_on_train(self, args, dataset_samples, score_needed=0.95):
         args.drop_ratio = 0.
         args.transformer_encoder_dropout = 0.
@@ -151,7 +153,7 @@ class Test(TestCase):
 
     def _train_and_assert_overfit_on_train(self, model, train_loader, evaluator, task_type, score_needed=0.9):
         device = compute.get_device()
-        optimizer = optim.Adam(model.parameters(), lr=3e-4)
+        optimizer = optim.Adam(model.parameters(), lr=1e-4)
         for epoch in range(1, 200 + 1):
             epoch_avg_loss = train_epoch(model, device, train_loader, optimizer, task_type)
             print(f'loss is {epoch_avg_loss}')
@@ -165,7 +167,7 @@ class Test(TestCase):
             rocauc = eval_dict[metric]
             if rocauc > score_needed:
                 break
-            print(f'Evaluating epoch {epoch}...{metric}: {rocauc}')
+            print(f'Evaluating epoch {epoch}...{metric}: {eval_dict}')
         assert rocauc > score_needed
 
     def test_position_model_dropout_defaults_to_same_as_overall_dropout(self):
@@ -211,17 +213,19 @@ class Test(TestCase):
                                                                                       args)]))
 
         evaluator = Evaluator(args.dataset)
-        model = get_model(args, 1, device, task='pattern')
+        model = get_model(args, consts.pattern_num_tasks, device, task='pattern')
         self._train_and_assert_overfit_on_train(model, train_loader, evaluator, 'node classification')
 
-    def test_can_overfit_pattern_dataset_with_gnn(self):
-        dataset_samples = 32 * 100
+    def test_can_overfit_pattern_dataset_with_content_attention_and_distance(self):
+        dataset_samples = 32 * 4
         args = get_default_args()
         args.dataset = "PATTERN"
-        args.num_layer = 2
-        args.num_transformer_layers = 0
+        args.attention_type = 'content'
+        args.use_distance_bias = True
+        args.num_layer = args.num_transformer_layers = 1
         args.drop_ratio = 0.
-        args.emb_dim = 30
+        args.transformer_encoder_dropout = 0.
+        args.emb_dim = 100
         args.num_heads = 1
 
         device = compute.get_device()
@@ -235,7 +239,35 @@ class Test(TestCase):
                                                                                       args)]))
 
         evaluator = Evaluator(args.dataset)
-        model = get_model(args, 1, device, task='pattern')
+        model = get_model(args, consts.pattern_num_tasks, device, task='pattern')
+        self._train_and_assert_overfit_on_train(model, train_loader, evaluator, 'node classification')
+
+
+    def test_can_overfit_pattern_dataset_with_gnn(self):
+        dataset_samples = 32 * 4
+        args = get_default_args()
+        # dataset_samples = 2
+        args.emb_dim = 30
+        args.dataset = "PATTERN"
+        args.num_layer = 4
+        args.num_transformer_layers = 0
+        args.drop_ratio = 0.
+        args.batch_size=128
+        args.JK = 'sum'
+        # args.JK = 'last'
+
+        device = compute.get_device()
+
+        train_loader, _, __ = dataloader_utils.pyg_get_train_val_test_loaders(args.dataset,
+                                                                              num_workers=args.num_workers,
+                                                                              batch_size=args.batch_size,
+                                                                              limit=dataset_samples,
+                                                                              transform=transforms.Compose(
+                                                                                  [transform_to_one_hot, AdjStack(
+                                                                                      args)]))
+
+        evaluator = Evaluator(args.dataset)
+        model = get_model(args, consts.pattern_num_tasks, device, task='pattern')
         self._train_and_assert_overfit_on_train(model, train_loader, evaluator, 'node classification',
                                                 score_needed=0.88)
 
