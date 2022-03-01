@@ -13,7 +13,7 @@ cls_criterion = torch.nn.BCEWithLogitsLoss()
 reg_criterion = torch.nn.MSELoss()
 
 
-def visualize_activations_and_grads(model):
+def visualize_activations_and_grads(model, exp):
     if not global_config.print_parameter_norms:
         return
 
@@ -26,14 +26,19 @@ def visualize_activations_and_grads(model):
         grad_norm = calc_norm(param.grad)
         print(name)
         print(f'weight norm: {weight_norm}')
+        exp.log_metric(value=weight_norm, name=f'{name}_weight_norm')
         print(f'grad norm: {grad_norm}')
+        exp.log_metric(value=grad_norm, name=f'{name}_grad_norm')
+        grad_magnitude = (grad_norm / weight_norm) if (weight_norm is not None and grad_norm is not None) else None
         print(
-            f' grad norm/weight norm: {( grad_norm/weight_norm ) if (weight_norm is not None and grad_norm is not None) else None}')
+            f' grad norm/weight norm: {grad_magnitude}')
+        exp.log_metric(value=grad_magnitude, name=f'{name}_grad/weight')
         print('_________________')
     print('----END ACTIVATIONS------')
 
 
-def train_epoch(model, device, loader, optimizer, task_type, assert_no_zero_grad=False, grad_accum_steps=1):
+def train_epoch(model, device, loader, optimizer, task_type, assert_no_zero_grad=False, grad_accum_steps=1,
+                experiment=None):
     assert task_type in {'binary classification', 'regression', 'node classification'}, f'{task_type} not supported'
     model.train()
     losses = []
@@ -63,7 +68,7 @@ def train_epoch(model, device, loader, optimizer, task_type, assert_no_zero_grad
 
             should_step = (step + 1) % grad_accum_steps == 0
             if should_step:
-                visualize_activations_and_grads(model)
+                visualize_activations_and_grads(model, experiment)
                 if assert_no_zero_grad:
                     _assert_no_zero_grad(model)
                 torch.nn.utils.clip_grad_norm_(model.parameters(), 5.0)
@@ -101,7 +106,7 @@ def full_train_flow(args, device, evaluator, model, test_loader, train_loader, v
         print("=====Epoch {}".format(epoch))
         print('Training...')
         epoch_avg_loss = train_epoch(model, device, train_loader, optimizer, task_type,
-                                     grad_accum_steps=args.grad_accum_steps)
+                                     grad_accum_steps=args.grad_accum_steps, experiment=exp)
 
         print('Evaluating...')
         valid_perf = evaluate(model, device, valid_loader, evaluator)
