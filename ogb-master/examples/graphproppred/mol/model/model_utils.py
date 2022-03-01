@@ -13,7 +13,7 @@ def get_model(args, num_tasks, device, task):
         node_encoder = nn.Embedding(pattern_in_dim, args.emb_dim)
 
     if args.gnn == 'gin-cloned':
-        return GINNet(args)
+        return GINNet(args).to(device)
 
     if args.gnn == 'gin':
         model = GNN(args,JK=args.JK, task=task, gnn_type='gin', num_tasks=num_tasks, num_layer=args.num_layer,
