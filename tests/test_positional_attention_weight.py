@@ -1,3 +1,4 @@
+import unittest
 from unittest import TestCase
 from code2seq.utils import compute
 
@@ -25,6 +26,7 @@ class TestAdjStack(TestCase):
         num_adj_stacks = 3
         data = self._example_graph()
         args = argparse.ArgumentParser().parse_args()
+        args.use_distance_bias = False
         args.adj_stacks = range(num_adj_stacks)
         stacks = AdjStack(args)(data)['adj_stack']
 
@@ -35,6 +37,7 @@ class TestAdjStack(TestCase):
         data = self._example_graph()
         args = argparse.ArgumentParser().parse_args()
         args.adj_stacks = range(num_adj_stacks)
+        args.use_distance_bias = False
         stacks = AdjStack(args)(data)['adj_stack']
         stacks = torch.tensor(stacks)
         stacks_batch = torch.stack([stacks, stacks + torch.rand(1)])
@@ -72,3 +75,6 @@ class TestAdjStack(TestCase):
         )
         new_stacks = adj_bias_model(stacks_batch)
         self.assertTrue((new_stacks == expected_dist_bias).all())
+
+if __name__ == '__main__':
+    unittest.main()
