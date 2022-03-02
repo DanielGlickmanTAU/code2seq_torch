@@ -22,7 +22,7 @@ class AdjStackAttentionWeights(torch.nn.Module):
     # returns (batch,num_heads,n,n)
     def forward(self, stacks: torch.Tensor, mask=None):
         if global_config.print_position_weights:
-            print(self.weight.weight,self.weight.bias)
+            print(self.weight.weight, self.weight.bias)
         b, num_stacks, n, n1, = stacks.shape
         assert num_stacks == self.num_adj_stacks
         if mask is None:
@@ -56,13 +56,9 @@ class AdjStack(torch_geometric.transforms.BaseTransform):
                             help='list of powers to raise and stack the adj matrix.')
         parser.add_argument('--use_distance_bias', type=str, default=False)
 
-    def __init__(self, args: Union[object, list], use_distance_bias=False):
-        if isinstance(args, list):
-            self.adj_stacks = args
-            self.use_distance_bias = use_distance_bias
-        else:
-            self.adj_stacks = args.adj_stacks
-            self.use_distance_bias = args.use_distance_bias
+    def __init__(self, args):
+        self.adj_stacks = args.adj_stacks
+        self.use_distance_bias = args.use_distance_bias
         assert len(self.adj_stacks) == len(set(self.adj_stacks)), f'duplicate power in {self.adj_stacks}'
 
     def __call__(self, data: Data):

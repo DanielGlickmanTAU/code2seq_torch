@@ -6,6 +6,7 @@ import torch
 
 import pygraph_utils
 from model.positional.positional_attention_weight import AdjStack
+from tests import test_utils
 from tests.test_utils import as_pyg_batch
 
 
@@ -14,8 +15,9 @@ class Test(TestCase):
         embed_dim = 300
         batch_size = 2
         num_stacks = 4
+        args = test_utils.get_args_with_adj_stack(num_stacks)
         dataset = FakeDataset(num_graphs=4, avg_num_nodes=100, num_channels=embed_dim,
-                              transform=AdjStack(list(range(num_stacks))))
+                              transform=AdjStack(args))
 
         first_batch = as_pyg_batch(dataset, batch_size)
 
@@ -66,8 +68,10 @@ class Test(TestCase):
         embed_dim = 300
         batch_size = 2
         num_stacks = 4
+        args = test_utils.get_args_with_adj_stack(num_stacks)
+
         dataset = FakeDataset(num_graphs=4, avg_num_nodes=100, num_channels=embed_dim,
-                              transform=AdjStack(list(range(num_stacks))))
+                              transform=AdjStack(args))
 
         first_batch = as_pyg_batch(dataset, batch_size)
 
