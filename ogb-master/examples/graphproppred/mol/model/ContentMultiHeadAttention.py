@@ -66,7 +66,7 @@ class ContentMultiheadAttention(torch.nn.Module):
 
         self.use_distance_bias = use_distance_bias
         if use_distance_bias:
-            self.positional_bias = AdjStackAttentionWeights(num_adj_stacks, num_heads, use_distance_bias)
+            self.positional_bias = AdjStackAttentionWeights(num_adj_stacks, num_heads)
 
         self._reset_parameters()
 
