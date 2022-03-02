@@ -18,11 +18,14 @@ def get_train_val_test_loaders(dataset: GNNBenchmarkDataset, batch_size, num_wor
     return train_loader, valid_loader, test_loader
 
 
-def pyg_get_train_val_test_loaders(name, batch_size, num_workers, transform=None, limit=0,
+def pyg_get_train_val_test_loaders(name, batch_size, num_workers, transform=None, limit=0, pre_transform=None
                                    ):
-    train_dataset = GNNBenchmarkDataset(root=('./%s' % name), name=('%s' % name), split='train', transform=transform)
-    val_dataset = GNNBenchmarkDataset(root=name, name=('%s' % name), split='val', transform=transform)
-    test_dataset = GNNBenchmarkDataset(root=name, name=('%s' % name), split='test', transform=transform)
+    train_dataset = GNNBenchmarkDataset(root=('./%s' % name), name=('%s' % name), split='train', transform=transform,
+                                        pre_transform=pre_transform)
+    val_dataset = GNNBenchmarkDataset(root=name, name=('%s' % name), split='val', transform=transform,
+                                      pre_transform=pre_transform)
+    test_dataset = GNNBenchmarkDataset(root=name, name=('%s' % name), split='test', transform=transform,
+                                       pre_transform=pre_transform)
 
     train_dataset = train_dataset[: limit] if limit else train_dataset
     val_dataset = val_dataset[: limit] if limit else val_dataset
