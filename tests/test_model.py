@@ -19,49 +19,37 @@ from torchvision import transforms
 
 class Test(TestCase):
     def test_can_overfit_molhiv_with_positional_attention(self):
-        dataset_samples = 64
-        # Training settings
-        args = get_default_args()
-        args.dataset = "ogbg-molhiv"
+        args, dataset_samples = self._get_molhiv_overfit_params()
         args.attention_type = 'position'
-        args.num_layer = args.num_transformer_layers = 4
 
         self.assert_overfit_on_train(args, dataset_samples)
 
     def test_can_overfit_molhiv_with_content_attention(self):
-        dataset_samples = 64
-        # Training settings
-        args = get_default_args()
-        args.dataset = "ogbg-molhiv"
+        args, dataset_samples = self._get_molhiv_overfit_params()
         args.attention_type = 'content'
-        args.num_layer = args.num_transformer_layers = 4
 
         self.assert_overfit_on_train(args, dataset_samples)
 
     def test_can_overfit_molhiv_with_2_gnn_and_content_attention(self):
-        dataset_samples = 64
-        # Training settings
-        args = get_default_args()
-        args.dataset = "ogbg-molhiv"
+        args, dataset_samples = self._get_molhiv_overfit_params()
         args.attention_type = 'content'
         args.num_layer = 6
         args.num_transformer_layers = 2
-        # torch.autograd.set_detect_anomaly(True)
         self.assert_overfit_on_train(args, dataset_samples)
-        # torch.autograd.set_detect_anomaly(False)
 
     def test_can_overfit_molhiv_with_gnn(self):
-        dataset_samples = 32 * 10
-        # Training settings
+        args, dataset_samples = self._get_molhiv_overfit_params()
+        args.num_transformer_layers = 0
+        self.assert_overfit_on_train(args, dataset_samples)
+
+    def _get_molhiv_overfit_params(self):
+        dataset_samples = 64
         args = get_default_args()
         args.dataset = "ogbg-molhiv"
-        args.num_layer = 6
-        args.num_transformer_layers = 0
-        torch.autograd.set_detect_anomaly(True)
-        self.assert_overfit_on_train(args, dataset_samples)
-        torch.autograd.set_detect_anomaly(False)
+        args.num_layer = args.num_transformer_layers = 4
+        return args, dataset_samples
 
-    #works only on molhiv
+    # works only on molhiv
     def assert_overfit_on_train(self, args, dataset_samples, score_needed=0.95):
         args.drop_ratio = 0.
         args.transformer_encoder_dropout = 0.
@@ -167,7 +155,6 @@ class Test(TestCase):
         model = get_model(args, consts.pattern_num_tasks, device, task='pattern')
         self._train_and_assert_overfit_on_train(model, train_loader, evaluator, 'node classification')
 
-
     def test_can_overfit_pattern_dataset_with_gnn(self):
         dataset_samples = 32 * 4
         args = get_default_args()
@@ -177,7 +164,7 @@ class Test(TestCase):
         args.num_layer = 4
         args.num_transformer_layers = 0
         args.drop_ratio = 0.
-        args.batch_size=128
+        args.batch_size = 128
         args.JK = 'sum'
         # args.JK = 'last'
 
@@ -195,8 +182,6 @@ class Test(TestCase):
         model = get_model(args, consts.pattern_num_tasks, device, task='pattern')
         self._train_and_assert_overfit_on_train(model, train_loader, evaluator, 'node classification',
                                                 score_needed=0.88)
-
-
 
 
 if __name__ == '__main__':
