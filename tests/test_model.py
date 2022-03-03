@@ -47,18 +47,17 @@ class Test(TestCase):
 
         args.attention_type = 'position'
 
-        device = compute.get_device()
+        self.assert_overfit_on_train_pattern(args, dataset_samples)
 
+    def assert_overfit_on_train_pattern(self, args, dataset_samples):
         train_loader, _, __ = dataloader_utils.pyg_get_train_val_test_loaders(args.dataset,
                                                                               num_workers=args.num_workers,
                                                                               batch_size=args.batch_size,
                                                                               limit=dataset_samples,
-                                                                              transform=transforms.Compose(
-                                                                                  [transform_to_one_hot, AdjStack(
-                                                                                      args)]))
-
+                                                                              transform=transform_to_one_hot,
+                                                                              mapping=AdjStack(args))
         evaluator = Evaluator(args.dataset)
-        model = get_model(args, consts.pattern_num_tasks, device, task='pattern')
+        model = get_model(args, consts.pattern_num_tasks, compute.get_device(), task='pattern')
         self._train_and_assert_overfit_on_train(model, train_loader, evaluator, 'node classification')
 
     def test_can_overfit_pattern_dataset_with_content_attention_and_distance(self):
@@ -67,34 +66,13 @@ class Test(TestCase):
         args.use_distance_bias = True
         args.attention_type = 'content'
 
-        train_loader, _, __ = dataloader_utils.pyg_get_train_val_test_loaders(args.dataset,
-                                                                              num_workers=args.num_workers,
-                                                                              batch_size=args.batch_size,
-                                                                              limit=dataset_samples,
-                                                                              transform=transform_to_one_hot,
-                                                                              mapping=AdjStack(args))
-
-        evaluator = Evaluator(args.dataset)
-        model = get_model(args, consts.pattern_num_tasks, compute.get_device(), task='pattern')
-        self._train_and_assert_overfit_on_train(model, train_loader, evaluator, 'node classification')
+        self.assert_overfit_on_train_pattern(args, dataset_samples)
 
     def test_can_overfit_pattern_dataset_with_gnn(self):
         args, dataset_samples = self._get_pattern_overfit_config()
         args.JK = 'sum'
         args.num_transformer_layers = 0
-        device = compute.get_device()
-
-        train_loader, _, __ = dataloader_utils.pyg_get_train_val_test_loaders(args.dataset,
-                                                                              num_workers=args.num_workers,
-                                                                              batch_size=args.batch_size,
-                                                                              limit=dataset_samples,
-                                                                              transform=transforms.Compose(
-                                                                                  [transform_to_one_hot, AdjStack(
-                                                                                      args)]))
-
-        evaluator = Evaluator(args.dataset)
-        model = get_model(args, consts.pattern_num_tasks, device, task='pattern')
-        self._train_and_assert_overfit_on_train(model, train_loader, evaluator, 'node classification')
+        self.assert_overfit_on_train_pattern(args, dataset_samples)
 
     def _get_pattern_overfit_config(self):
         dataset_samples = 32
