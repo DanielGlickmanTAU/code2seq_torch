@@ -22,25 +22,25 @@ class Test(TestCase):
         args, dataset_samples = self._get_molhiv_overfit_params()
         args.attention_type = 'position'
 
-        self.assert_overfit_on_train(args, dataset_samples)
+        self.assert_overfit_on_train_molhiv(args, dataset_samples)
 
     def test_can_overfit_molhiv_with_content_attention(self):
         args, dataset_samples = self._get_molhiv_overfit_params()
         args.attention_type = 'content'
 
-        self.assert_overfit_on_train(args, dataset_samples)
+        self.assert_overfit_on_train_molhiv(args, dataset_samples)
 
     def test_can_overfit_molhiv_with_2_gnn_and_content_attention(self):
         args, dataset_samples = self._get_molhiv_overfit_params()
         args.attention_type = 'content'
         args.num_layer = 6
         args.num_transformer_layers = 2
-        self.assert_overfit_on_train(args, dataset_samples)
+        self.assert_overfit_on_train_molhiv(args, dataset_samples)
 
     def test_can_overfit_molhiv_with_gnn(self):
         args, dataset_samples = self._get_molhiv_overfit_params()
         args.num_transformer_layers = 0
-        self.assert_overfit_on_train(args, dataset_samples)
+        self.assert_overfit_on_train_molhiv(args, dataset_samples)
 
     def _get_molhiv_overfit_params(self):
         dataset_samples = 64
@@ -49,8 +49,7 @@ class Test(TestCase):
         args.num_layer = args.num_transformer_layers = 4
         return args, dataset_samples
 
-    # works only on molhiv
-    def assert_overfit_on_train(self, args, dataset_samples, score_needed=0.95):
+    def assert_overfit_on_train_molhiv(self, args, dataset_samples, score_needed=0.95):
         args.drop_ratio = 0.
         args.transformer_encoder_dropout = 0.
 
