@@ -40,12 +40,12 @@ class Test(TestCase):
         args.num_transformer_layers = 0
         self.assert_overfit_on_train_molhiv(args, dataset_samples)
 
-    def test_can_overfit_pattern_dataset_with_position_attention(self):
-        args, dataset_samples = self._get_pattern_overfit_config()
-
-        args.attention_type = 'position'
-
-        self.assert_overfit_on_train_pattern(args, dataset_samples)
+    # def test_can_overfit_pattern_dataset_with_position_attention(self):
+    #     args, dataset_samples = self._get_pattern_overfit_config()
+    #
+    #     args.attention_type = 'position'
+    #
+    #     self.assert_overfit_on_train_pattern(args, dataset_samples)
 
     def assert_overfit_on_train_pattern(self, args, dataset_samples):
         train_loader, _, __ = dataloader_utils.pyg_get_train_val_test_loaders(args.dataset,
@@ -58,13 +58,13 @@ class Test(TestCase):
         model = get_model(args, consts.pattern_num_tasks, compute.get_device(), task='pattern')
         self._train_and_assert_overfit_on_train(model, train_loader, evaluator, 'node classification')
 
-    def test_can_overfit_pattern_dataset_with_content_attention_and_distance(self):
-        args, dataset_samples = self._get_pattern_overfit_config()
-
-        args.use_distance_bias = True
-        args.attention_type = 'content'
-
-        self.assert_overfit_on_train_pattern(args, dataset_samples)
+    # def test_can_overfit_pattern_dataset_with_content_attention_and_distance(self):
+    #     args, dataset_samples = self._get_pattern_overfit_config()
+    #
+    #     args.use_distance_bias = True
+    #     args.attention_type = 'content'
+    #
+    #     self.assert_overfit_on_train_pattern(args, dataset_samples)
 
     def test_can_overfit_pattern_dataset_with_gnn(self):
         args, dataset_samples = self._get_pattern_overfit_config()
