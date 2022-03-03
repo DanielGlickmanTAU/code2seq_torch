@@ -109,6 +109,24 @@ class Test(TestCase):
         k_n_params = n_params / 1_000
         self.assertTrue(k_n_params > 1.1 * 500)
 
+    def test_position_model_dropout_defaults_to_same_as_overall_dropout(self):
+        args = get_default_args()
+        args.attention_type = 'position'
+        args.num_layer = args.num_transformer_layers = 2
+
+        model = get_model(args, 3, compute.get_device(), task='mol')
+        assert model.gnn_transformer.transformer.layers[
+                   0].dropout.p == model.gnn_transformer.gnn_node.drop_ratio == args.drop_ratio
+
+    def test_position_model_dropout_can_be_different_than_gnn_dropout(self):
+        args = get_default_args()
+        args.attention_type = 'position'
+        args.num_layer = args.num_transformer_layers = 2
+        args.transformer_encoder_dropout = 0.123
+
+        model = get_model(args, 3, compute.get_device(), task='mol')
+        assert model.gnn_transformer.transformer.layers[0].dropout.p != model.gnn_transformer.gnn_node.drop_ratio
+
 
 if __name__ == '__main__':
     unittest.main()
