@@ -1,8 +1,9 @@
 import unittest
 from unittest import TestCase
 
-import torch
 from torch import optim
+from train.eval import evaluate
+from train.training import train_epoch
 
 import consts
 from code2seq.utils import compute
@@ -12,9 +13,6 @@ from data.dataloader_utils import get_train_val_test_loaders, transform_to_one_h
 from model.model_utils import get_model
 from model.positional.positional_attention_weight import AdjStack
 from ogb.graphproppred import Evaluator, PygGraphPropPredDataset
-from train.eval import evaluate
-from train.training import train_epoch
-from torchvision import transforms
 
 
 class Test(TestCase):
