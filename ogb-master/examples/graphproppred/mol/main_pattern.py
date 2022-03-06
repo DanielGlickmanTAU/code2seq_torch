@@ -27,10 +27,9 @@ def main():
                                                                                               limit=args.limit_examples,
                                                                                               num_workers=args.num_workers,
                                                                                               batch_size=args.batch_size,
-                                                                                              transform=transforms.Compose(
-                                                                                                  [transform_to_one_hot,
-                                                                                                   AdjStack(
-                                                                                                       args)]))
+                                                                                              transform=
+                                                                                              transform_to_one_hot,
+                                                                                              mapping=AdjStack(args))
 
     evaluator = Evaluator(dataset_name)
     model = get_model(args, num_tasks=consts.pattern_num_tasks, device=device, task='pattern')
