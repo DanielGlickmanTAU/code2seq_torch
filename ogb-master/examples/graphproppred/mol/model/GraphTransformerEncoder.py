@@ -3,6 +3,7 @@ from typing import Optional, List
 from torch import Tensor
 import torch.nn as nn
 
+from arg_parse_utils import bool_
 from code2seq.utils.compute import get_device
 from model.MyTransformerEncoderLayer import MyTransformerEncoderLayer
 
@@ -11,6 +12,8 @@ class GraphTransformerEncoder(nn.Module):
     @staticmethod
     def add_args(parser):
         parser.add_argument('--attention_type', type=str, default='content')
+        parser.add_argument('--gating', type=bool_, default=False,
+                            help='if true, use element wise sigmoid instead of softmax in attention')
 
     __constants__ = ['norm']
 
@@ -20,6 +23,7 @@ class GraphTransformerEncoder(nn.Module):
         encoder_layers = nn.ModuleList([
             MyTransformerEncoderLayer(args, attention_type, d_model=d_model, nhead=num_head,
                                       num_adj_stacks=num_adj_stacks,
+                                      norm_first=args.norm_first,
                                       dim_feedforward=feed_forward_dim, device=get_device(), dropout=dropout,
                                       use_distance_bias=use_distance_bias) for _ in
             range(num_layers)])
