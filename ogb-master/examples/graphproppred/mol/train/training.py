@@ -31,9 +31,9 @@ def visualize_activations_and_grads(model, exp):
         print(
             f' grad norm/weight norm: {grad_magnitude}')
         if exp:
-            exp.log_metric(value=weight_norm, name=f'{name}_weight_norm')
-            exp.log_metric(value=grad_norm, name=f'{name}_grad_norm')
-            exp.log_metric(value=grad_magnitude, name=f'{name}_grad/weight')
+            exp.log_metric(value=weight_norm, name=f'{name}:weight_norm')
+            exp.log_metric(value=grad_norm, name=f'{name}:grad_norm')
+            exp.log_metric(value=grad_magnitude, name=f'{name}:grad/weight')
         print('_________________')
     print('----END ACTIVATIONS------')
 
