@@ -1,6 +1,7 @@
 import argparse
 from typing import Union, List
 
+from torch.nn import Sequential
 from torch_geometric.data import Dataset, Data
 from torch_geometric.loader import DataLoader
 
@@ -22,3 +23,17 @@ def get_args_with_adj_stack(list_of_stacks: Union[List[int], int]):
 def get_positional_biases(model: GNN) -> list:
     return [transformer_layer.attention_layer.positional_bias for transformer_layer in
             model.gnn_transformer.transformer.layers]
+
+#return list of [(linear1, linear2)] for each attention layer
+def get_feedforward_layers(model:GNN) -> list:
+    return [(transformer_layer.linear1,transformer_layer.linear2)
+            for transformer_layer in model.gnn_transformer.transformer.layers]
+
+
+def apply_sequential_and_get_intermediate_results(model:Sequential,input):
+    out = []
+    x = input
+    for layer in model:
+        x = layer(x)
+        out.append(x)
+    return out
