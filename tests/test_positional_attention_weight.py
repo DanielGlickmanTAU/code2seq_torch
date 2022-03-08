@@ -30,7 +30,9 @@ class TestAdjStack(TestCase):
         args.adj_stacks = range(num_adj_stacks)
         stacks = AdjStack(args)(data)['adj_stack']
 
-        self.assertAlmostEqual(stacks[2][0][3], 1 / 6, delta=0.01)
+        distance = 2
+        self.assertAlmostEqual(stacks[distance][0][3], 1 / 6, delta=0.01)
+        self.assertAlmostEqual(stacks[distance, 0, 2], 1 / 4, delta=0.01)
 
     def test_positional_weight_dims(self):
         num_adj_stacks = 3
@@ -75,6 +77,7 @@ class TestAdjStack(TestCase):
         )
         new_stacks = adj_bias_model(stacks_batch)
         self.assertTrue((new_stacks == expected_dist_bias).all())
+
 
 if __name__ == '__main__':
     unittest.main()
