@@ -14,6 +14,9 @@ class GraphTransformerEncoder(nn.Module):
         parser.add_argument('--attention_type', type=str, default='content')
         parser.add_argument('--gating', type=bool_, default=False,
                             help='if true, use element wise sigmoid instead of softmax in attention')
+        # But default it is on, which is opposed to the original transformm but is adpodated by manny
+        parser.add_argument('--norm_first', type=bool_, default=True,
+                            help='apply layer norm before or after self attention and feedforward. Default True')
 
     __constants__ = ['norm']
 
