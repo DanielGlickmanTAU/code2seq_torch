@@ -9,6 +9,7 @@ from torch.nn.init import xavier_uniform_, constant_, xavier_normal_
 from torch.nn.modules.linear import NonDynamicallyQuantizableLinear
 
 import pygraph_utils
+from model.positional.AttentionWeightNormalizer import AttentionWeightNormalizer
 from model.positional.positional_attention_weight import AdjStackAttentionWeights
 
 
@@ -51,6 +52,7 @@ class PositionMultiHeadAttention(Module):
             self.bias_k = self.bias_v = None
 
         self.positional_bias = AdjStackAttentionWeights(num_adj_stacks, num_heads)
+        self.normalizer = AttentionWeightNormalizer(gating=self.gating)
 
         self._reset_parameters()
 
@@ -83,9 +85,10 @@ class PositionMultiHeadAttention(Module):
             value, attention_weights, self.embed_dim, self.num_heads,
             self.bias_k, self.bias_v,
             self.dropout, self.out_proj.weight, self.out_proj.bias,
+
             training=self.training,
             key_padding_mask=key_padding_mask, need_weights=need_weights,
-            attn_mask=attn_mask, scale_by_sqrt_n=self.args.scale_positional_attention, gating=self.gating)
+            attn_mask=attn_mask, scale_by_sqrt_n=self.args.scale_positional_attention, normalizer=self.normalizer)
 
         if self.batch_first:
             return attn_output.transpose(1, 0), attn_output_weights
@@ -103,13 +106,13 @@ def multi_head_positional_attention(
         dropout_p: float,
         out_proj_weight: Tensor,
         out_proj_bias: Optional[Tensor],
+        normalizer: AttentionWeightNormalizer,
         training: bool = True,
         key_padding_mask: Optional[Tensor] = None,
         need_weights: bool = True,
         attn_mask: Optional[Tensor] = None,
         use_separate_proj_weight: bool = False,
         scale_by_sqrt_n: bool = False,
-        gating: bool = False
 ) -> Tuple[Tensor, Optional[Tensor]]:
     # set up shape vars
     tgt_len, bsz, embed_dim = value.shape
@@ -133,7 +136,7 @@ def multi_head_positional_attention(
     assert tgt_len == v.shape[1]
     assert embed_dim == out_proj_weight.shape[-1]
 
-    attn, attn_output = weighted_average(v, attention_weights, attn_mask, training, dropout_p, gating)
+    attn, attn_output = weighted_average(v, attention_weights, attn_mask, training, dropout_p, normalizer)
     attn_output = project_heads(attn_output, bsz, embed_dim, out_proj_bias, out_proj_weight, tgt_len)
 
     if need_weights:
@@ -158,7 +161,7 @@ def project_heads(attn_output, bsz, embed_dim, out_proj_bias, out_proj_weight, t
     return attn_output
 
 
-def weighted_average(values, attention_weights, attn_mask, training, dropout_p, gating):
+def weighted_average(values, attention_weights, attn_mask, training, dropout_p, normalizer):
     def fix_nans(attn):
         not_nan = ~attn.isnan()
         attn_new = torch.zeros_like(attn, device=attn.device)
@@ -168,15 +171,11 @@ def weighted_average(values, attention_weights, attn_mask, training, dropout_p, 
     if attn_mask is not None:
         attention_weights = attention_weights + attn_mask
 
-    if gating:
-        attn = torch.sigmoid(attention_weights)
-    else:
-        attn = softmax(attention_weights, dim=-1)
+    attn = normalizer(attention_weights)
 
     # adjust dropout
     if not training:
         dropout_p = 0.0
-
     attn = fix_nans(attn)
 
     if dropout_p > 0.0:

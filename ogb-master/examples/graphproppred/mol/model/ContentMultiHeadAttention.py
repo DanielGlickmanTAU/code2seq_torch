@@ -11,6 +11,7 @@ from torch.nn.modules.linear import NonDynamicallyQuantizableLinear
 from torch.overrides import has_torch_function, handle_torch_function
 
 import pygraph_utils
+from model.positional.AttentionWeightNormalizer import AttentionWeightNormalizer
 from model.positional.PositionMultiHeadAttention import multi_head_positional_attention
 from model.positional.positional_attention_weight import AdjStackAttentionWeights
 
@@ -69,6 +70,8 @@ class ContentMultiheadAttention(torch.nn.Module):
         if use_distance_bias:
             self.positional_bias = AdjStackAttentionWeights(num_adj_stacks, num_heads)
 
+        self.normalizer = AttentionWeightNormalizer(gating=self.gating)
+
         self._reset_parameters()
 
     def _reset_parameters(self):
@@ -126,7 +129,7 @@ class ContentMultiheadAttention(torch.nn.Module):
                 self.dropout, self.out_proj.weight, self.out_proj.bias,
                 training=self.training,
                 key_padding_mask=key_padding_mask, need_weights=need_weights,
-                attn_mask=attn_mask, scale_by_sqrt_n=False, gating=self.gating)
+                attn_mask=attn_mask, scale_by_sqrt_n=False, normalizer=self.normalizer)
         if self.batch_first:
             return attn_output.transpose(1, 0), attn_output_weights
         else:
