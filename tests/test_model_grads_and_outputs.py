@@ -3,6 +3,8 @@ from unittest import TestCase
 
 import torch
 from torch import optim
+
+from tests import test_utils
 from train.training import train_epoch
 
 from code2seq.utils import compute
@@ -14,6 +16,23 @@ from ogb.graphproppred import PygGraphPropPredDataset
 
 
 class Test(TestCase):
+    def test_gnn_transformer_shaping(self):
+        # Training settings
+        args = get_default_args()
+        args.attention_type = 'position'
+
+        model = get_model(args, 2, compute.get_device(), task='mol')
+        gnn_transformer = model.gnn_transformer
+        gnn_transformer.transformer = test_utils.MockModule(lambda h_node_batch, mask, adj_stack: h_node_batch)
+
+        args.dataset = "ogbg-molhiv"
+        args.num_layer = args.num_transformer_layers = 1,
+        dataset = PygGraphPropPredDataset(name=args.dataset,
+                                          transform=AdjStack(args))
+        batch = test_utils.as_pyg_batch(dataset)
+        transformed = gnn_transformer.forward_transformer(batch, batch.x)
+        self.assertTrue((batch.x == transformed).all())
+
     def test_grads_and_outputs_content_attention(self):
         # Training settings
         args = get_default_args()

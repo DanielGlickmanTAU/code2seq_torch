@@ -45,3 +45,12 @@ def view_edges(stacks):
     n_stacks, n1, n2 = stacks.shape
     assert n1 == n2, f'expecting array in shape stacks,N,N. got {stacks.shape}'
     return torch.tensor(stacks).permute(1, 2, 0).view(-1, n_stacks).transpose(0, 1).unique(dim=-1).numpy()
+
+
+class MockModule(torch.nn.Module):
+    def __init__(self, func):
+        super().__init__()
+        self.func = func
+
+    def forward(self, *args, **kwargs):
+        return self.func(*args, **kwargs)
