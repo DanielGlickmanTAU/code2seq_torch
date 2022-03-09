@@ -1,6 +1,7 @@
 import argparse
 from typing import Union, List
 
+import torch
 from torch.nn import Sequential
 from torch_geometric.data import Dataset, Data
 from torch_geometric.loader import DataLoader
@@ -24,16 +25,23 @@ def get_positional_biases(model: GNN) -> list:
     return [transformer_layer.attention_layer.positional_bias for transformer_layer in
             model.gnn_transformer.transformer.layers]
 
-#return list of [(linear1, linear2)] for each attention layer
-def get_feedforward_layers(model:GNN) -> list:
-    return [(transformer_layer.linear1,transformer_layer.linear2)
+
+# return list of [(linear1, linear2)] for each attention layer
+def get_feedforward_layers(model: GNN) -> list:
+    return [(transformer_layer.linear1, transformer_layer.linear2)
             for transformer_layer in model.gnn_transformer.transformer.layers]
 
 
-def apply_sequential_and_get_intermediate_results(model:Sequential,input):
+def apply_sequential_and_get_intermediate_results(model: Sequential, input):
     out = []
     x = input
     for layer in model:
         x = layer(x)
         out.append(x)
     return out
+
+
+def view_edges(stacks):
+    n_stacks, n1, n2 = stacks.shape
+    assert n1 == n2, f'expecting array in shape stacks,N,N. got {stacks.shape}'
+    return torch.tensor(stacks).permute(1, 2, 0).view(-1, n_stacks).transpose(0, 1).unique(dim=-1).numpy()
