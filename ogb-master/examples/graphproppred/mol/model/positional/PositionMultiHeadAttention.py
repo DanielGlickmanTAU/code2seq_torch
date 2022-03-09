@@ -13,37 +13,11 @@ from model.positional.positional_attention_weight import AdjStackAttentionWeight
 
 
 class PositionMultiHeadAttention(Module):
-    r"""Allows the model to jointly attend to information
-    from different representation subspaces.
-    See `Attention Is All You Need <https://arxiv.org/abs/1706.03762>`_.
-
-    .. math::
-        \text{MultiHead}(Q, K, V) = \text{Concat}(head_1,\dots,head_h)W^O
-
-    where :math:`head_i = \text{Attention}(QW_i^Q, KW_i^K, VW_i^V)`.
-
-    Args:
-        embed_dim: Total dimension of the model.
-        num_heads: Number of parallel attention heads. Note that ``embed_dim`` will be split
-            across ``num_heads`` (i.e. each head will have dimension ``embed_dim // num_heads``).
-        dropout: Dropout probability on ``attn_output_weights``. Default: ``0.0`` (no dropout).
-        bias: If specified, adds bias to input / output projection layers. Default: ``True``.
-        add_bias_kv: If specified, adds bias to the key and value sequences at dim=0. Default: ``False``.
-        add_zero_attn: If specified, adds a new batch of zeros to the key and value sequences at dim=1.
-            Default: ``False``.
-        kdim: Total number of features for keys. Default: ``None`` (uses ``kdim=embed_dim``).
-        vdim: Total number of features for values. Default: ``None`` (uses ``vdim=embed_dim``).
-        batch_first: If ``True``, then the input and output tensors are provided
-            as (batch, seq, feature). Default: ``False`` (seq, batch, feature).
-
-
-    """
     __constants__ = ['batch_first']
     bias_k: Optional[torch.Tensor]
     bias_v: Optional[torch.Tensor]
 
     def __init__(self, args, embed_dim, num_heads, num_adj_stacks, dropout=0., bias=True, add_bias_kv=False,
-                 add_zero_attn=False,
                  kdim=None, vdim=None, batch_first=False, device=None, dtype=None) -> None:
         self.args = args
         factory_kwargs = {'device': device, 'dtype': dtype}
@@ -54,6 +28,7 @@ class PositionMultiHeadAttention(Module):
         self._qkv_same_embed_dim = self.kdim == embed_dim and self.vdim == embed_dim
         assert self._qkv_same_embed_dim
 
+        self.gating: bool = args.gating
         self.num_heads = num_heads
         self.dropout = dropout
         self.batch_first = batch_first
@@ -110,7 +85,7 @@ class PositionMultiHeadAttention(Module):
             self.dropout, self.out_proj.weight, self.out_proj.bias,
             training=self.training,
             key_padding_mask=key_padding_mask, need_weights=need_weights,
-            attn_mask=attn_mask, scale_by_sqrt_n=self.args.scale_positional_attention)
+            attn_mask=attn_mask, scale_by_sqrt_n=self.args.scale_positional_attention, gating=self.gating)
 
         if self.batch_first:
             return attn_output.transpose(1, 0), attn_output_weights
@@ -133,7 +108,8 @@ def multi_head_positional_attention(
         need_weights: bool = True,
         attn_mask: Optional[Tensor] = None,
         use_separate_proj_weight: bool = False,
-        scale_by_sqrt_n: bool = False
+        scale_by_sqrt_n: bool = False,
+        gating: bool = False
 ) -> Tuple[Tensor, Optional[Tensor]]:
     # set up shape vars
     tgt_len, bsz, embed_dim = value.shape
@@ -157,7 +133,7 @@ def multi_head_positional_attention(
     assert tgt_len == v.shape[1]
     assert embed_dim == out_proj_weight.shape[-1]
 
-    attn, attn_output = weighted_average(v, attention_weights, attn_mask, training, dropout_p)
+    attn, attn_output = weighted_average(v, attention_weights, attn_mask, training, dropout_p, gating)
     attn_output = project_heads(attn_output, bsz, embed_dim, out_proj_bias, out_proj_weight, tgt_len)
 
     if need_weights:
@@ -182,18 +158,20 @@ def project_heads(attn_output, bsz, embed_dim, out_proj_bias, out_proj_weight, t
     return attn_output
 
 
-def weighted_average(values, attention_weights, attn_mask, training, dropout_p):
+def weighted_average(values, attention_weights, attn_mask, training, dropout_p, gating):
     def fix_nans(attn):
         not_nan = ~attn.isnan()
         attn_new = torch.zeros_like(attn, device=attn.device)
         attn_new[not_nan] = attn[not_nan]
-        # attn = attn.masked_fill(attn.isnan(), 0)
         return attn_new
 
     if attn_mask is not None:
         attention_weights = attention_weights + attn_mask
 
-    attn = softmax(attention_weights, dim=-1)
+    if gating:
+        attn = torch.sigmoid(attention_weights)
+    else:
+        attn = softmax(attention_weights, dim=-1)
 
     # adjust dropout
     if not training:

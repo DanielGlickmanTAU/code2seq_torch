@@ -33,6 +33,7 @@ class ContentMultiheadAttention(torch.nn.Module):
         self.vdim = vdim if vdim is not None else embed_dim
         self._qkv_same_embed_dim = self.kdim == embed_dim and self.vdim == embed_dim
 
+        self.gating = args.gating
         self.num_heads = num_heads
         self.dropout = dropout
         self.batch_first = batch_first
@@ -104,6 +105,8 @@ class ContentMultiheadAttention(torch.nn.Module):
             # v = v.contiguous().view(v.shape[0], bsz * self.num_heads, head_dim).transpose(0, 1)
 
             B, Nt, E = q.shape
+            if self.gating:
+                print('diving by sqrt when gating.. not sure we want this')
             q = q / math.sqrt(E)
             # (B, Nt, E) x (B, E, Ns) -> (B, Nt, Ns)
             attn = torch.bmm(q, k.transpose(-2, -1))
@@ -123,7 +126,7 @@ class ContentMultiheadAttention(torch.nn.Module):
                 self.dropout, self.out_proj.weight, self.out_proj.bias,
                 training=self.training,
                 key_padding_mask=key_padding_mask, need_weights=need_weights,
-                attn_mask=attn_mask, scale_by_sqrt_n=False)
+                attn_mask=attn_mask, scale_by_sqrt_n=False, gating=self.gating)
         if self.batch_first:
             return attn_output.transpose(1, 0), attn_output_weights
         else:
