@@ -1,5 +1,6 @@
 from torch import nn
 
+import global_config
 from conv import GNN_node
 from model.GraphTransformerEncoder import GraphTransformerEncoder
 import pygraph_utils
@@ -34,12 +35,14 @@ class GNNTransformer(nn.Module):
 
     def forward_transformer(self, batched_data, h_node):
         # (n_graph,max_nodes_in_graph,emb_dim), (n_graph,max_nodes_in_graph)
-        h_node_batch, mask = pygraph_utils.get_dense_x_and_mask(h_node, batched_data.batch)
+        h_node_batch, original_mask = pygraph_utils.get_dense_x_and_mask(h_node, batched_data.batch)
         adj_stack = pygraph_utils.get_dense_adjstack(batched_data.adj_stack, batched_data.batch)
+        if global_config.mask_far_away_nodes:
+            mask = (adj_stack.sum(dim=1) == 0)
 
         x = self.transformer(h_node_batch, mask=mask, adj_stack=adj_stack)
 
         # back to original dim, i.e pytorch geometric format
-        spare_x = pygraph_utils.get_spare_x(x, mask)
+        spare_x = pygraph_utils.get_spare_x(x, original_mask)
         assert spare_x.shape == h_node.shape
         return spare_x

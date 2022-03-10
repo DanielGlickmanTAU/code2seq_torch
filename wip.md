@@ -129,9 +129,50 @@ With non working https://www.comet.ml/danielglickmantau/test/5e260c893fa7426fb6f
 you can see the ratio of mlp.bias changes(goes up and down) and it is always very low.. 
 
 
-  
-  
+### 9.3
+
+Debugge hit the wall(in git stash)..
+we can see, in the case of line graph. that polyndrome edges are indeed unique(and symetric)
+
+* verfied self attention does not change "padding" nodes, even when they are not zero(later layers)
+
+
+* running gnn with sigmoid on eps( (1 + torch.sigmoid(self.eps) ) * x)
+increases lineary and reaches good performance > 0.84
+
+with a single position attention gating layer , trainign is stable and increases nicly up to 0.7
+
+with 2 layers problems already start to araise.. nice
+
+
+softmax
+    grad_output shape 32,142,142
+    zero for zero nodes.. not zeros else where
+
+    grad_input: no zeros
 ____
+
+
+###10.3
+
+Want reaL_nodes_edge_mask to contain only entries for which 
+stacks.sum(dim=-1) != 0
+verfied stacks all zeros entries masks more than mask
+True == all(map(lambda tup: not tup[0] or (tup[0] and tup[1]), list(zip(stacks.sum(dim=-1) != 0, real_nodes_edge_mask)))) 
+
+
+ratio of edges types: p[neiougbour y | self y]
+{key: value[:,1].sum() / (edges[(key[0],1-key[1])][:,1].sum()   + value[:,1].sum()  ) for key,value in edges.items() }
+(0, 0) = {Tensor} torch.Size([]) tensor(0.7970)
+(0, 1) = {Tensor} torch.Size([]) tensor(0.2030)
+(1, 0) = {Tensor} torch.Size([]) tensor(0.8416)
+(1, 1) = {Tensor} torch.Size([]) tensor(0.1584)
+
+p[connect | (y_neigbour,y_self) = {key: value[:,1].sum() / ( len( edges[(key[0],1-key[1])]  ) + len(value)  ) for key,value in edges.items() }
+(0, 0) = {Tensor} torch.Size([]) tensor(0.0074)
+(0, 1) = {Tensor} torch.Size([]) tensor(0.0019)
+(1, 0) = {Tensor} torch.Size([]) tensor(0.0078)
+(1, 1) = {Tensor} torch.Size([]) tensor(0.0015)
 
 
 Issues:

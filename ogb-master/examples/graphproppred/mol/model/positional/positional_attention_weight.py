@@ -14,9 +14,6 @@ class AdjStackAttentionWeights(torch.nn.Module):
         self.num_adj_stacks = num_adj_stacks
         self.num_heads = num_heads
         self.weight = nn.Linear(in_features=num_adj_stacks, out_features=num_heads, bias=bias)
-        # self.use_reachable_bias = reachable_bias
-        if global_config.use_reachable_bias:
-            self.unreachable_bias = torch.nn.Parameter(torch.Tensor([-100.]))
 
     # stacks shape is (batch,num_adj_stacks,n,n)
     # mask shape is (batch,n,n). True where should hide
@@ -26,23 +23,30 @@ class AdjStackAttentionWeights(torch.nn.Module):
             print(self.weight.weight, self.weight.bias)
         b, num_stacks, n, n1, = stacks.shape
         assert num_stacks == self.num_adj_stacks
-        if mask is None:
-            mask = torch.zeros((b, n, n), device=stacks.device, dtype=torch.bool)
-        real_nodes_edge_mask = ~mask.view(-1)
+
         # shape as (batch*n*n, num_stacks)
         stacks = stacks.permute(0, 2, 3, 1).reshape(-1, self.num_adj_stacks)
 
+        real_nodes_edge_mask = self._create_real_edges_mask(b, mask, n, stacks)
+
         adj_weights = self.weight(stacks[real_nodes_edge_mask])
-        if global_config.use_reachable_bias:
-            unreachable_onehot = (stacks[real_nodes_edge_mask].sum(dim=-1) == 0)
-            reachable_bias = unreachable_onehot * self.unreachable_bias
-            adj_weights = adj_weights + reachable_bias.unsqueeze(1)
+
         new_adj = torch.zeros((b * n * n, self.num_heads), device=stacks.device)
 
         new_adj[real_nodes_edge_mask] = adj_weights
         # back to (batch,num_heads,n,n)
         new_adj = new_adj.view(b, n, n, self.num_heads).permute(0, 3, 1, 2)
         return new_adj
+
+    def _create_real_edges_mask(self, b, mask, n, stacks):
+        if not global_config.mask_far_away_nodes:
+            raise Exception('assuming this is true for now')
+            return stacks.sum(dim=-1) != 0
+
+        if mask is None:
+            mask = torch.zeros((b, n, n), device=stacks.device, dtype=torch.bool)
+        real_nodes_edge_mask = ~mask.view(-1)
+        return real_nodes_edge_mask
 
 
 def compute_diag(A: torch.Tensor):

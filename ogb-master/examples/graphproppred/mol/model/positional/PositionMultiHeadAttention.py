@@ -162,21 +162,11 @@ def project_heads(attn_output, bsz, embed_dim, out_proj_bias, out_proj_weight, t
 
 
 def weighted_average(values, attention_weights, attn_mask, training, dropout_p, normalizer):
-    def fix_nans(attn):
-        not_nan = ~attn.isnan()
-        attn_new = torch.zeros_like(attn, device=attn.device)
-        attn_new[not_nan] = attn[not_nan]
-        return attn_new
-
-    if attn_mask is not None:
-        attention_weights = attention_weights + attn_mask
-
-    attn = normalizer(attention_weights)
+    attn = normalizer(attention_weights, attn_mask)
 
     # adjust dropout
     if not training:
         dropout_p = 0.0
-    attn = fix_nans(attn)
 
     if dropout_p > 0.0:
         attn = dropout(attn, p=dropout_p)
@@ -211,8 +201,8 @@ def prep_attention_mask(attn_mask, bsz, num_heads, src_len, tgt_len):
             # convert mask to float
         if attn_mask.dtype == torch.bool:
             new_attn_mask = torch.zeros_like(attn_mask, dtype=torch.float)
-            # new_attn_mask.masked_fill_(attn_mask, float("-inf"))
-            new_attn_mask.masked_fill_(attn_mask, -1e6)
+            new_attn_mask.masked_fill_(attn_mask, float("-inf"))
+            # new_attn_mask.masked_fill_(attn_mask, -1e6)
             attn_mask = new_attn_mask
     return attn_mask
 
