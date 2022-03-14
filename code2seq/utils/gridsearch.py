@@ -14,6 +14,8 @@ def gridsearch(default_params: Dict, params_to_grid_search: Dict[object, List]) 
         values = []
         for v in params_to_grid_search.values():
             if isinstance(v, list):
+                if v and isinstance(v[0], ListArgument):
+                    v = [str(x.argument)[1:-1].replace(',', ' ').replace('  ', ' ') for x in v]
                 values.append(v)
             elif isinstance(v, str):
                 values.append([f'"{v}"'])
