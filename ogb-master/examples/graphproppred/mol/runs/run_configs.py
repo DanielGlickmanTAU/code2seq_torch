@@ -12,6 +12,22 @@ def get_benchmarking_gnns_hyperparam_search_space(multiple_random_seeds: bool):
     }
 
 
+def get_pattern_gating_hyperparam_search_space(multiple_random_seeds: bool):
+    return {
+        'residual': [True],
+        'learning_rate': [1e-4, 1e-5],
+        'gin_conv_mlp_hidden_breath': 1.,
+        'lr_schedule_patience': 5,
+        'lr_reduce_factor': 0.5,
+        'use_batch_norm_in_transformer_mlp': [True, False],
+        # 'norm_first': [True, False],
+        'norm_first': [True, False],
+        'ff_norm_type': ['layer', 'batch'],
+        'attention_norm_type': ['layer', 'batch'],
+        'seed': list(range(4)) if multiple_random_seeds else [0]
+    }
+
+
 def get_plain_4_gnn_hyperparam_search_space():
     return {
         'num_layer': 4,
@@ -30,6 +46,19 @@ def get_params_for_position_transformer_search():
         'emb_dim': 60,
         'transformer_ff_dim': 4 * 60,
         'num_heads': [1, 4]
+    }
+
+
+def get_params_for_gating_transformer_search():
+    return {
+        'attention_type': 'position',
+        'gating': True,
+        'adj_stacks': [ListArgument([0, 1]), ListArgument([0, 1, 2, 3, 4])],
+        'num_layer': 4,
+        'num_transformer_layers': 4,
+        'emb_dim': 60,
+        'transformer_ff_dim': 4 * 60,
+        'num_heads': [1]
     }
 
 
