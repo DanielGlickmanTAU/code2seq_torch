@@ -18,6 +18,12 @@ class GraphTransformerEncoder(nn.Module):
         parser.add_argument('--norm_first', type=bool_, default=True,
                             help='apply layer norm before or after self attention and feedforward. Default True')
 
+        parser.add_argument('--attention_norm_type', type=str, default='layer',
+                            help='use layer or batch norm. see also norm_first')
+        parser.add_argument('--ff_norm_type', type=str, default='layer',
+                            help='use layer or batch norm. see also norm_first')
+        parser.add_argument('--use_batch_norm_in_transformer_mlp', type=bool_, default=False)
+
     __constants__ = ['norm']
 
     def __init__(self, args, attention_type, d_model, num_layers, num_head, num_adj_stacks, feed_forward_dim, dropout,

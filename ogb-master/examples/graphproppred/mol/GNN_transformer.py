@@ -38,9 +38,12 @@ class GNNTransformer(nn.Module):
         h_node_batch, original_mask = pygraph_utils.get_dense_x_and_mask(h_node, batched_data.batch)
         adj_stack = pygraph_utils.get_dense_adjstack(batched_data.adj_stack, batched_data.batch)
         if global_config.mask_far_away_nodes:
+            # size (B,N,N)
             mask = (adj_stack.sum(dim=1) == 0)
+        # size (B,N)
+        padding_mask = ~original_mask[:, 0]
 
-        x = self.transformer(h_node_batch, mask=mask, adj_stack=adj_stack)
+        x = self.transformer(h_node_batch, mask=mask, adj_stack=adj_stack, src_key_padding_mask=padding_mask)
 
         # back to original dim, i.e pytorch geometric format
         spare_x = pygraph_utils.get_spare_x(x, original_mask)

@@ -2,10 +2,11 @@ from typing import Optional
 
 import torch.nn.functional as F
 from torch import Tensor
-from torch.nn import Module, Linear, Dropout, LayerNorm
+from torch.nn import Module, Linear, Dropout, LayerNorm, BatchNorm1d
 from torch.nn.modules.transformer import _get_activation_fn
 
 from model.ContentMultiHeadAttention import ContentMultiheadAttention
+from model.masked_operation import MaskedOperation
 from model.positional.PositionMultiHeadAttention import PositionMultiHeadAttention
 
 
@@ -36,8 +37,20 @@ class MyTransformerEncoderLayer(Module):
         self.linear2 = Linear(dim_feedforward, d_model, **factory_kwargs)
 
         self.norm_first = norm_first
-        self.norm1 = LayerNorm(d_model, eps=layer_norm_eps, **factory_kwargs)
-        self.norm2 = LayerNorm(d_model, eps=layer_norm_eps, **factory_kwargs)
+        norm1 = LayerNorm(d_model, eps=layer_norm_eps,
+                          **factory_kwargs) if args.attention_norm_type == 'layer' else BatchNorm1d(
+            d_model, eps=layer_norm_eps, **factory_kwargs)
+        norm2 = LayerNorm(d_model, eps=layer_norm_eps,
+                          **factory_kwargs) if args.ff_norm_type == 'layer' else BatchNorm1d(
+            d_model, eps=layer_norm_eps, **factory_kwargs)
+
+        self.norm1 = MaskedOperation(norm1)
+        self.norm2 = MaskedOperation(norm2)
+
+        self.use_batch_norm_in_transformer_mlp = args.use_batch_norm_in_transformer_mlp
+        if self.use_batch_norm_in_transformer_mlp:
+            self.batch_norm = MaskedOperation(BatchNorm1d(dim_feedforward, eps=layer_norm_eps, **factory_kwargs))
+
         self.dropout1 = Dropout(dropout)
         self.dropout2 = Dropout(dropout)
 
@@ -57,11 +70,11 @@ class MyTransformerEncoderLayer(Module):
 
         x = src
         if self.norm_first:
-            x = x + self._sa_block(self.norm1(x), src_mask, src_key_padding_mask, adj_stack)
-            x = x + self._ff_block(self.norm2(x))
+            x = x + self._sa_block(self.norm1(x, src_key_padding_mask), src_mask, None, adj_stack)
+            x = x + self._ff_block(self.norm2(x, src_key_padding_mask), src_key_padding_mask)
         else:
-            x = self.norm1(x + self._sa_block(x, src_mask, src_key_padding_mask, adj_stack))
-            x = self.norm2(x + self._ff_block(x))
+            x = self.norm1(x + self._sa_block(x, src_mask, None, adj_stack))
+            x = self.norm2(x + self._ff_block(x, src_key_padding_mask))
 
         return x
 
@@ -83,6 +96,9 @@ class MyTransformerEncoderLayer(Module):
         return self.dropout1(x)
 
     # feed forward block
-    def _ff_block(self, x: Tensor) -> Tensor:
-        x = self.linear2(self.dropout(self.activation(self.linear1(x))))
+    def _ff_block(self, x: Tensor, src_key_padding_mask) -> Tensor:
+        x1 = self.linear1(x)
+        if self.use_batch_norm_in_transformer_mlp:
+            x1 = self.batch_norm(x1, src_key_padding_mask)
+        x = self.linear2(self.dropout(self.activation(x1)))
         return self.dropout2(x)
