@@ -20,22 +20,23 @@ def visualize_activations_and_grads(model, exp):
     def calc_norm(tensor):
         return torch.norm(tensor) if tensor is not None else None
 
-    print('\n----START ACTIVATIONS------')
+    metrics = {}
     for name, param in model.named_parameters():
         weight_norm = calc_norm(param.data)
         grad_norm = calc_norm(param.grad)
         grad_magnitude = (grad_norm / weight_norm) if (weight_norm is not None and grad_norm is not None) else None
-        if exp:
-            exp.log_metric(value=weight_norm, name=f'{name}:weight_norm')
-            exp.log_metric(value=grad_norm, name=f'{name}:grad_norm')
-            exp.log_metric(value=grad_magnitude, name=f'{name}:grad/weight')
-        else:
-            print(name)
-            print(f'weight norm: {weight_norm}')
-            print(f'grad norm: {grad_norm}')
-            print(f' grad norm/weight norm: {grad_magnitude}')
+
+        metrics[f'{name}:weight_norm'] = weight_norm
+        metrics[f'{name}:grad_norm'] = grad_norm
+        metrics[f'{name}:grad/weight'] = grad_magnitude
+
+    if exp:
+        exp.log_metrics(metrics)
+    else:
+        print('\n----START ACTIVATIONS------')
+        print(metrics)
         print('_________________')
-    print('----END ACTIVATIONS------')
+        print('----END ACTIVATIONS------')
 
 
 def train_epoch(model, device, loader, optimizer, task_type, assert_no_zero_grad=False, grad_accum_steps=1,
