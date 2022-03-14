@@ -14,7 +14,7 @@ def get_partition_and_time_limit():
     num_jobs_in_student_batch = int(num_jobs_in_student_batch)
     # if 'studentb' in os.popen('squeue | grep glickman').read():
     num_jobs_that_can_run_on_studentbatch_at_one_time = 2
-    if num_jobs_in_student_batch < num_jobs_that_can_run_on_studentbatch_at_one_time:
+    if num_jobs_in_student_batch > num_jobs_that_can_run_on_studentbatch_at_one_time:
         return 'studentkillable', 'infinite'
 
     return 'studentbatch', '3-00:00:00'
