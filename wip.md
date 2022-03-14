@@ -175,6 +175,65 @@ p[connect | (y_neigbour,y_self) = {key: value[:,1].sum() / ( len( edges[(key[0],
 (1, 1) = {Tensor} torch.Size([]) tensor(0.0015)
 
 
-Issues:
+
+### 13/3
+* positional gating is much faster than gin somehow
+
+### Comparing modified gin with positonal gating with use_distance 
+
+### Architecture
+modfied gin( use sigmoid on wights)
+gin layer:
+         x_mid = (1 + sigmoid(self.eps)) * x + sigmoid(self.eps2) * relu(neigbours) )
+         out = x_mid -> linear -> batch norm -> relu -> linear
+         out = batch_norm(out)
+         out = x + relu(out)
+
+positional gating norm first and use_distance with adj_stack=[0,1]:
+ x_mid = gating( norm1(x) )
+        gating: sigmoid(w1) * x + sigmoid(w2) * neigbours
+ x_mid = x + x_mid
+ out = x_mid -> norm2 -> linear -> relu -> linear
+ out = x_mid + out
+ 
+
+possible things that can cause gin to learn and positional to not learn:
+(1 + sigmoid(eps))  removing it still gives almost same results   https://www.comet.ml/danielglickmantau/test/ce88b397e3e843379fa667ab438c8eb1?experiment-tab=chart&showOutliers=true&smoothing=0&transformY=smoothing&xAxis=step
+relu(neigbours)    removing it still gives good results, 0.846    https://www.comet.ml/danielglickmantau/test/4029891ad91a43acb4ba8042aa41a291?experiment-tab=chart&showOutliers=true&smoothing=0&transformY=smoothing&xAxis=step
+removing both:https://www.comet.ml/danielglickmantau/test/578e362837554878844204b5e2e8565a?experiment-tab=chart&search=score&showOutliers=true&smoothing=0&transformY=smoothing&xAxis=step
+
+### Unstable gradients:
+Training single layer position attention(+distance): https://www.comet.ml/danielglickmantau/test/074867d9e5bf4aaba9db7a291c4edc33?experiment-tab=chart&search=grad%2Fweight&showOutliers=true&smoothing=0&transformY=smoothing&xAxis=step
+seems stable. only norm2 is somewhat unstable.
+
+2 layers position attention with distance:
+more unstable but reasonable..
+once again norm2 seems like the culpritiuyi
 
 
+masking in second norm does not seem to effect.. 
+masking layer norm does not seem to effect now..
+
+4 layers no layer norm at all: low score(0.5) and goes up and downww https://www.comet.ml/danielglickmantau/test/5553a00927ad4ee0ba2c02290e029e0e?experiment-tab=chart&showOutliers=true&smoothing=0&transformY=smoothing&xAxis=step
+4 layers.. no layer norm masking and small learning rate: https://www.comet.ml/danielglickmantau/test/312b94fbdfb04ef180dacbc924135a1b
+4 layers.. no layer norm masking and large learning rate: probably https://www.comet.ml/danielglickmantau/test/2c50c4c894c14c3a87dcbce2134caefe
+4 layers layer norm masking and large learning rate: https://www.comet.ml/danielglickmantau/test/6ece693e5bc349ed8570902e13eb5ba6?experiment-tab=chart&search=score&showOutliers=true&smoothing=0&transformY=smoothing&xAxis=step
+4 layers layer norm masking and small learning rate https://www.comet.ml/danielglickmantau/test/8f68e70672d749348b05d5714778ff81?experiment-tab=stdout
+
+
+no distance:
+4 layers.. 1e-4 learning rate.. score jumps up and down masked norm https://www.comet.ml/danielglickmantau/test/780c26fb02b245ddbb5e7c9d702fb2bf?experiment-tab=chart&showOutliers=true&smoothing=0&transformY=smoothing&xAxis=step
+4 layers 1e-5 learning rate  small jumps up and down but generally goes up.. very slowly.. https://www.comet.ml/danielglickmantau/test/6bdc5cf6d313442e963efb9a2f85a6d9?experiment-tab=chart&showOutliers=true&smoothing=0&transformY=smoothing&xAxis=step
+4 layers 1e-5 learning rate and no masking in norm https://www.comet.ml/danielglickmantau/test/93ab8630c69f406f842cded506370dcc
+
+learning rate seems to have the real effect.. masking in norm nop
+
+
+batch norms:
+attention batch https://www.comet.ml/danielglickmantau/test/f5f67994ad554e34936b1213d032f40b
+ff batch norm: https://www.comet.ml/danielglickmantau/test/6b0c579ab68b4473b5b37e5ea0aa17a6
+both batch norm: https://www.comet.ml/danielglickmantau/test/268bd590e6ab4ec38ed5ac6e08a0355d
+batch norm added only in transformer MLP(after first linear) WORKS OVER 0.9!! https://www.comet.ml/danielglickmantau/test/96e6be36c88a405ab9c052b822d4e7ec?experiment-tab=chart&search=score&showOutliers=true&smoothing=0&transformY=smoothing&xAxis=step
+
+
+bug receptive field(8) https://www.comet.ml/danielglickmantau/test/b7aa42dbc713447a876c3680e3d4491c?experiment-tab=chart&search=score&showOutliers=true&smoothing=0&transformY=smoothing&xAxis=step
