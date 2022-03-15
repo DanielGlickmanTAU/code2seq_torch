@@ -25,7 +25,7 @@ def start_exp(exp_name, args, model):
     grouped_hparams = create_hparam_id(args)
 
     exp.log_parameters(args)
-    exp.log_parameters({'k_params': num_params / 1000, 'starting_learning_rate': str(args['learning_rate'])})
+    exp.log_parameters({'k_params': num_params / 1000, 'starting_learning_rate': str(args.learning_rate)})
     exp.log_other('hparams_id', grouped_hparams)
     return exp
 
