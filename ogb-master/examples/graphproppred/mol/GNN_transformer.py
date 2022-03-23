@@ -14,6 +14,7 @@ class GNNTransformer(nn.Module):
 
         self.emb_dim = emb_dim
         super(GNNTransformer, self).__init__()
+        self.mask_far_away_nodes = args.mask_far_away_nodes
         if virtual_node:
             raise Exception('not supported')
         else:
@@ -37,9 +38,12 @@ class GNNTransformer(nn.Module):
         # (n_graph,max_nodes_in_graph,emb_dim), (n_graph,max_nodes_in_graph)
         h_node_batch, original_mask = pygraph_utils.get_dense_x_and_mask(h_node, batched_data.batch)
         adj_stack = pygraph_utils.get_dense_adjstack(batched_data.adj_stack, batched_data.batch)
-        if global_config.mask_far_away_nodes:
+        if self.mask_far_away_nodes:
             # size (B,N,N)
             mask = (adj_stack.sum(dim=1) == 0)
+        else:
+            mask = original_mask
+
         # size (B,N)
         padding_mask = ~original_mask[:, 0]
 

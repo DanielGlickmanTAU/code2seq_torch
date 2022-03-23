@@ -58,7 +58,7 @@ def add_args(parser):
     parser.add_argument('--scale_positional_attention', type=bool_, default=False)
     parser.add_argument('--JK', type=str, default='last')
     parser.add_argument('--scheduler_use_max', type=bool_, default=True)
-
+    parser.add_argument('--mask_far_away_nodes', type=bool_, default=True)
 
 
 def get_default_args():
