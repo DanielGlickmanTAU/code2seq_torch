@@ -21,9 +21,8 @@ def get_pattern_gating_hyperparam_search_space(multiple_random_seeds: bool):
         'lr_reduce_factor': 0.5,
         'use_batch_norm_in_transformer_mlp': [True, False],
         # 'norm_first': [True, False],
-        'norm_first': [True, False],
-        'ff_norm_type': ['layer', 'batch'],
-        'attention_norm_type': ['layer', 'batch'],
+        # 'ff_norm_type': ['layer', 'batch'],
+        # 'attention_norm_type': ['layer', 'batch'],
         'seed': list(range(4)) if multiple_random_seeds else [0]
     }
 
