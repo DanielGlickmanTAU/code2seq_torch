@@ -4,14 +4,23 @@ import torch
 import torch_geometric
 
 
-def draw_pyg_graph(graph: torch_geometric.data.Data, to_undirected=True):
+def draw_pyg_graph(graph: torch_geometric.data.Data, to_undirected=True, with_labels=True):
     nx_graph = torch_geometric.utils.to_networkx(data=graph, to_undirected=to_undirected)
     nx.draw(nx_graph,
+            with_labels=with_labels,
             node_color=['red' if y == 1 else 'blue' for y in graph.y] if hasattr(graph, 'y') else None,
             # labels={key: (value['type'] if 'type' in value else value['value']) for key, value in
             #         ast.items()},
             # with_labels=True
             )
+    plt.show()
+
+
+def show_matrix(stacks, cmap=None):
+    if isinstance(stacks, torch.Tensor):
+        stacks = stacks.detach().numpy()
+    plt.matshow(stacks, cmap='gray')
+    plt.matshow(stacks)
     plt.show()
 
 
