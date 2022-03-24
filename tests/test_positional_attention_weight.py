@@ -78,6 +78,30 @@ class TestAdjStack(TestCase):
         new_stacks = adj_bias_model(stacks_batch)
         self.assertTrue((new_stacks == expected_dist_bias).all())
 
+    def test_transpose(self):
+        num_adj_stacks = 4
+        graph = nx.Graph()
+        graph.add_edges_from([(0, 1), (1, 2), (2, 3)])
+        data = torch_geometric.utils.from_networkx(graph)
+        args = argparse.ArgumentParser().parse_args()
+        args.adj_stacks = range(num_adj_stacks)
+        args.use_distance_bias = False
+        stacks = AdjStack(args)(data)['adj_stack']
+        stacks = torch.tensor(stacks)
+        stacks_batch = torch.stack([stacks])
+
+        adj_bias_model = AdjStackAttentionWeights(num_adj_stacks, num_heads=2, bias=False)
+        with torch.no_grad():
+            adj_bias_model.weight.weight.data = torch.tensor([[1., 1., 1., 1.], [-1., -1., -1., -1.]])
+
+        new_stacks = adj_bias_model(stacks_batch)
+        first_head_weights = new_stacks.squeeze(0).permute(1, 2, 0)[:, :, 0]
+        second_head_weights = new_stacks.squeeze(0).permute(1, 2, 0)[:, :, 1]
+
+        head_product = (first_head_weights @ second_head_weights.T)
+        assert head_product[1][2] == first_head_weights[1] @ second_head_weights[2] == first_head_weights[2] @ \
+               second_head_weights[1]
+
 
 if __name__ == '__main__':
     unittest.main()
