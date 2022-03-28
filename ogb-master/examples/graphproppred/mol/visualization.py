@@ -1,14 +1,20 @@
+from typing import Union
+
 import matplotlib.pyplot as plt
 import networkx as nx
 import torch
 import torch_geometric
 
 
-def draw_pyg_graph(graph: torch_geometric.data.Data, to_undirected=True, with_labels=True):
+def draw_pyg_graph(graph: Union[torch_geometric.data.Data, nx.Graph], to_undirected=True, with_labels=True, text=None):
+    if isinstance(graph, nx.Graph):
+        graph = torch_geometric.utils.from_networkx(graph)
+
     nx_graph = torch_geometric.utils.to_networkx(data=graph, to_undirected=to_undirected)
     nx.draw(nx_graph,
             with_labels=with_labels,
-            node_color=['red' if y == 1 else 'blue' for y in graph.y] if hasattr(graph, 'y') else None,
+            node_color=['red' if y == 1 else 'green' if y == 2 else 'blue' for y in graph.y] if hasattr(graph,
+                                                                                                        'y') else None,
             # labels={key: (value['type'] if 'type' in value else value['value']) for key, value in
             #         ast.items()},
             # with_labels=True
@@ -16,11 +22,14 @@ def draw_pyg_graph(graph: torch_geometric.data.Data, to_undirected=True, with_la
     plt.show()
 
 
-def show_matrix(stacks, cmap=None):
+def show_matrix(stacks, cmap=None, text=None):
     if isinstance(stacks, torch.Tensor):
         stacks = stacks.detach().numpy()
-    plt.matshow(stacks, cmap='gray')
-    plt.matshow(stacks)
+    im = plt.matshow(stacks, cmap=cmap)
+    # plt.matshow(stacks)
+    if text:
+        plt.title(text)
+
     plt.show()
 
 
