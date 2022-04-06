@@ -22,13 +22,7 @@
          3) only mlp batch norm disabled and batch norm between gnn enabled https://www.comet.ml/danielglickmantau/test/5e260c893fa7426fb6f5b189bbd5b64f
          4) batch norm in mlp enabled and disabled between layers. Working https://www.comet.ml/danielglickmantau/test/69ab0eb4723d4aba881be86202d993c5
          ]
-    Batch norm in MLP seems most important
-  - Simplified transformer and made it closer to GNN  
-    * Saw that training is tstable with 1 layer and gets unstable when adding more layers  
-    with layer norm looking most suspicous
-    * Work with adj_stack=[0,1] and use_distance=True to try and emulate gin
-    * Try Replace layer norms with batch norms. try adding batch norm in transformer ff
-    * reduce learning rate
+    Batch norm in MLP seems most important - Simplified transformer and made it closer to GNN * Saw that training is tstable with 1 layer and gets unstable when adding more layers with layer norm looking most suspicous * Work with adj_stack=[0,1] and use_distance=True to try and emulate gin * Try Replace layer norms with batch norms. try adding batch norm in transformer ff * reduce learning rate
     
   Reducing learning rate and adding batch norm in between seems most effective.
 

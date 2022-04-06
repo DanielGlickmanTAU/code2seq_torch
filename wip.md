@@ -237,3 +237,78 @@ batch norm added only in transformer MLP(after first linear) WORKS OVER 0.9!! ht
 
 
 bug receptive field(8) https://www.comet.ml/danielglickmantau/test/b7aa42dbc713447a876c3680e3d4491c?experiment-tab=chart&search=score&showOutliers=true&smoothing=0&transformY=smoothing&xAxis=step
+
+
+### 14.3 
+Gating with larger adj_stack=[0,1,2,3,4]
+
+
+Attention(no gating) with batch norm in MLP, seems to work on pattern... it seems mandatory for larger adj stacj seems even better..
+https://www.comet.ml/danielglickmantau/position-attention-mlp-batch-norm/view/new/experiments
+
+with gating maybe batch norm helps larger receptive field I dont know...
+https://www.comet.ml/danielglickmantau/gin-pattern/view/new/experiments
+
+
+### 15.3
+attention with batch norm sota on pattern https://www.comet.ml/danielglickmantau/position-attention-mlp-batch-norm/view/new/experiments
+adj_stack=[0,1,2,3,4] is better than [0,1]
+learning rate does not effect.. higher lr is better if anything
+
+Seems like it is not the learning rate and not the batch norm. it is the masking
+results pattern gating 4 layers https://www.comet.ml/danielglickmantau/gin-pattern/view/YjK8ZWP0KIBaQK2I0qAUzLaHa/experiments:
+note that things may improve as it is still running
+MLP-BN:False Attention norm:batch FF norm:batch  0.839
+MLP-BN:False Attention norm:batch FF norm:layer  0.852
+MLP-BN:False Attention norm:layer FF norm:batch  0.856 https://www.comet.ml/danielglickmantau/gin-pattern/e92451205a7a46b1b8005a1949cb02ef
+MLP-BN:False Attention norm:layer FF norm:layer  0.835 https://www.comet.ml/danielglickmantau/gin-pattern/2048382a6d84477094677ad4891f89ed
+
+MLP-BN:True Attention norm:batch FF norm:batch  0.837 https://www.comet.ml/danielglickmantau/gin-pattern/fe9c8e46f02e453f8305bcf9d472d57b
+MLP-BN:True Attention norm:batch FF norm:layer  0.839 https://www.comet.ml/danielglickmantau/gin-pattern/cdedfc02c77e4d2d9539d336c76b762d
+MLP-BN:True Attention norm:layer FF norm:batch  0.851 https://www.comet.ml/danielglickmantau/gin-pattern/53bb1888a82c422b96e8e84fb211b9bb
+MLP-BN:True Attention norm:layer FF norm:layer  0.835
+
+
+### 24.3
+
+debugging polyndrome example. I am expecting that if I give oppsite weights(+1,-1) to my heads. multuplying the 2 heads
+will yield maximum results in opposing(symetric) nodes
+
+This is not the case.
+Q1: does multiplying heads make sense?
+yes each head h, h[i,j] gives a feature to the edge(i,j). 
+each row h[i,:] gives a feature vector for i, which shows its compatibility with the rest of the nodes 
+
+Q2: do I need to transpose the second head?
+Lets assume both heads are the same, h1=h2.
+I want h1h2[i,i] to contain the dot product of h1[i] and h2[i]
+so YES, I need to transpose h2
+
+Q3: why is (h1@h2.T)[1,2] < (h1@h2.T)[1,3], if 1,2 are opposite in the polnydrome?
+h1[1] [0.875, 1.75, 1.125, 0.25]
+h2[2] [-0.25, -1.125, -1.75, -0.875]
+h2[3] [-0.25, -0.5, -1.75, -1.5]
+
+
+I want product of opposining node heads to be maximal..
+Lets look at the stacks.
+We have that stacks.permute(1,2,0)[1][2] == stacks.permute(1,2,0)[2][1].
+The edge (1,2) is same as (2,1) They are symetric.
+
+works:
+(stacks.permute(1,2,0).reshape(4,-1)@-stacks.permute(1,2,0).reshape(4,-1).T).detach().numpy()
+no casting to heads...
+
+so it works when I reverse feature individually, but not when I sum.. consider that..
+needs to be fixed but move on for now
+
+
+We can expect the dot product to be maximal?
+gusses: batch normalize feature(original stack)...
+if i do 2x1 or 3x1 convlustion, I need to 
+
+issue: 
+
+stacks[1][2] = torch.Size([5]) tensor([0.0000, 0.5000, 0.0000, 0.6250, 0.0000])
+
+I am multiplying the edges of each graph

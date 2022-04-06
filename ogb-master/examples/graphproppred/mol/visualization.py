@@ -13,8 +13,9 @@ def draw_pyg_graph(graph: Union[torch_geometric.data.Data, nx.Graph], to_undirec
     nx_graph = torch_geometric.utils.to_networkx(data=graph, to_undirected=to_undirected)
     nx.draw(nx_graph,
             with_labels=with_labels,
-            node_color=['red' if y == 1 else 'green' if y == 2 else 'blue' for y in graph.y] if hasattr(graph,
-                                                                                                        'y') else None,
+            node_color=['gray' if y == -1 else 'red' if y == 1 else 'green' if y == 2 else 'blue' for y in
+                        graph.y] if hasattr(graph,
+                                            'y') else None,
             # labels={key: (value['type'] if 'type' in value else value['value']) for key, value in
             #         ast.items()},
             # with_labels=True
