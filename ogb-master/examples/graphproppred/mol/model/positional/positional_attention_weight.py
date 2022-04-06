@@ -55,7 +55,11 @@ def compute_diag(A: torch.Tensor):
 
 
 def to_P_matrix(A: torch.Tensor):
-    return A / A.sum(dim=-1, keepdim=True)
+    D = A.sum(dim=-1, keepdim=True)
+    #if all entries are zero, we want to avoid dividing by zero.
+    #set it to any number, as the entries in A are 0 anyway so A/D will be 0
+    D[D == 0] = 1
+    return A / D
 
 
 class AdjStack(torch_geometric.transforms.BaseTransform):
