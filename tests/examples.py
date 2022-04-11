@@ -215,7 +215,6 @@ class TestAdjStack(TestCase):
         print('as')
 
 
-@staticmethod
 def create_hexagon_from_triangles(max_row_size, min_row_size):
     graph = TestAdjStack.create_pyramid(max_row_size, min_row_size)
     # lower graph part:
@@ -229,7 +228,6 @@ def create_hexagon_from_triangles(max_row_size, min_row_size):
     return graph
 
 
-@staticmethod
 def create_pyramid(max_row_size, min_row_size):
     graph = nx.Graph()
     # +1 here just makes it max row size correct(and not -1)
