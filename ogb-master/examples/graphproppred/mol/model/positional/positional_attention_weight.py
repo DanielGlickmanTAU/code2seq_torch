@@ -30,6 +30,7 @@ class AdjStackAttentionWeights(torch.nn.Module):
         real_nodes_edge_mask = self._create_real_edges_mask(b, mask, n, stacks)
 
         adj_weights = self.weight(stacks[real_nodes_edge_mask])
+        assert adj_weights.shape[-1] == self.num_heads
 
         new_adj = torch.zeros((b * n * n, self.num_heads), device=stacks.device)
 
@@ -56,8 +57,8 @@ def compute_diag(A: torch.Tensor):
 
 def to_P_matrix(A: torch.Tensor):
     D = A.sum(dim=-1, keepdim=True)
-    #if all entries are zero, we want to avoid dividing by zero.
-    #set it to any number, as the entries in A are 0 anyway so A/D will be 0
+    # if all entries are zero, we want to avoid dividing by zero.
+    # set it to any number, as the entries in A are 0 anyway so A/D will be 0
     D[D == 0] = 1
     return A / D
 
