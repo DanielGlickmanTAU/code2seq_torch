@@ -195,10 +195,9 @@ class TestAdjStack(TestCase):
         # visualization.show_matrix(att, cmap=cm.Reds)
 
     def test_hexagon_graph(self):
-
         min_row_size = 4
         max_row_size = 6
-        graph = self.create_hexagon_from_triangles(max_row_size, min_row_size)
+        graph = create_hexagon_from_triangles(max_row_size, min_row_size)
 
         positions = {(row, col): (col + 0.5 * abs(row - max_row_size), -row) for (row, col) in graph.nodes}
         colors = ['gray' for x in graph.nodes]
@@ -215,31 +214,33 @@ class TestAdjStack(TestCase):
 
         print('as')
 
-    @staticmethod
-    def create_hexagon_from_triangles(max_row_size, min_row_size):
-        graph = TestAdjStack.create_pyramid(max_row_size, min_row_size)
-        # lower graph part:
-        for row in range(max_row_size + 1, 2 * max_row_size - min_row_size + 1):
-            row_size = 2 * max_row_size - row
-            for col in range(1, row_size):
-                graph.add_edge((row, col), (row, col - 1))
-            for col in range(row_size):
-                graph.add_edge((row, col), (row - 1, col))
-                graph.add_edge((row, col), (row - 1, col + 1))
-        return graph
 
-    @staticmethod
-    def create_pyramid(max_row_size, min_row_size):
-        graph = nx.Graph()
-        # +1 here just makes it max row size correct(and not -1)
-        for row in range(min_row_size, max_row_size + 1):
-            for col in range(1, row):
-                graph.add_edge((row, col), (row, col - 1))
-        for row in range(min_row_size, max_row_size):
-            for col in range(row):
-                graph.add_edge((row, col), (row + 1, col))
-                graph.add_edge((row, col), (row + 1, col + 1))
-        return graph
+@staticmethod
+def create_hexagon_from_triangles(max_row_size, min_row_size):
+    graph = TestAdjStack.create_pyramid(max_row_size, min_row_size)
+    # lower graph part:
+    for row in range(max_row_size + 1, 2 * max_row_size - min_row_size + 1):
+        row_size = 2 * max_row_size - row
+        for col in range(1, row_size):
+            graph.add_edge((row, col), (row, col - 1))
+        for col in range(row_size):
+            graph.add_edge((row, col), (row - 1, col))
+            graph.add_edge((row, col), (row - 1, col + 1))
+    return graph
+
+
+@staticmethod
+def create_pyramid(max_row_size, min_row_size):
+    graph = nx.Graph()
+    # +1 here just makes it max row size correct(and not -1)
+    for row in range(min_row_size, max_row_size + 1):
+        for col in range(1, row):
+            graph.add_edge((row, col), (row, col - 1))
+    for row in range(min_row_size, max_row_size):
+        for col in range(row):
+            graph.add_edge((row, col), (row + 1, col))
+            graph.add_edge((row, col), (row + 1, col + 1))
+    return graph
 
 
 if __name__ == '__main__':
