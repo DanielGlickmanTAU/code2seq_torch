@@ -93,10 +93,9 @@ num_adj_stacks = 3
 stats = {}
 
 for max_row_size in [10, 20, 30, 50]:
+    graph, positions = examples.create_pyramid(max_row_size, min_row_size)
+    color_graph(graph)
     for num_adj_stacks in [2, 3, 5, 10]:
-        graph, positions = examples.create_pyramid(max_row_size, min_row_size)
-
-        color_graph(graph)
         colors = [index_to_color[graph.nodes[x]['color']] for x in graph.nodes]
         # nx.draw(graph, positions, node_color=colors, with_labels=True)
         # plt.show()
