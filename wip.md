@@ -312,3 +312,94 @@ issue:
 stacks[1][2] = torch.Size([5]) tensor([0.0000, 0.5000, 0.0000, 0.6250, 0.0000])
 
 I am multiplying the edges of each graph
+
+
+### 11/4
+with pyramid graph min size=1 max size=5. and num_stacks=3 
+I get 23 unique edges.. and only zero edge are ambigoious.
+
+
+### 12/4
+------------  ---------------  ------------  ------------------  --------------------------
+pyramid base  receptive field  unique edges  of which ambiguous  % pairs in receptive field
+10            1                5             0                   0.1074380165289256
+10            2                28            0                   0.25024793388429756
+10            4                269           0                   0.5834710743801652
+10            9                2530          0                   1.0
+10            19               3026          0                   1.0
+20            1                5             0                   0.030612244897959218
+20            2                26            0                   0.07714285714285718
+20            4                235           0                   0.21360544217687072
+20            9                6615          0                   0.6333333333333333
+20            19               43229         0                   1.0
+30            1                5             0                   0.014221297259798815
+30            2                27            0                   0.03675338189386057
+30            4                290           0                   0.10718002081165456
+30            9                10626         1                   0.36968435657301424
+30            19               138187        1                   0.8641692681234825
+50            1                5             0                   0.005305651672433687
+50            2                26            0                   0.013986620530565208
+50            4                283           0                   0.04243598615916955
+50            9                12620         1                   0.16316493656286046
+50            19               382368        1                   0.5011395617070358
+------------  ---------------  ------------  ------------------  --------------------------
+
+
+00078 = {tuple: 3} ((0.0, 0.0, 0.0, 0.015625, 0.012442131), (0.0, 0.0, 0.0, 0.01388889, 0.014467594), 7.11658106627034e-06)
+00079 = {tuple: 3} ((0.0, 0.0, 0.0, 0.015625, 0.012442131), (0.0, 0.0, 0.0, 0.01388889, 0.014467595), 7.116584838991191e-06)
+00080 = {tuple: 3} ((0.0, 0.0, 0.0, 0.0, 0.006365741), (0.0, 0.0, 0.0, 0.0, 0.0034722227), 8.37244886806905e-06)
+
+size 10:
+(4,2) to (7,5) : torch.Size([5]) tensor([0.0000, 0.0000, 0.0000, 0.0046, 0.009  3])
+(4,2) to (7,4)      torch.Size([5]) tensor([0.0000, 0.0000, 0.0000, 0.0139, 0.0123])
+
+(8,7) to (9,9) [0.0, 0.0, 0.0833333358168602, 0.0416666679084301, 0.05844907835125923]
+(8,7) to (6,6) [0.0, 0.0, 0.0694444477558136, 0.033564817160367966, 0.04976852238178253]
+
+##
+### 13/4
+### Complexity of 3 coloring using transformer+edge bias vs simple og transformer
+Main difference concepptually, if og transformer learns how to re distributae the weights with a deep network,
+while transformer+edge collpases after every averaging
+
+e = dim edge ; d = dim x  
+edge
+   params: assuming passing through ffn:  8e^2 ...=( e*4e + e*4e)
+   complexity: (nxn)*(8e^2)
+edge bias: e->2 
+ params: e*2
+MHA
+ params: d^2 * 4    ... (4 for wq,wk,wv,wo)
+ complexity: 3*(nxd) + (n^2)d ... (q*qk, k*wk, v*wo + (kq)*v)
+FFN: 
+ params: 8d^2
+  complexity n * 8d^2
+
+Edge bais transformer parameters:
+ edge * l + L * transformer = 8e^2 * l + L( (4*d^2) + 8*d^2) 
+                                            q,k,w,o
+L means num layers 
+l means 1 or L, depending what we choose
+
+simple og transformer:
+edge ffn: e -> e
+edge bias:e-> 2: wq, wk: e-> 1.. need 2 weights to break transetivity
+
+each layer:
+e = ffn(e)
+(e@wq)@ (e@wk) .. not sure if I want softmax here in hidden layers.. other options are relu and gaussian normnization
+
+params:
+ffn: 8*e^2
+wq,wk: 2e
+
+
+
+path attention:
+(E @ wk) @ (E @ wk )
+
+cluster attention:
+(E@ wk) @ (E.T @ wk)
+
+
+
