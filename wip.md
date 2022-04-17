@@ -375,7 +375,7 @@ FFN:
  params: 8d^2
   complexity n * 8d^2
 
-Edge bais transformer parameters:
+Edge bias transformer parameters:
  edge * l + L * transformer = 8e^2 * l + L( (4*d^2) + 8*d^2) 
                                             q,k,w,o
 L means num layers 

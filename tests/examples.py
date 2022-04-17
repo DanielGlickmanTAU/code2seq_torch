@@ -216,7 +216,7 @@ class TestAdjStack(TestCase):
 
 
 def create_hexagon_from_triangles(max_row_size, min_row_size):
-    graph = TestAdjStack.create_pyramid(max_row_size, min_row_size)
+    graph = create_pyramid(max_row_size, min_row_size)
     # lower graph part:
     for row in range(max_row_size + 1, 2 * max_row_size - min_row_size + 1):
         row_size = 2 * max_row_size - row
