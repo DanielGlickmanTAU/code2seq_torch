@@ -94,7 +94,7 @@ num_adj_stacks = 3
 stats = {}
 
 for max_row_size in [10, 20, 30, 50]:
-    graph, positions = coloring.graph_generation.create_pyramid(max_row_size, min_row_size)
+    graph, positions = coloring.graph_generation.create_pyramid(min_row_size, max_row_size)
     color_graph(graph)
     for num_adj_stacks in [2, 3, 5, 10]:
         colors = [index_to_color[graph.nodes[x]['color']] for x in graph.nodes]

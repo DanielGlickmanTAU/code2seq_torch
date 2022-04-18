@@ -12,7 +12,7 @@ import torch_geometric
 
 class PyramidEdgeColorDataset(Dataset):
     def __init__(self, max_row_size, num_adj_stack):
-        graph, _ = coloring.graph_generation.create_pyramid(max_row_size, min_row_size)
+        graph, _ = coloring.graph_generation.create_pyramid(min_row_size, max_row_size)
         color_graph(graph)
 
         data = torch_geometric.utils.from_networkx(graph, all)

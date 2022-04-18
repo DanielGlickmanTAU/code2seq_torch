@@ -217,7 +217,7 @@ class TestAdjStack(TestCase):
     def test_triangle_graph(self):
         min_row_size = 1
         max_row_size = 10
-        graph, positions = create_pyramid(max_row_size, min_row_size)
+        graph, positions = create_pyramid(min_row_size, max_row_size)
 
         colors = ['gray' for x in graph.nodes]
         blue_index, red_index, green_index = random.sample(range(len(colors)), k=3)

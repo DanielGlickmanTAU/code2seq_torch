@@ -1,7 +1,7 @@
 import networkx as nx
 
 
-def create_pyramid(max_row_size, min_row_size):
+def create_pyramid(min_row_size, max_row_size):
     graph = nx.Graph()
     # +1 here just makes it max row size correct(and not -1)
     for row in range(min_row_size, max_row_size + 1):
@@ -19,7 +19,7 @@ def create_pyramid(max_row_size, min_row_size):
 
 
 def create_hexagon_from_triangles(max_row_size, min_row_size):
-    graph, positions = create_pyramid(max_row_size, min_row_size)
+    graph, positions = create_pyramid(min_row_size, max_row_size)
     # lower graph part:
     for row in range(max_row_size + 1, 2 * max_row_size - min_row_size + 1):
         row_size = 2 * max_row_size - row
