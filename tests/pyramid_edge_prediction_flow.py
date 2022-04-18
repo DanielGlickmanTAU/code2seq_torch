@@ -7,13 +7,17 @@ from coloring.coloring_utils import color_graph, create_stacks, \
 
 torch = compute.get_torch()
 
+from torch.utils.data import DataLoader
 import torch_geometric
 
 
 class PyramidEdgeColorDataset(Dataset):
+    """ creates a dataset where the inputs are random walk probabilities edges of a single pyramid graph
+    and the labels are True/False if the edge connects between nodes of the same color"""
     def __init__(self, max_row_size, num_adj_stack):
-        graph, _ = coloring.graph_generation.create_pyramid(min_row_size, max_row_size)
+        graph, _ = coloring.graph_generation.create_pyramid(1, max_row_size)
         color_graph(graph)
+        self.graph = graph
 
         data = torch_geometric.utils.from_networkx(graph, all)
         stacks = create_stacks(data, num_adj_stack)
@@ -26,9 +30,15 @@ class PyramidEdgeColorDataset(Dataset):
             for same_color in same_color_list:
                 self.dataset.append((edge, torch.tensor(same_color)))
 
+    def __len__(self):
+        return len(self.dataset)
 
-min_row_size = 1
+    def __getitem__(self, idx):
+        return self.dataset[idx]
+
+
 max_row_size = 6
 num_adj_stacks = 3
-
+dataset = PyramidEdgeColorDataset(max_row_size, num_adj_stacks)
+loader = DataLoader(dataset, batch_size=32, shuffle=True)
 print('a')
