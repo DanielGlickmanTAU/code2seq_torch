@@ -197,9 +197,8 @@ class TestAdjStack(TestCase):
     def test_hexagon_graph(self):
         min_row_size = 4
         max_row_size = 6
-        graph = create_hexagon_from_triangles(max_row_size, min_row_size)
+        graph, positions = create_hexagon_from_triangles(max_row_size, min_row_size)
 
-        positions = {(row, col): (col + 0.5 * abs(row - max_row_size), -row) for (row, col) in graph.nodes}
         colors = ['gray' for x in graph.nodes]
         blue_index, red_index = random.sample(range(len(colors)), k=2)
         colors[blue_index] = 'blue'
@@ -214,9 +213,29 @@ class TestAdjStack(TestCase):
 
         print('as')
 
+    def test_triangle_graph(self):
+        min_row_size = 1
+        max_row_size = 10
+        graph, positions = create_pyramid(max_row_size, min_row_size)
+
+        colors = ['gray' for x in graph.nodes]
+        blue_index, red_index, green_index = random.sample(range(len(colors)), k=3)
+        colors[blue_index] = 'blue'
+        colors[red_index] = 'red'
+        colors[green_index] = 'green'
+        nx.draw(graph, positions, node_color=colors)
+        plt.show()
+
+        colors = [['red', 'blue', 'green'][i] for i in
+                  nx.algorithms.greedy_color(graph).values()]
+        nx.draw(graph, positions, node_color=colors, with_labels=True)
+        plt.show()
+
+        print('as')
+
 
 def create_hexagon_from_triangles(max_row_size, min_row_size):
-    graph = create_pyramid(max_row_size, min_row_size)
+    graph, positions = create_pyramid(max_row_size, min_row_size)
     # lower graph part:
     for row in range(max_row_size + 1, 2 * max_row_size - min_row_size + 1):
         row_size = 2 * max_row_size - row
@@ -225,7 +244,7 @@ def create_hexagon_from_triangles(max_row_size, min_row_size):
         for col in range(row_size):
             graph.add_edge((row, col), (row - 1, col))
             graph.add_edge((row, col), (row - 1, col + 1))
-    return graph
+    return graph, positions
 
 
 def create_pyramid(max_row_size, min_row_size):
