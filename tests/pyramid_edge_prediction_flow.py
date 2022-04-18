@@ -27,22 +27,6 @@ def color_graph(graph):
         graph.nodes[x]['color'] = color
 
 
-def draw_attention(graph, source_node, attention_matrix):
-    nx_id_to_tensor_index = {x: i for i, x in enumerate(graph.nodes())}
-    tensor_id_to_nx_index = {i: x for i, x in enumerate(graph.nodes())}
-    assert attention_matrix.dim() == 2 and attention_matrix.shape[0] == attention_matrix.shape[1]
-
-    source_node_tensor_index = nx_id_to_tensor_index[source_node]
-    source_node_attention_scores = attention_matrix[source_node_tensor_index]
-    source_node_attention_scores_nx_indexed = {tensor_id_to_nx_index[i]: score.item() for i, score in
-                                               enumerate(source_node_attention_scores)}
-    heatmap = [source_node_attention_scores_nx_indexed[n] for n in graph.nodes]
-    nx.draw(graph, positions, node_color=heatmap, with_labels=True)
-    nx.draw(graph.subgraph(source_node), positions, node_color=[heatmap[source_node_tensor_index]],
-            with_labels=True, font_color='red')
-    plt.show()
-
-
 def create_stacks(num_adj_stacks):
     args = argparse.ArgumentParser().parse_args()
     args.adj_stacks = range(num_adj_stacks)
@@ -93,30 +77,17 @@ max_row_size = 6
 num_adj_stacks = 3
 stats = {}
 
-for max_row_size in [10, 20, 30, 50]:
-    graph, positions = coloring.graph_generation.create_pyramid(max_row_size, min_row_size)
-    color_graph(graph)
-    for num_adj_stacks in [2, 3, 5, 10]:
-        colors = [index_to_color[graph.nodes[x]['color']] for x in graph.nodes]
-        # nx.draw(graph, positions, node_color=colors, with_labels=True)
-        # plt.show()
+graph, positions = coloring.graph_generation.create_pyramid(max_row_size, min_row_size)
+color_graph(graph)
+colors = [index_to_color[graph.nodes[x]['color']] for x in graph.nodes]
+# nx.draw(graph, positions, node_color=colors, with_labels=True)
+# plt.show()
 
-        data = torch_geometric.utils.from_networkx(graph, all)
-        stacks = create_stacks(num_adj_stacks)
-        stacks = stacks.permute(1, 2, 0)
-        edges_to_nodes_tuple, edges_to_is_same_color = map_tensor_edge_to_networkx_node_ids(graph, stacks)
-        num_unique_edges, ambigious_edges, reachable_percent = calc_stats(edges_to_nodes_tuple, edges_to_is_same_color)
-        stats[(max_row_size, num_adj_stacks)] = (num_unique_edges, ambigious_edges, reachable_percent)
+data = torch_geometric.utils.from_networkx(graph, all)
+stacks = create_stacks(num_adj_stacks)
+stacks = stacks.permute(1, 2, 0)
+edges_to_nodes_tuple, edges_to_is_same_color = map_tensor_edge_to_networkx_node_ids(graph, stacks)
+num_unique_edges, ambigious_edges, reachable_percent = calc_stats(edges_to_nodes_tuple, edges_to_is_same_color)
 
 stacks_batch = torch.stack([stacks.permute(2, 0, 1)])
 print('a')
-table = [
-    ['pyramid base', 'receptive field', 'unique edges', 'of which ambiguous', '% pairs in receptive field']
-
-]
-for pyramid_base, edge_dim in stats:
-    receptive_filed = edge_dim - 1
-    unique_edges, ambiguous, p_pairs_in_receptive = stats[(pyramid_base, edge_dim)]
-    table.append([pyramid_base, receptive_filed, unique_edges, ambiguous, p_pairs_in_receptive])
-
-print(tabulate.tabulate(table))

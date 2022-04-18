@@ -2,6 +2,7 @@ import collections
 
 import tabulate
 
+import coloring.graph_generation
 from code2seq.utils import compute
 
 torch = compute.get_torch()
@@ -73,7 +74,7 @@ min_row_size = 1
 max_row_size = 10
 num_adj_stacks = 5
 
-graph, positions = examples.create_pyramid(max_row_size, min_row_size)
+graph, positions = coloring.graph_generation.create_pyramid(max_row_size, min_row_size)
 nx_id_to_tensor_index = {x: i for i, x in enumerate(graph.nodes())}
 tensor_id_to_nx_index = {i: x for i, x in enumerate(graph.nodes())}
 
