@@ -403,3 +403,7 @@ cluster attention:
 
 
 
+###18/4 
+
+cora link labels:torch.Size([17952]) tensor([1., 1., 1.,  ..., 0., 0., 0.])
+
