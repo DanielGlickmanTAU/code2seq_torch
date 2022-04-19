@@ -79,7 +79,7 @@ def calc_stats(edges_to_nodes_tuple, edges_to_is_same_color):
     edges_that_connect_same_color_and_also_different_color = [k for k, v in edges_to_is_same_color.items() if
                                                               len(set(v)) > 1 if k != zero_edge]
     num_unique_edges = len(edges_to_nodes_tuple)
-    ambigious_edges = max(len(edges_that_connect_same_color_and_also_different_color) - 1, 0)
+    ambigious_edges = len(edges_that_connect_same_color_and_also_different_color)
     print(f'num unique edges: {num_unique_edges}')
     print(
         f'num edges that exist between both nodes of same color and different color: {ambigious_edges}')
@@ -89,14 +89,13 @@ def calc_stats(edges_to_nodes_tuple, edges_to_is_same_color):
 
 
 min_row_size = 1
-max_row_size = 6
-num_adj_stacks = 3
+
 stats = {}
 
-for max_row_size in [10, 20, 30, 50]:
+for max_row_size in [3]:
     graph, positions = coloring.graph_generation.create_pyramid(min_row_size, max_row_size)
     color_graph(graph)
-    for num_adj_stacks in [2, 3, 5, 10]:
+    for num_adj_stacks in [3]:
         colors = [index_to_color[graph.nodes[x]['color']] for x in graph.nodes]
         # nx.draw(graph, positions, node_color=colors, with_labels=True)
         # plt.show()
