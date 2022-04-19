@@ -92,10 +92,10 @@ min_row_size = 1
 
 stats = {}
 
-for max_row_size in [3]:
+for max_row_size in [3, 4, 5, 6, 7, 8, 9]:
     graph, positions = coloring.graph_generation.create_pyramid(min_row_size, max_row_size)
     color_graph(graph)
-    for num_adj_stacks in [3]:
+    for num_adj_stacks in range(max_row_size - 1, max_row_size + 3):
         colors = [index_to_color[graph.nodes[x]['color']] for x in graph.nodes]
         # nx.draw(graph, positions, node_color=colors, with_labels=True)
         # plt.show()
@@ -110,12 +110,11 @@ for max_row_size in [3]:
 stacks_batch = torch.stack([stacks.permute(2, 0, 1)])
 print('a')
 table = [
-    ['pyramid base', 'receptive field', 'unique edges', 'of which ambiguous', '% pairs in receptive field']
+    ['pyramid base', 'num adj stacks', 'unique edges', 'of which ambiguous', '% pairs in receptive field']
 
 ]
 for pyramid_base, edge_dim in stats:
-    receptive_filed = edge_dim - 1
     unique_edges, ambiguous, p_pairs_in_receptive = stats[(pyramid_base, edge_dim)]
-    table.append([pyramid_base, receptive_filed, unique_edges, ambiguous, p_pairs_in_receptive])
+    table.append([pyramid_base, edge_dim, unique_edges, ambiguous, p_pairs_in_receptive])
 
 print(tabulate.tabulate(table))
