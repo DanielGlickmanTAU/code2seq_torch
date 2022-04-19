@@ -62,7 +62,9 @@ if max_num_gpus == 1:
     print('working with 1 gpu:(')
 
 import torch
+import torch_geometric
 
+torch_geometric.seed_everything(42)
 old_rpr = torch.Tensor.__repr__
 torch.Tensor.__repr__ = lambda self: f'{self.shape} {old_rpr(self)}'
 
