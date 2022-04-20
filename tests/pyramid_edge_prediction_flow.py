@@ -97,6 +97,7 @@ for i in range(epoch):
 
     losses = []
     correct_all = []
+    false_positive_all = []
     val_predictions = []
 
     model.train()
@@ -114,8 +115,10 @@ for i in range(epoch):
         logits = model(x)
         y_hat = (logits.sigmoid() > 0.5).squeeze()
         correct = y_hat == y
-
         correct_all.extend(correct.tolist())
+        false_positive = y_hat.logical_and(~y)
+        false_positive_all.extend(false_positive.tolist())
+
         val_loss = torch.nn.functional.binary_cross_entropy_with_logits(logits.squeeze(), y.float(),
                                                                         reduction='none').squeeze()
         for loss, sample, nodes, is_correct, logit, label in zip(val_loss, x, graph_nodes, correct, logits, y):
@@ -124,6 +127,7 @@ for i in range(epoch):
                  'label': label})
         # val_predictions.extend()
     acc = sum(correct_all) / len(correct_all)
+    fp = sum(false_positive_all) / len(false_positive_all)
 
     # sort by highest loss
     if acc != last_acc and i % 100 == 0:
@@ -140,9 +144,8 @@ for i in range(epoch):
                 with_labels=True)
         plt.title(f'acc:{acc}')
         plt.show()
-    # [x[i] for i,b in enumerate(correct) if not b]
 
-    print(f' epoch {i}, loss {sum(losses) / len(losses)}, acc:{acc}')
+    print(f' epoch {i}, loss {sum(losses) / len(losses)}, acc:{acc}, false positive {fp}')
     if criterion(acc):
         break
 
