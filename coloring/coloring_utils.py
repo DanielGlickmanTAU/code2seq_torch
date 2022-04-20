@@ -13,12 +13,14 @@ from model.positional.positional_attention_weight import AdjStack
 
 
 def color_graph(graph):
+    index_to_color = {0: 'red', 1: 'green', 2: 'blue'}
+
     color_map = nx.algorithms.greedy_color(graph, 'DSATUR')
     done_colors = [color_map[x] for x in graph]
     assert len(set(done_colors)) == 3, f'expecting to be able to color graph with 3 color, not {set(done_colors)}'
 
     for (x, color) in color_map.items():
-        graph.nodes[x]['color'] = color
+        graph.nodes[x]['color'] = index_to_color[color]
     return [graph.nodes[x]['color'] for x in graph.nodes]
 
 

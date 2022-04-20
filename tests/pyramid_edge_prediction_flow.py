@@ -25,7 +25,7 @@ class PyramidEdgeColorDataset(Dataset):
         self.graph = graph
         self.positions = positions
 
-        data = torch_geometric.utils.from_networkx(graph, all)
+        data = torch_geometric.utils.from_networkx(graph)
         stacks = create_stacks(data, num_adj_stack)
         stacks = stacks.permute(1, 2, 0)
         edge_to_node_ids = map_tensor_edge_to_networkx_node_ids(graph, stacks)
