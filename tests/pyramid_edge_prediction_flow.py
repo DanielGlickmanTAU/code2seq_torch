@@ -28,7 +28,6 @@ class PyramidEdgeColorDataset(Dataset):
         data = torch_geometric.utils.from_networkx(graph, all)
         stacks = create_stacks(data, num_adj_stack)
         stacks = stacks.permute(1, 2, 0)
-        edge_to_is_same_color = map_tensor_edge_to_color(graph, stacks)
         edge_to_node_ids = map_tensor_edge_to_networkx_node_ids(graph, stacks)
 
         self.dataset = []
@@ -88,7 +87,7 @@ model = torch.nn.Sequential(
 # model[-1].bias.data = torch.tensor([-0.1])
 # model = torch.nn.Linear(num_adj_stacks,1)
 
-epoch = 50000
+epoch = 10000
 optimizer = optim.Adam(model.parameters(), lr=3e-4)
 criterion = StoppingCriterion(threshold=1., desired_stable_evaluations=10)
 last_acc = -1
