@@ -1,5 +1,5 @@
 class StoppingCriterion:
-    def __init__(self, threshold, desired_stable_evaluations=2, higher_is_better=True):
+    def __init__(self, threshold=None, desired_stable_evaluations=2, higher_is_better=True):
         self.threshold = threshold
         self.desired_stable_evaluations = desired_stable_evaluations
         self.higher_is_better = higher_is_better
@@ -8,10 +8,11 @@ class StoppingCriterion:
         self.last_result = float('-inf') if higher_is_better else float('inf')
 
     def __call__(self, result):
-        if self.is_better(result, self.threshold):
-            self.num_consecutive_successes += 1
-        else:
-            self.num_consecutive_successes = 0
+        if self.threshold:
+            if self.is_better(result, self.threshold):
+                self.num_consecutive_successes += 1
+            else:
+                self.num_consecutive_successes = 0
 
         self.last_result = result
         return self.num_consecutive_successes >= self.desired_stable_evaluations
