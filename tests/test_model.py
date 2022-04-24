@@ -388,7 +388,7 @@ class Test(TestCase):
     #
     #     self.assert_overfit_on_train_pattern(args, dataset_samples)
 
-    def assert_overfit_on_train_pattern(self, args, dataset_samples, exp=False):
+    def assert_overfit_on_train_pattern(self, args, dataset_samples, exp=False, task='pattern'):
         train_loader, _, __ = dataloader_utils.pyg_get_train_val_test_loaders(args.dataset,
                                                                               num_workers=args.num_workers,
                                                                               batch_size=args.batch_size,
@@ -396,17 +396,10 @@ class Test(TestCase):
                                                                               transform=transform_to_one_hot,
                                                                               mapping=AdjStack(args))
         evaluator = Evaluator(args.dataset)
-        model = get_model(args, consts.pattern_num_tasks, compute.get_device(), task='pattern')
+        num_tasks = consts.pattern_num_tasks if task == 'pattern' else consts.cluster_num_tasks
+        model = get_model(args, num_tasks, compute.get_device(), task=task)
         exp = exp_utils.start_exp("test", args, model) if exp else None
         self._train_and_assert_overfit_on_train(model, train_loader, evaluator, 'node classification', exp=exp)
-
-    # def test_can_overfit_pattern_dataset_with_content_attention_and_distance(self):
-    #     args, dataset_samples = self._get_pattern_overfit_config()
-    #
-    #     args.use_distance_bias = True
-    #     args.attention_type = 'content'
-    #
-    #     self.assert_overfit_on_train_pattern(args, dataset_samples)
 
     def test_can_overfit_pattern_dataset_with_gnn(self):
         args, dataset_samples = self._get_pattern_overfit_config()
@@ -415,6 +408,14 @@ class Test(TestCase):
         args.num_transformer_layers = 0
 
         self.assert_overfit_on_train_pattern(args, dataset_samples, exp=False)
+
+    def test_can_overfit_cluster_dataset_with_gnn(self):
+        args, dataset_samples = self._get_cluster_overfit_config()
+        args.JK = 'sum'
+        args.JK = 'last'
+        args.num_transformer_layers = 0
+
+        self.assert_overfit_on_train_pattern(args, dataset_samples, exp=False, task='cluster')
 
     def test_can_overfit_pattern_dataset_with_gnn_TEMP(self):
         args, dataset_samples = self._get_pattern_overfit_config()
@@ -437,6 +438,17 @@ class Test(TestCase):
         dataset_samples = 32
         args = get_default_args()
         args.dataset = "PATTERN"
+        args.num_layer = args.num_transformer_layers = 4
+        args.drop_ratio = 0.
+        args.transformer_encoder_dropout = 0.
+        args.emb_dim = 100
+        args.num_heads = 1
+        return args, dataset_samples
+
+    def _get_cluster_overfit_config(self):
+        dataset_samples = 32
+        args = get_default_args()
+        args.dataset = "CLUSTER"
         args.num_layer = args.num_transformer_layers = 4
         args.drop_ratio = 0.
         args.transformer_encoder_dropout = 0.
@@ -486,7 +498,7 @@ class Test(TestCase):
             print(f'Evaluating epoch {epoch}...{metric}: {eval_dict}')
             if exp:
                 exp.log_metric('score', rocauc)
-        assert rocauc > score_needed
+        assert rocauc > score_needed, 'could not overfit'
 
 
 if __name__ == '__main__':
