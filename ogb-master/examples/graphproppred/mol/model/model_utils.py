@@ -9,7 +9,10 @@ def get_model(args, num_tasks, device, task):
     if task == 'mol':
         node_encoder = AtomEncoder(args.emb_dim)
     elif task == 'pattern':
-        pattern_in_dim = consts.pattern_num_tasks
+        pattern_in_dim = consts.pattern_in_dim
+        node_encoder = nn.Embedding(pattern_in_dim, args.emb_dim)
+    elif task == 'cluster':
+        pattern_in_dim = consts.cluster_in_dim
         node_encoder = nn.Embedding(pattern_in_dim, args.emb_dim)
 
     if args.gnn == 'gin':

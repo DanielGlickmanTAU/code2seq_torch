@@ -13,7 +13,7 @@ except ImportError:
 class Evaluator:
     def __init__(self, name):
         self.name = name
-        if name == 'PATTERN':
+        if name == 'PATTERN' or name == 'CLUSTER':
             self.num_tasks = 1
             # self.eval_metric = 'acc'
             self.eval_metric = 'smb'
