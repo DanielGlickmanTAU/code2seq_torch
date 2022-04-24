@@ -124,7 +124,7 @@ def train_eval_loop(train_loader, eval_loader, model, draw_every=100, stop_thers
         if acc > best_acc:
             best_acc, best_fp = acc, fp
 
-        if acc != last_acc and (epoch + 1) % draw_every == 0:
+        if epoch == epoches - 1 or (acc != last_acc and (epoch + 1) % draw_every == 0):
             last_acc = acc
             # sort by highest loss
             sorted_val_predictions = sorted(val_predictions, key=lambda d: -d['loss'])
@@ -179,16 +179,14 @@ def get_model(num_adj_stacks, hidden_layer_multiplier, use_batch_norm, just_sum,
 
 
 table = [
-    ['pyramid base train', 'pyramid base test', 'edge size', 'hidden layer multipler', 'bn', 'just sum',
-     'network_then_projection',
-     'normalize', '#params',
+    ['pyramid base train', 'pyramid base test', 'edge size', 'hidden layer multipler', 'model_name', '#params',
      'final acc', 'final FP', 'final_acc_train', 'best acc', 'best fp', 'epochs to converge',
      'acc at epoch 500'
         , 'acc at 2k']
 
 ]
 device = compute.get_device()
-for max_row_size in [5]:
+for max_row_size in [20]:
     # for max_row_size in [4]:
     # for edge_size_plus in [0, 1, 2]:
     for edge_size_plus in [0, 1]:
@@ -198,37 +196,59 @@ for max_row_size in [5]:
         dataset = PyramidEdgeColorDataset(max_row_size, num_adj_stacks)
         loader = DataLoader(dataset, batch_size=64, shuffle=True)
 
-        # test_pyramid_base = max_row_size + 1
-        test_pyramid_base = max_row_size
+        test_pyramid_base = max_row_size + 1
+        # test_pyramid_base = max_row_size
         dataset = PyramidEdgeColorDataset(test_pyramid_base, num_adj_stacks)
         test_loader = DataLoader(dataset, batch_size=64, shuffle=True)
 
         for hidden_layer_multiplier in [2]:
-            for use_batch_norm in [True, False]:
-                for just_sum in [True, False]:
-                    for network_then_projection in [True, False]:
-                        for normalize in [None, 'layer', 'l2']:
-                            model = get_model(num_adj_stacks, hidden_layer_multiplier=hidden_layer_multiplier,
-                                              use_batch_norm=use_batch_norm, just_sum=just_sum, normalize=normalize,
-                                              network_then_projection=network_then_projection).to(device)
-                            num_params = sum(p.numel() for p in model.parameters())
+            vanila_model = get_model(num_adj_stacks, hidden_layer_multiplier=hidden_layer_multiplier,
+                                     use_batch_norm=True, just_sum=False, normalize=None,
+                                     network_then_projection=False)
+            # layer_norm_just_sum = get_model(num_adj_stacks,
+            #                                 hidden_layer_multiplier=hidden_layer_multiplier,
+            #                                 use_batch_norm=True, just_sum=True,
+            #                                 normalize='layer',
+            #                                 network_then_projection=False)
+            ffn_before_bn_ff = get_model(num_adj_stacks, hidden_layer_multiplier=hidden_layer_multiplier,
+                                         use_batch_norm=True, just_sum=False, normalize=None,
+                                         network_then_projection=True)
+            # ffn_before_layer_norm_ff_no_bn = get_model(num_adj_stacks,
+            #                                            hidden_layer_multiplier=hidden_layer_multiplier,
+            #                                            use_batch_norm=False, just_sum=False,
+            #                                            normalize='layer',
+            #                                            network_then_projection=True)
+            #
+            # ffn_before_layer_norm_ff_yes_bn = get_model(num_adj_stacks,
+            #                                             hidden_layer_multiplier=hidden_layer_multiplier,
+            #                                             use_batch_norm=True, just_sum=False,
+            #                                             normalize='layer',
+            #                                             network_then_projection=True)
 
-                            d = train_eval_loop(loader, test_loader, model, draw_every=1000)
-                            table.append(
-                                [max_row_size, test_pyramid_base, num_adj_stacks, hidden_layer_multiplier,
-                                 use_batch_norm,
-                                 just_sum,
-                                 network_then_projection,
-                                 normalize,
-                                 num_params,
-                                 d['final_acc'], d['final_fp'], d['final_acc_train'], d['best_acc'], d['best_fp'],
-                                 d['epoch_to_converge_at_1'],
-                                 d['acc_at_epoch_500']
-                                    , d['acc_at_epoch_2k']
-                                 ]
-                            )
-                            print(tabulate.tabulate(table))
-                            print('\n\n\n')
+            models = [
+                ('vanila_model', vanila_model),
+                # ('layer_norm_just_sum', layer_norm_just_sum),
+                ('ffn_before_bn_ff', ffn_before_bn_ff),
+                # ('ffn_before_layer_norm_ff_no_bn', ffn_before_layer_norm_ff_no_bn),
+                # ('ffn_before_layer_norm_ff_yes_bn', ffn_before_layer_norm_ff_yes_bn)
+            ]
+
+            for model_name, model in models:
+                model = model.to(device)
+                num_params = sum(p.numel() for p in model.parameters())
+                d = train_eval_loop(loader, test_loader, model, draw_every=1000)
+                table.append(
+                    [max_row_size, test_pyramid_base, num_adj_stacks, hidden_layer_multiplier,
+                     model_name,
+                     num_params,
+                     d['final_acc'], d['final_fp'], d['final_acc_train'], d['best_acc'], d['best_fp'],
+                     d['epoch_to_converge_at_1'],
+                     d['acc_at_epoch_500']
+                        , d['acc_at_epoch_2k']
+                     ]
+                )
+                print(tabulate.tabulate(table))
+                print('\n\n\n')
 
 print(tabulate.tabulate(table))
 print('')

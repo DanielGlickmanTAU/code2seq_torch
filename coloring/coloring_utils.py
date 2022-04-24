@@ -31,6 +31,8 @@ def create_stacks(data: Data, num_adj_stacks):
     stacks = AdjStack(args)(data)['adj_stack']
     return torch.tensor(stacks)
 
+def tensor_to_tuple(tensor):
+    return tuple(tensor.numpy())
 
 def map_tensor_edge_to_networkx_node_ids(graph, stacks):
     """maps edge(stack as python tuple of floats) to networkx graph index

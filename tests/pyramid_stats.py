@@ -92,10 +92,11 @@ min_row_size = 1
 
 stats = {}
 
-for max_row_size in [3, 4, 5, 6, 7, 8, 9]:
+for max_row_size in [4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]:
     graph, positions = coloring.graph_generation.create_pyramid(min_row_size, max_row_size)
     color_graph(graph)
-    for num_adj_stacks in range(max_row_size - 1, max_row_size + 3):
+    # for num_adj_stacks in range(max_row_size - 1, max_row_size + 10):
+    for num_adj_stacks in [max_row_size]:
         colors = [index_to_color[graph.nodes[x]['color']] for x in graph.nodes]
         # nx.draw(graph, positions, node_color=colors, with_labels=True)
         # plt.show()
