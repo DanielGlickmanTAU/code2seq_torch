@@ -1,14 +1,13 @@
 import torch
 from torch import nn
 
-n_classes = 2
-
 r"""
 taken from https://github.com/graphdeeplearning/benchmarking-gnns/blob/master/nets/SBMs_node_classification/gin_net.py
 """
 
 
 def sbm_loss(pred, label):
+    n_classes = label.unique().shape
     # calculating label weights for weighted loss computation
     V = label.size(0)
     label_count = torch.bincount(label)
