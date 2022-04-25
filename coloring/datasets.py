@@ -1,9 +1,13 @@
+from code2seq.utils import compute
 import torch_geometric
 from torch.utils.data import Dataset
 
 import coloring.graph_generation
 from coloring.coloring_utils import color_graph, create_stacks, map_tensor_edge_to_networkx_node_ids
-from tests.oracle_flow import torch, device
+import numpy
+
+torch = compute.get_torch()
+device = compute.get_device()
 
 
 class PyramidEdgeColorDataset(Dataset):
@@ -42,6 +46,38 @@ class PyramidEdgeColorDataset(Dataset):
 
         assert tensor.shape == (2, 2)
         return tuple(tensor[0].numpy()), tuple(tensor[-1].numpy())
+
+    def __len__(self):
+        return len(self.dataset)
+
+    def __getitem__(self, idx):
+        return self.dataset[idx]
+
+
+class PyramidNodeColorDataset(Dataset):
+    @staticmethod
+    def get_random_index_with_value(tensor, value):
+        indexes, _ = torch.where(tensor == value)
+        return numpy.random.choice(indexes)
+
+    def __init__(self, max_row_size, num_adj_stack):
+        graph, positions = coloring.graph_generation.create_pyramid(1, max_row_size)
+        self.colors = color_graph(graph)
+        self.graph = graph
+        self.positions = positions
+
+        data = torch_geometric.utils.from_networkx(graph, all)
+        red_index = self.get_random_index_with_value(data.x, 0)
+        green_index = self.get_random_index_with_value(data.x, 1)
+        blue_index = self.get_random_index_with_value(data.x, 2)
+
+        data.y = data.x
+        data.x = torch.zeros_like(data.x)
+        data.x[red_index] = 1
+        data.x[green_index] = 2
+        data.x[blue_index] = 3
+
+        self.dataset = [data]
 
     def __len__(self):
         return len(self.dataset)

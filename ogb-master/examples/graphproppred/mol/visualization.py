@@ -23,6 +23,26 @@ def draw_pyg_graph(graph: Union[torch_geometric.data.Data, nx.Graph], to_undirec
     plt.show()
 
 
+def draw(data: torch_geometric.data.Data, color_tensor, color_map=None,to_undirected=True):
+    graph = torch_geometric.utils.to_networkx(data,to_undirected=to_undirected)
+    # if got network predictions,take the argmax
+    color_tensor = color_tensor.squeeze()
+    if color_tensor.dim() == 2:
+        color_tensor = color_tensor.argmax(dim=-1)
+
+    colors = [x.item() for x in color_tensor]
+    if color_map:
+        colors = [color_map[x] for x in colors]
+
+    nx.draw(graph,
+            # dataset.positions,
+            node_color=colors,
+            # edge_color=edge_colors,
+            # with_labels=True
+            )
+    plt.show()
+
+
 def show_matrix(stacks, cmap=None, text=None):
     if isinstance(stacks, torch.Tensor):
         stacks = stacks.detach().numpy()

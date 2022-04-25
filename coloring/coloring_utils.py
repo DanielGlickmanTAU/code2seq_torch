@@ -24,6 +24,14 @@ def color_graph(graph):
     return [index_to_color[graph.nodes[x]['color']] for x in graph.nodes]
 
 
+# creates same color map but with 0 as white color and "push" the rest of the colors by +1
+def index_to_color_map_with_white(index_to_color_map):
+    new_color_map = {0: 'gray'}
+    for index in index_to_color_map:
+        new_color_map[index + 1] = index_to_color_map[index]
+    return new_color_map
+
+
 def create_stacks(data: Data, num_adj_stacks):
     args = argparse.ArgumentParser().parse_args()
     args.adj_stacks = range(num_adj_stacks)
