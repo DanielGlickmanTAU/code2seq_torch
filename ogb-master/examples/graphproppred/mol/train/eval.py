@@ -2,6 +2,7 @@ import torch
 from tqdm import tqdm
 
 from ogb.graphproppred import Evaluator
+import visualization
 
 
 def evaluate(model, device, loader, evaluator: Evaluator):
@@ -24,6 +25,9 @@ def evaluate(model, device, loader, evaluator: Evaluator):
             else:
                 y_true.append(batch.y.view(pred.shape).detach().cpu())
             y_pred.append(pred.detach().cpu())
+        #visualization.draw(batch[0],batch[0].y)
+        #visualization.draw(batch[0],batch[0].x)
+        #visualization.draw(batch[0],pred[:batch[0].num_nodes])
 
     y_true = torch.cat(y_true, dim=0).numpy()
     y_pred = torch.cat(y_pred, dim=0).numpy()
