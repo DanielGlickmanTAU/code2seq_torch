@@ -5,7 +5,7 @@ from gnn import GNN
 from ogb.graphproppred.mol_encoder import AtomEncoder
 
 
-def get_model(args, num_tasks, device, task):
+def get_model(args, num_tasks, device, task, num_embedding=None):
     if task == 'mol':
         node_encoder = AtomEncoder(args.emb_dim)
     elif task == 'pattern':
@@ -14,6 +14,11 @@ def get_model(args, num_tasks, device, task):
     elif task == 'cluster':
         pattern_in_dim = consts.cluster_in_dim
         node_encoder = nn.Embedding(pattern_in_dim, args.emb_dim)
+    elif task == 'coloring':
+        assert num_embedding
+        node_encoder = nn.Embedding(num_embedding, args.emb_dim)
+
+    assert node_encoder is not None
 
     if args.gnn == 'gin':
         model = GNN(args, JK=args.JK, task=task, gnn_type='gin', num_tasks=num_tasks, num_layer=args.num_layer,

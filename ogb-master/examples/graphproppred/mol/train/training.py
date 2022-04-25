@@ -41,14 +41,17 @@ def visualize_activations_and_grads(model, exp):
 
 def train_epoch(model, device, loader, optimizer, task_type, assert_no_zero_grad=False, grad_accum_steps=1,
                 experiment=None):
-    assert task_type in {'binary classification', 'regression', 'node classification'}, f'{task_type} not supported'
+    # here node_classification actually refers to sbm prediction(different loss) and coloring refers to regular node prediction,
+    ## with CrossEntropy loss. Leaving it like that for now for time...
+    assert task_type in {'binary classification', 'regression', 'node classification',
+                         'coloring'}, f'{task_type} not supported'
     model.train()
     losses = []
     optimizer.zero_grad()
     for step, batch in enumerate(tqdm(loader, desc="Iteration")):
         batch = batch.to(device)
 
-        if batch.x.shape[0] == 1 or batch.batch[-1] == 0:
+        if batch.x.shape[0] == 1 or (batch.batch[-1] == 0 and batch.num_graphs > 1):
             pass
         else:
             pred = model(batch)
@@ -58,7 +61,9 @@ def train_epoch(model, device, loader, optimizer, task_type, assert_no_zero_grad
             y = batch.y
             if y.dim() == 1:
                 y = y.unsqueeze(1)
-            if 'node classification' == task_type:
+            if 'coloring' == task_type:
+                loss = torch.nn.CrossEntropyLoss()(pred.squeeze(), y.squeeze())
+            elif 'node classification' == task_type:
                 assert is_labeled.all()
                 loss = sbm_loss(pred.squeeze(), y.squeeze())
             elif "classification" in task_type:
