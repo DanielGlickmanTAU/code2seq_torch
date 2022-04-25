@@ -145,10 +145,10 @@ table = [
 
 ]
 device = compute.get_device()
-for max_row_size in [5]:
+for max_row_size in [5,10]:
     # for max_row_size in [4]:
     # for edge_size_plus in [0, 1, 2]:
-    for edge_size_plus in [0, 1]:
+    for edge_size_plus in [-4,-3,-2,-1,0]:
         # for edge_size_plus in [0]:
 
         num_adj_stacks = max_row_size + edge_size_plus

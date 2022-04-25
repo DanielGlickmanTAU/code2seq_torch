@@ -17,6 +17,7 @@ torch = compute.get_torch()
 from torch.utils.data import DataLoader
 import torch_geometric
 
+
 def acc_at_init(loader):
     model.eval()
     for step, (x, y, _) in enumerate(loader):
@@ -142,69 +143,70 @@ table = [
 
 ]
 device = compute.get_device()
-for max_row_size in [20]:
+for max_row_size in [10]:
     # for max_row_size in [4]:
     # for edge_size_plus in [0, 1, 2]:
-    for edge_size_plus in [0, 1]:
-        # for edge_size_plus in [0]:
+    for test_size_plus in [1, 2, 3, 4]:
+        for edge_size_plus in [-4, -3, -2, -1, 0]:
+            # for edge_size_plus in [0]:
 
-        num_adj_stacks = max_row_size + edge_size_plus
-        dataset = PyramidEdgeColorDataset(max_row_size, num_adj_stacks)
-        loader = DataLoader(dataset, batch_size=64, shuffle=True)
+            num_adj_stacks = max_row_size + edge_size_plus
+            dataset = PyramidEdgeColorDataset(max_row_size, num_adj_stacks)
+            loader = DataLoader(dataset, batch_size=64, shuffle=True)
 
-        test_pyramid_base = max_row_size + 1
-        # test_pyramid_base = max_row_size
-        dataset = PyramidEdgeColorDataset(test_pyramid_base, num_adj_stacks)
-        test_loader = DataLoader(dataset, batch_size=64, shuffle=True)
+            test_pyramid_base = max_row_size + test_size_plus
+            # test_pyramid_base = max_row_size
+            dataset = PyramidEdgeColorDataset(test_pyramid_base, num_adj_stacks)
+            test_loader = DataLoader(dataset, batch_size=64, shuffle=True)
 
-        for hidden_layer_multiplier in [2]:
-            vanila_model = get_model(num_adj_stacks, hidden_layer_multiplier=hidden_layer_multiplier,
-                                     use_batch_norm=True, just_sum=False, normalize=None,
-                                     network_then_projection=False)
-            # layer_norm_just_sum = get_model(num_adj_stacks,
-            #                                 hidden_layer_multiplier=hidden_layer_multiplier,
-            #                                 use_batch_norm=True, just_sum=True,
-            #                                 normalize='layer',
-            #                                 network_then_projection=False)
-            ffn_before_bn_ff = get_model(num_adj_stacks, hidden_layer_multiplier=hidden_layer_multiplier,
-                                         use_batch_norm=True, just_sum=False, normalize=None,
-                                         network_then_projection=True)
-            # ffn_before_layer_norm_ff_no_bn = get_model(num_adj_stacks,
-            #                                            hidden_layer_multiplier=hidden_layer_multiplier,
-            #                                            use_batch_norm=False, just_sum=False,
-            #                                            normalize='layer',
-            #                                            network_then_projection=True)
-            #
-            # ffn_before_layer_norm_ff_yes_bn = get_model(num_adj_stacks,
-            #                                             hidden_layer_multiplier=hidden_layer_multiplier,
-            #                                             use_batch_norm=True, just_sum=False,
-            #                                             normalize='layer',
-            #                                             network_then_projection=True)
+            for hidden_layer_multiplier in [2]:
+                # vanila_model = get_model(num_adj_stacks, hidden_layer_multiplier=hidden_layer_multiplier,
+                #                          use_batch_norm=True, just_sum=False, normalize=None,
+                #                          network_then_projection=False)
+                # layer_norm_just_sum = get_model(num_adj_stacks,
+                #                                 hidden_layer_multiplier=hidden_layer_multiplier,
+                #                                 use_batch_norm=True, just_sum=True,
+                #                                 normalize='layer',
+                #                                 network_then_projection=False)
+                ffn_before_bn_ff = get_model(num_adj_stacks, hidden_layer_multiplier=hidden_layer_multiplier,
+                                             use_batch_norm=True, just_sum=False, normalize=None,
+                                             network_then_projection=True)
+                # ffn_before_layer_norm_ff_no_bn = get_model(num_adj_stacks,
+                #                                            hidden_layer_multiplier=hidden_layer_multiplier,
+                #                                            use_batch_norm=False, just_sum=False,
+                #                                            normalize='layer',
+                #                                            network_then_projection=True)
+                #
+                # ffn_before_layer_norm_ff_yes_bn = get_model(num_adj_stacks,
+                #                                             hidden_layer_multiplier=hidden_layer_multiplier,
+                #                                             use_batch_norm=True, just_sum=False,
+                #                                             normalize='layer',
+                #                                             network_then_projection=True)
 
-            models = [
-                ('vanila_model', vanila_model),
-                # ('layer_norm_just_sum', layer_norm_just_sum),
-                ('ffn_before_bn_ff', ffn_before_bn_ff),
-                # ('ffn_before_layer_norm_ff_no_bn', ffn_before_layer_norm_ff_no_bn),
-                # ('ffn_before_layer_norm_ff_yes_bn', ffn_before_layer_norm_ff_yes_bn)
-            ]
+                models = [
+                    # ('vanila_model', vanila_model),
+                    # ('layer_norm_just_sum', layer_norm_just_sum),
+                    ('ffn_before_bn_ff', ffn_before_bn_ff),
+                    # ('ffn_before_layer_norm_ff_no_bn', ffn_before_layer_norm_ff_no_bn),
+                    # ('ffn_before_layer_norm_ff_yes_bn', ffn_before_layer_norm_ff_yes_bn)
+                ]
 
-            for model_name, model in models:
-                model = model.to(device)
-                num_params = sum(p.numel() for p in model.parameters())
-                d = train_eval_loop(loader, test_loader, model, draw_every=1000)
-                table.append(
-                    [max_row_size, test_pyramid_base, num_adj_stacks, hidden_layer_multiplier,
-                     model_name,
-                     num_params,
-                     d['final_acc'], d['final_fp'], d['final_acc_train'], d['best_acc'], d['best_fp'],
-                     d['epoch_to_converge_at_1'],
-                     d['acc_at_epoch_500']
-                        , d['acc_at_epoch_2k']
-                     ]
-                )
-                print(tabulate.tabulate(table))
-                print('\n\n\n')
+                for model_name, model in models:
+                    model = model.to(device)
+                    num_params = sum(p.numel() for p in model.parameters())
+                    d = train_eval_loop(loader, test_loader, model, draw_every=1000)
+                    table.append(
+                        [max_row_size, test_pyramid_base, num_adj_stacks, hidden_layer_multiplier,
+                         model_name,
+                         num_params,
+                         d['final_acc'], d['final_fp'], d['final_acc_train'], d['best_acc'], d['best_fp'],
+                         d['epoch_to_converge_at_1'],
+                         d['acc_at_epoch_500']
+                            , d['acc_at_epoch_2k']
+                         ]
+                    )
+                    print(tabulate.tabulate(table))
+                    print('\n\n\n')
 
 print(tabulate.tabulate(table))
 print('')
