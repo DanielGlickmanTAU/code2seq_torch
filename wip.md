@@ -624,6 +624,10 @@ pyramid base train  pyramid base test  edge size  final acc           final FP  
 5                   6                  5          0.7528344671201814  0.0                  1.0                  
 5                   6                  6          0.6961451247165533  0.0                  1.0                  
 
+
+10                  11                 4          0.5695592286501377   0.4297520661157025    0.6052892561983471
+10                  11                 5          0.6657483930211203   0.3140495867768595    0.7163636363636363
+10                  11                 6          0.7617079889807162   0.22727272727272727   0.819504132231405
 10                  11                 7          0.8131313131313131  0.1446280991735537   0.8988429752066116   
 10                  11                 8          0.8252984389348026  0.07575757575757576  0.9583471074380165   
 10                  11                 9          0.7741046831955923  0.03443526170798898  0.988099173553719    
@@ -631,3 +635,41 @@ pyramid base train  pyramid base test  edge size  final acc           final FP  
 10                  11                 11         0.7022497704315886  0.0                  1.0                  
 ------------------  -----------------  ---------  ------------------  -------------------  ------------------  ------------------
 
+
+
+### 24/4
+
+Pattern dataset simply holds a list of pyG Data objects.. each object has
+x as nodes(shape=N)
+y as labels(shape=N)
+
+cluster: looks similar, with loss and everything..
+
+issue:
+on pattern(existing code), calling get_model with num_tasks=2.. which creates embedding of size that is too small..
+used to work before, so what changed??
+by mistake I used embedding_in_dim=num_tasks(2), but should be 3
+
+
+
+### cluster dataset.
+x: most(~3500) of zeros, rest are lableled(32x6)
+y: labels.. 6 classes(0,1,2,3,4,5)
+batch.y.unique(return_counts=True):(torch.Size([6]) tensor([0, 1, 2, 3, 4, 5]), torch.Size([6]) tensor([567, 686, 662, 602, 611, 583]))
+batch.x.unique(return_counts=True):(torch.Size([7]) tensor([0, 1, 2, 3, 4, 5, 6]), torch.Size([7]) tensor([3519,   32,   32,   32,   32,   32,   32]))
+
+
+### 25/4
+If I link the networkx graph to my dataset, my life would become easier(?)
+
+What do I want from drawing?
+verify my graph creation works
+verify hiding nodes works
+explain the results
+find problematic cases
+
+now, how do I want to draw *NODE*prediction? just draw the graph as usual..
+
+* add some difficulity programming the graph coloring, because there were many options how to approch the task.
+I ended up coming up with a plan that: 1) first, I colored the graphs for pattern and cluster dataset, as that gave me 
+  an easier starting point, and helped me design a generic drawing method which could be used for other datasets.
