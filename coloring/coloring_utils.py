@@ -11,17 +11,17 @@ from torch_geometric.data import Data
 
 from model.positional.positional_attention_weight import AdjStack
 
+index_to_color = {0: 'red', 1: 'green', 2: 'blue'}
+
 
 def color_graph(graph):
-    index_to_color = {0: 'red', 1: 'green', 2: 'blue'}
-
     color_map = nx.algorithms.greedy_color(graph, 'DSATUR')
     done_colors = [color_map[x] for x in graph]
     assert len(set(done_colors)) == 3, f'expecting to be able to color graph with 3 color, not {set(done_colors)}'
 
     for (x, color) in color_map.items():
-        graph.nodes[x]['color'] = index_to_color[color]
-    return [graph.nodes[x]['color'] for x in graph.nodes]
+        graph.nodes[x]['color'] = color
+    return [index_to_color[graph.nodes[x]['color']] for x in graph.nodes]
 
 
 def create_stacks(data: Data, num_adj_stacks):
@@ -31,8 +31,10 @@ def create_stacks(data: Data, num_adj_stacks):
     stacks = AdjStack(args)(data)['adj_stack']
     return torch.tensor(stacks)
 
+
 def tensor_to_tuple(tensor):
     return tuple(tensor.numpy())
+
 
 def map_tensor_edge_to_networkx_node_ids(graph, stacks):
     """maps edge(stack as python tuple of floats) to networkx graph index
