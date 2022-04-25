@@ -3,11 +3,11 @@ import matplotlib.pyplot as plt
 import tabulate
 
 from code2seq.utils import compute
+
 torch = compute.get_torch()
 from coloring.coloring_utils import tensor_to_tuple
 from coloring.datasets import PyramidEdgeColorDataset
 from tests.test_utils import MockModule
-
 
 from torch.utils.data import DataLoader
 import torch_geometric
@@ -127,35 +127,34 @@ class Oracle(torch.nn.Module):
         return torch.tensor([self.ground_truth[sample] if sample in self.ground_truth else 0. for sample in x])
 
 
-for max_row_size in [5]:
+for max_row_size in [10]:
     # for max_row_size in [4]:
     # for edge_size_plus in [0, 1, 2]:
     # for edge_size_plus in [-3, -2, -1, 0, 1]:
-    for edge_size_plus in [-1]:
-        # for edge_size_plus in [0]:
+    for test_size_plus in [0, 1, 2, 3, 4]:
+        for edge_size_plus in [-6, -5, -4, -3, -2, -1, 0]:
+            num_adj_stacks = max_row_size + edge_size_plus
+            dataset = PyramidEdgeColorDataset(max_row_size, num_adj_stacks)
+            loader = DataLoader(dataset, batch_size=64000, shuffle=True)
+            model = Oracle(dataset)
 
-        num_adj_stacks = max_row_size + edge_size_plus
-        dataset = PyramidEdgeColorDataset(max_row_size, num_adj_stacks)
-        loader = DataLoader(dataset, batch_size=64000, shuffle=True)
-        model = Oracle(dataset)
+            test_pyramid_base = max_row_size + test_size_plus
+            # test_pyramid_base = max_row_size
+            dataset = PyramidEdgeColorDataset(test_pyramid_base, num_adj_stacks)
+            test_loader = DataLoader(dataset, batch_size=64000, shuffle=True)
 
-        test_pyramid_base = max_row_size + 1
-        # test_pyramid_base = max_row_size
-        dataset = PyramidEdgeColorDataset(test_pyramid_base, num_adj_stacks)
-        test_loader = DataLoader(dataset, batch_size=64000, shuffle=True)
+            num_params = sum(p.numel() for p in model.parameters())
 
-        num_params = sum(p.numel() for p in model.parameters())
+            d = train_eval_loop(loader, test_loader, model, draw_every=1000)
+            table.append(
+                [max_row_size, test_pyramid_base, num_adj_stacks,
 
-        d = train_eval_loop(loader, test_loader, model, draw_every=1000)
-        table.append(
-            [max_row_size, test_pyramid_base, num_adj_stacks,
+                 d['final_acc'], d['final_fp'], d['final_acc_train'], d['best_acc'], d['best_fp'],
 
-             d['final_acc'], d['final_fp'], d['final_acc_train'], d['best_acc'], d['best_fp'],
-
-             ]
-        )
-        print(tabulate.tabulate(table))
-        print('\n\n\n')
+                 ]
+            )
+            print(tabulate.tabulate(table))
+            print('\n\n\n')
 
 print(tabulate.tabulate(table))
 print('')
