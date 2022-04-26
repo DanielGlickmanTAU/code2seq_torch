@@ -23,10 +23,6 @@ def evaluate(model, device, loader, evaluator: Evaluator):
             assert not pred.isnan().any()
             if evaluator.eval_metric == 'smb' or evaluator.eval_metric == 'coloring':
                 y_true.append(batch.y.detach().cpu())
-            # if coloring(i.e node classification), argmax to classify
-            # elif evaluator.name == 'coloring':
-            #     # pred = pred.argmax(dim=-1)
-            #     y_true.append(batch.y.view(pred.shape).detach().cpu())
             else:
                 y_true.append(batch.y.view(pred.shape).detach().cpu())
             y_pred.append(pred.detach().cpu())
