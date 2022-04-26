@@ -17,7 +17,7 @@ class AttentionWeightNormalizer(torch.nn.Module):
             return attn_new
 
         if attn_mask is not None:
-            assert attn_mask.min() == float('-inf')
+            assert attn_mask.min() == float('-inf') or not attn_mask.any()
             assert attn_mask.max() == 0.
             attention_weights = attention_weights + attn_mask
 
