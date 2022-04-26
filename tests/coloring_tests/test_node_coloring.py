@@ -13,7 +13,7 @@ from ogb.graphproppred import Evaluator
 from train.eval import evaluate
 from train.training import train_epoch
 
-dataset = PyramidNodeColorDataset(max_row_size=5, num_adj_stack=5)
+dataset = PyramidNodeColorDataset(max_row_size=5)
 
 index_to_color = coloring_utils.index_to_color
 # visualization.draw(dataset.dataset[0], dataset.dataset[0].y, color_map=index_to_color)
@@ -22,7 +22,7 @@ index_to_color = coloring_utils.index_to_color
 print(dataset)
 args = get_default_args()
 # args.dataset = "PATTERN"
-args.num_transformer_layers = 0
+args.num_transformer_layers = 2
 args.num_layer = 4
 args.drop_ratio = 0.
 args.transformer_encoder_dropout = 0.

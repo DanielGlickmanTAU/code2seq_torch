@@ -23,8 +23,10 @@ def draw_pyg_graph(graph: Union[torch_geometric.data.Data, nx.Graph], to_undirec
     plt.show()
 
 
-def draw(data: torch_geometric.data.Data, color_tensor, color_map=None,to_undirected=True):
-    graph = torch_geometric.utils.to_networkx(data,to_undirected=to_undirected)
+def draw(graph: Union[torch_geometric.data.Data, nx.Graph], color_tensor, color_map=None, to_undirected=True,
+         positions=None, with_labels=False):
+    if isinstance(graph, torch_geometric.data.Data):
+        graph = torch_geometric.utils.to_networkx(graph, to_undirected=to_undirected)
     # if got network predictions,take the argmax
     color_tensor = color_tensor.squeeze()
     if color_tensor.dim() == 2:
@@ -37,8 +39,9 @@ def draw(data: torch_geometric.data.Data, color_tensor, color_map=None,to_undire
     nx.draw(graph,
             # dataset.positions,
             node_color=colors,
+            pos=positions,
             # edge_color=edge_colors,
-            # with_labels=True
+            with_labels=with_labels
             )
     plt.show()
 
