@@ -9,6 +9,8 @@ from coloring import coloring_utils
 from data import dataloader_utils
 from model import model_utils
 from model.positional.positional_attention_weight import AdjStack
+from ogb.graphproppred import Evaluator
+from train.eval import evaluate
 from train.training import train_epoch
 
 dataset = PyramidNodeColorDataset(max_row_size=5, num_adj_stack=5)
@@ -20,7 +22,8 @@ index_to_color = coloring_utils.index_to_color
 print(dataset)
 args = get_default_args()
 # args.dataset = "PATTERN"
-args.num_layer = args.num_transformer_layers = 0
+args.num_transformer_layers = 0
+args.num_layer = 4
 args.drop_ratio = 0.
 args.transformer_encoder_dropout = 0.
 args.emb_dim = 100
@@ -34,15 +37,17 @@ task = 'coloring'
 model = model_utils.get_model(args, num_tasks=num_colors, device=device, task=task, num_embedding=num_colors + 1)
 print(model)
 loader = dataloader_utils.create_dataset_loader(dataset, batch_size=32, mapping=AdjStack(args))
+evaluator = Evaluator('coloring')
 
 optimizer = optim.Adam(model.parameters(), lr=2e-4)
+
 for epoch in range(1, 50000 + 1):
     # epoch_avg_loss = train_epoch(model, device, train_loader, optimizer, task_type, experiment=exp)
     epoch_avg_loss = train_epoch(model, device, loader, optimizer, task)
     print(f'loss is {epoch_avg_loss}')
 
-    # eval_dict = evaluate(model, device, train_loader, evaluator)
+    eval_dict = evaluate(model, device, loader, evaluator)
     #
-    # print(f'Evaluating epoch {epoch}...{metric}: {eval_dict}')
+    print(f'Evaluating epoch {epoch}... {eval_dict}')
     # if exp:
     #     exp.log_metric('score', rocauc)

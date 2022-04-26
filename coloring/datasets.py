@@ -57,8 +57,8 @@ class PyramidEdgeColorDataset(Dataset):
 class PyramidNodeColorDataset(Dataset):
     @staticmethod
     def get_random_index_with_value(tensor, value):
-        indexes, _ = torch.where(tensor == value)
-        return numpy.random.choice(indexes)
+        indexes = torch.where(tensor == value)
+        return numpy.random.choice(*indexes)
 
     def __init__(self, max_row_size, num_adj_stack):
         graph, positions = coloring.graph_generation.create_pyramid(1, max_row_size)
@@ -66,13 +66,14 @@ class PyramidNodeColorDataset(Dataset):
         self.graph = graph
         self.positions = positions
 
-        data = torch_geometric.utils.from_networkx(graph, all)
-        red_index = self.get_random_index_with_value(data.x, 0)
-        green_index = self.get_random_index_with_value(data.x, 1)
-        blue_index = self.get_random_index_with_value(data.x, 2)
+        data = torch_geometric.utils.from_networkx(graph)
+        node_colors = torch.tensor([attr['color'] for _, attr in graph.nodes(data=True)])
+        red_index = self.get_random_index_with_value(node_colors, 0)
+        green_index = self.get_random_index_with_value(node_colors, 1)
+        blue_index = self.get_random_index_with_value(node_colors, 2)
 
-        data.y = data.x
-        data.x = torch.zeros_like(data.x)
+        data.y = node_colors
+        data.x = torch.zeros_like(data.y)
         data.x[red_index] = 1
         data.x[green_index] = 2
         data.x[blue_index] = 3
