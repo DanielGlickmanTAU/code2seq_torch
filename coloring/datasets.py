@@ -1,3 +1,5 @@
+import os
+
 from code2seq.utils import compute
 import torch_geometric
 from torch.utils.data import Dataset
@@ -60,6 +62,16 @@ class PyramidNodeColorDataset(Dataset):
     def get_random_index_with_value(tensor, value):
         indexes = torch.where(tensor == value)
         return numpy.random.choice(*indexes)
+
+    @staticmethod
+    def create(max_row_size):
+        dir = os.path.join(compute.get_project_root(), 'data')
+        file = os.path.join(dir, f'pyramid_color_{max_row_size}')
+        if os.path.exists(file):
+            return torch.load(file)
+        ds = PyramidNodeColorDataset(max_row_size)
+        torch.save(ds,file)
+        return ds
 
     def __init__(self, max_row_size):
         self.dataset = []

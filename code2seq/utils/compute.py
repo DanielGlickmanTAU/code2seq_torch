@@ -1,4 +1,5 @@
 import gc
+from pathlib import Path
 
 try:
     import comet_ml
@@ -108,3 +109,9 @@ def clean_memory():
     gc.collect()
     get_torch().cuda.empty_cache()
     print(f'gc took:{time.time() - t}')
+
+
+def get_project_root():
+    project_name = 'code2seq_torch'
+    current_dir = Path(__file__)
+    return str([p for p in current_dir.parents if p.parts[-1] == project_name][0])
