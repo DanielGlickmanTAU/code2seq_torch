@@ -5,7 +5,7 @@ from ogb.graphproppred import Evaluator
 import visualization
 
 
-def evaluate(model, device, loader, evaluator: Evaluator, is_first_eval=False):
+def evaluate(model, device, loader, evaluator: Evaluator, epoch=None):
     model.eval()
     y_true = []
     y_pred = []
@@ -34,7 +34,7 @@ def evaluate(model, device, loader, evaluator: Evaluator, is_first_eval=False):
     if evaluator.name == 'coloring':
         g = batch[0]
         g_pred = pred[:g.num_nodes]
-        if is_first_eval:
+        if epoch == 1:
             visualization.draw_pyramid(g, 'x')
             visualization.draw_pyramid(g, 'y')
         visualization.draw_pyramid(g, g_pred)

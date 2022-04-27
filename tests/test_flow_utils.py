@@ -16,7 +16,7 @@ def train_and_assert_overfit(model, train_loader, evaluator, task_type, score_ne
         epoch_avg_loss = train_epoch(model, device, train_loader, optimizer, task_type, experiment=exp)
         print(f'loss is {epoch_avg_loss}')
 
-        eval_dict = evaluate(model, device, test_loader, evaluator, is_first_eval=epoch == 1)
+        eval_dict = evaluate(model, device, test_loader, evaluator, epoch)
         exp.log_figure()
         if 'rocauc' in eval_dict:
             metric = 'rocauc'
