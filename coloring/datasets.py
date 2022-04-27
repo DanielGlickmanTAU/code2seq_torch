@@ -5,6 +5,7 @@ from torch.utils.data import Dataset
 import coloring.graph_generation
 from coloring.coloring_utils import color_graph, create_stacks, map_tensor_edge_to_networkx_node_ids
 import numpy
+from itertools import permutations
 
 torch = compute.get_torch()
 device = compute.get_device()
@@ -61,26 +62,46 @@ class PyramidNodeColorDataset(Dataset):
         return numpy.random.choice(*indexes)
 
     def __init__(self, max_row_size):
+        self.dataset = []
         graph, positions = coloring.graph_generation.create_pyramid(1, max_row_size)
+        graph.positions = positions
         color_graph(graph)
         node_colors = torch.tensor([attr['color'] for _, attr in graph.nodes(data=True)])
-        # self.positions = positions
+        for p in permutations([0, 1, 2]):
+            node_colors_permute = torch.tensor([p[x.item()] for x in node_colors])
+            # data = self.create_pyg_graph_random(graph, node_colors_permute)
+            pyg_graphs = self.create_all_pyg_graphs(graph, node_colors_permute)
+            self.dataset.extend(pyg_graphs)
 
-        data = torch_geometric.utils.from_networkx(graph)
-        graph.positions = positions
-        data.graph = graph
-
+    def create_pyg_graph_random(self, graph, node_colors):
         red_index = self.get_random_index_with_value(node_colors, 0)
         green_index = self.get_random_index_with_value(node_colors, 1)
         blue_index = self.get_random_index_with_value(node_colors, 2)
 
+        return self._create_pyg_graph(graph, node_colors, red_index, green_index, blue_index)
+
+    def create_all_pyg_graphs(self, graph, node_colors):
+        pyg_graphs = []
+        for red_index in torch.where(node_colors == 0)[0]:
+            for green_index in torch.where(node_colors == 1)[0]:
+                for blue_index in torch.where(node_colors == 2)[0]:
+                    pyg_graph = self._create_pyg_graph(graph, node_colors, red_index, green_index, blue_index)
+                    pyg_graphs.append(pyg_graph)
+        return pyg_graphs
+
+    def is_scalar(self, input):
+        return isinstance(input, int) or input.item() is not None
+
+    def _create_pyg_graph(self, graph, node_colors, red_index, green_index, blue_index):
+        assert self.is_scalar(red_index)
+        data = torch_geometric.utils.from_networkx(graph)
+        data.graph = graph
         data.y = node_colors
         data.x = torch.zeros_like(data.y)
         data.x[red_index] = 1
         data.x[green_index] = 2
         data.x[blue_index] = 3
-
-        self.dataset = [data]
+        return data
 
     def __len__(self):
         return len(self.dataset)
