@@ -4,6 +4,12 @@ from code2seq.utils import compute
 import comet_ml
 from pytorch_lightning.loggers import CometLogger
 
+global_exp = None
+
+
+def get_global_exp():
+    return global_exp
+
 
 def start_exp(exp_name, args, model):
     comet_logger = CometLogger(
@@ -16,6 +22,8 @@ def start_exp(exp_name, args, model):
 
     # need this for starting the experiment
     exp = comet_logger.experiment
+    global global_exp
+    global_exp = exp
 
     exp.set_model_graph(model)
     num_params = num_model_params(model)

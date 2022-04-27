@@ -26,14 +26,15 @@ def evaluate(model, device, loader, evaluator: Evaluator):
             else:
                 y_true.append(batch.y.view(pred.shape).detach().cpu())
             y_pred.append(pred.detach().cpu())
-        # visualization.draw(batch[0],batch[0].y)
-        # visualization.draw(batch[0],batch[0].x)
-        # visualization.draw(batch[0].graph, pred[:batch[0].num_nodes], color_map=['red', 'green', 'blue'],
-        #                    positions=batch[0].graph.positions)
+
 
     y_true = torch.cat(y_true, dim=0).numpy()
     y_pred = torch.cat(y_pred, dim=0).numpy()
 
     input_dict = {"y_true": y_true, "y_pred": y_pred}
+    if evaluator.name == 'coloring':
+        g = batch[0]
+        g_pred = pred[:g.num_nodes]
+        visualization.draw_pyramid(g,g_pred)
 
     return evaluator.eval(input_dict)
