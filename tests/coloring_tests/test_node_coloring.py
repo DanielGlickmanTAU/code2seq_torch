@@ -1,8 +1,9 @@
+from code2seq.utils import compute
+import exp_utils
 from torch import optim
 from torch_geometric.loader import DataLoader
 
 from args_parse import get_default_args
-from code2seq.utils import compute
 from coloring.datasets import PyramidNodeColorDataset
 import visualization
 from coloring import coloring_utils
@@ -10,6 +11,7 @@ from data import dataloader_utils
 from model import model_utils
 from model.positional.positional_attention_weight import AdjStack
 from ogb.graphproppred import Evaluator
+from tests import test_flow_utils
 from train.eval import evaluate
 from train.training import train_epoch
 
@@ -22,7 +24,7 @@ index_to_color = coloring_utils.index_to_color
 print(dataset)
 args = get_default_args()
 # args.dataset = "PATTERN"
-args.num_transformer_layers = 2
+args.num_transformer_layers = 0
 args.num_layer = 4
 args.drop_ratio = 0.
 args.transformer_encoder_dropout = 0.
@@ -36,18 +38,20 @@ device = compute.get_device()
 task = 'coloring'
 model = model_utils.get_model(args, num_tasks=num_colors, device=device, task=task, num_embedding=num_colors + 1)
 print(model)
-loader = dataloader_utils.create_dataset_loader(dataset, batch_size=32, mapping=AdjStack(args))
 evaluator = Evaluator('coloring')
+loader = dataloader_utils.create_dataset_loader(dataset, batch_size=32, mapping=AdjStack(args))
+exp = exp_utils.start_exp("test", args, model)
 
-optimizer = optim.Adam(model.parameters(), lr=2e-4)
-
-for epoch in range(1, 50000 + 1):
-    # epoch_avg_loss = train_epoch(model, device, train_loader, optimizer, task_type, experiment=exp)
-    epoch_avg_loss = train_epoch(model, device, loader, optimizer, task)
-    print(f'loss is {epoch_avg_loss}')
-
-    eval_dict = evaluate(model, device, loader, evaluator)
-    #
-    print(f'Evaluating epoch {epoch}... {eval_dict}')
-    # if exp:
-    #     exp.log_metric('score', rocauc)
+test_flow_utils.train_and_assert_overfit_on_train(model, loader, evaluator, 'coloring',exp=exp)
+# optimizer = optim.Adam(model.parameters(), lr=2e-4)
+#
+# for epoch in range(1, 50000 + 1):
+#     # epoch_avg_loss = train_epoch(model, device, train_loader, optimizer, task_type, experiment=exp)
+#     epoch_avg_loss = train_epoch(model, device, loader, optimizer, task)
+#     print(f'loss is {epoch_avg_loss}')
+#
+#     eval_dict = evaluate(model, device, loader, evaluator)
+#     #
+#     print(f'Evaluating epoch {epoch}... {eval_dict}')
+#     # if exp:
+#     #     exp.log_metric('score', rocauc)
