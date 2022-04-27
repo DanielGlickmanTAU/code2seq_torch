@@ -479,7 +479,6 @@ class Test(TestCase):
 
     def _train_and_assert_overfit_on_train(self, model, train_loader, evaluator, task_type, score_needed=0.9, exp=None,
                                            lr=3e-5):
-        print('learning rate and epochjs changed')
         device = compute.get_device()
         optimizer = optim.Adam(model.parameters(), lr=lr)
         for epoch in range(1, 500 + 1):
