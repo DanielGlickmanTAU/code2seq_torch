@@ -5,7 +5,7 @@ from ogb.graphproppred import Evaluator
 import visualization
 
 
-def evaluate(model, device, loader, evaluator: Evaluator):
+def evaluate(model, device, loader, evaluator: Evaluator, is_first_eval=False):
     model.eval()
     y_true = []
     y_pred = []
@@ -27,7 +27,6 @@ def evaluate(model, device, loader, evaluator: Evaluator):
                 y_true.append(batch.y.view(pred.shape).detach().cpu())
             y_pred.append(pred.detach().cpu())
 
-
     y_true = torch.cat(y_true, dim=0).numpy()
     y_pred = torch.cat(y_pred, dim=0).numpy()
 
@@ -35,6 +34,9 @@ def evaluate(model, device, loader, evaluator: Evaluator):
     if evaluator.name == 'coloring':
         g = batch[0]
         g_pred = pred[:g.num_nodes]
-        visualization.draw_pyramid(g,g_pred)
+        if is_first_eval:
+            visualization.draw_pyramid(g, 'x')
+            visualization.draw_pyramid(g, 'y')
+        visualization.draw_pyramid(g, g_pred)
 
     return evaluator.eval(input_dict)
