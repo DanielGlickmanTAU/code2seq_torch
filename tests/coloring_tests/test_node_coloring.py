@@ -42,7 +42,7 @@ evaluator = Evaluator('coloring')
 loader = dataloader_utils.create_dataset_loader(dataset, batch_size=32, mapping=AdjStack(args))
 exp = exp_utils.start_exp("test", args, model)
 
-test_flow_utils.train_and_assert_overfit_on_train(model, loader, evaluator, 'coloring',exp=exp)
+test_flow_utils.train_and_assert_overfit(model, loader, evaluator, 'coloring', exp=exp)
 # optimizer = optim.Adam(model.parameters(), lr=2e-4)
 #
 # for epoch in range(1, 50000 + 1):

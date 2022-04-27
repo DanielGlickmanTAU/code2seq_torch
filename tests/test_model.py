@@ -3,7 +3,7 @@ import unittest
 from unittest import TestCase
 
 import exp_utils
-from tests.test_flow_utils import train_and_assert_overfit_on_train
+from tests.test_flow_utils import train_and_assert_overfit
 
 import consts
 from args_parse import get_default_args
@@ -66,8 +66,8 @@ class Test(TestCase):
 
         exp = None
         exp = exp_utils.start_exp("test", args, model)
-        train_and_assert_overfit_on_train(model, train_loader, evaluator, 'node classification', exp=exp,
-                                          lr=args.learning_rate)
+        train_and_assert_overfit(model, train_loader, evaluator, 'node classification', exp=exp,
+                                 lr=args.learning_rate)
 
     def test_can_overfit_pattern_dataset_with_position_gating_ff_batch_norm(self):
         args, dataset_samples = self._get_pattern_overfit_config()
@@ -96,8 +96,8 @@ class Test(TestCase):
 
         exp = None
         exp = exp_utils.start_exp("test", args, model)
-        train_and_assert_overfit_on_train(model, train_loader, evaluator, 'node classification', exp=exp,
-                                          lr=args.learning_rate)
+        train_and_assert_overfit(model, train_loader, evaluator, 'node classification', exp=exp,
+                                 lr=args.learning_rate)
 
     def test_can_overfit_pattern_dataset_with_position_gating_large_learning_attention_batch_norm(self):
         args, dataset_samples = self._get_pattern_overfit_config()
@@ -126,8 +126,8 @@ class Test(TestCase):
 
         exp = None
         exp = exp_utils.start_exp("test", args, model)
-        train_and_assert_overfit_on_train(model, train_loader, evaluator, 'node classification', exp=exp,
-                                          lr=args.learning_rate)
+        train_and_assert_overfit(model, train_loader, evaluator, 'node classification', exp=exp,
+                                 lr=args.learning_rate)
 
     def test_can_overfit_pattern_dataset_with_position_gating__batch_norm_in_mlp(self):
         args, dataset_samples = self._get_pattern_overfit_config()
@@ -156,8 +156,8 @@ class Test(TestCase):
 
         exp = None
         exp = exp_utils.start_exp("test", args, model)
-        train_and_assert_overfit_on_train(model, train_loader, evaluator, 'node classification', exp=exp,
-                                          lr=args.learning_rate)
+        train_and_assert_overfit(model, train_loader, evaluator, 'node classification', exp=exp,
+                                 lr=args.learning_rate)
 
     def test_can_overfit_pattern_dataset_with_position__batch_norm_in_mlp_larger_fov(self):
         args, dataset_samples = self._get_pattern_overfit_config()
@@ -187,8 +187,8 @@ class Test(TestCase):
 
         exp = None
         # exp = exp_utils.start_exp("test", args, model)
-        train_and_assert_overfit_on_train(model, train_loader, evaluator, 'node classification', exp=exp,
-                                          lr=args.learning_rate)
+        train_and_assert_overfit(model, train_loader, evaluator, 'node classification', exp=exp,
+                                 lr=args.learning_rate)
 
     def test_can_overfit_pattern_dataset_with_position__batch_norm_in_mlp(self):
         args, dataset_samples = self._get_pattern_overfit_config()
@@ -218,8 +218,8 @@ class Test(TestCase):
 
         exp = None
         # exp = exp_utils.start_exp("test", args, model)
-        train_and_assert_overfit_on_train(model, train_loader, evaluator, 'node classification', exp=exp,
-                                          lr=args.learning_rate)
+        train_and_assert_overfit(model, train_loader, evaluator, 'node classification', exp=exp,
+                                 lr=args.learning_rate)
 
     def test_can_overfit_pattern_dataset_with_position_nobn(self):
         args, dataset_samples = self._get_pattern_overfit_config()
@@ -249,8 +249,8 @@ class Test(TestCase):
 
         exp = None
         exp = exp_utils.start_exp("test", args, model)
-        train_and_assert_overfit_on_train(model, train_loader, evaluator, 'node classification', exp=exp,
-                                          lr=args.learning_rate)
+        train_and_assert_overfit(model, train_loader, evaluator, 'node classification', exp=exp,
+                                 lr=args.learning_rate)
 
     def test_can_overfit_pattern_dataset_with_gating(self):
         args, dataset_samples = self._get_pattern_overfit_config()
@@ -280,8 +280,8 @@ class Test(TestCase):
 
         exp = None
         exp = exp_utils.start_exp("test", args, model)
-        train_and_assert_overfit_on_train(model, train_loader, evaluator, 'node classification', exp=exp,
-                                          lr=args.learning_rate)
+        train_and_assert_overfit(model, train_loader, evaluator, 'node classification', exp=exp,
+                                 lr=args.learning_rate)
 
     def test_can_overfit_pattern_dataset_with_position_nobn3(self):
         args, dataset_samples = self._get_pattern_overfit_config()
@@ -311,8 +311,8 @@ class Test(TestCase):
 
         exp = None
         exp = exp_utils.start_exp("test", args, model)
-        train_and_assert_overfit_on_train(model, train_loader, evaluator, 'node classification', exp=exp,
-                                          lr=args.learning_rate)
+        train_and_assert_overfit(model, train_loader, evaluator, 'node classification', exp=exp,
+                                 lr=args.learning_rate)
 
     def test_can_overfit_pattern_dataset_with_position_nobn4(self):
         args, dataset_samples = self._get_pattern_overfit_config()
@@ -342,8 +342,8 @@ class Test(TestCase):
 
         exp = None
         exp = exp_utils.start_exp("test", args, model)
-        train_and_assert_overfit_on_train(model, train_loader, evaluator, 'node classification', exp=exp,
-                                          lr=args.learning_rate)
+        train_and_assert_overfit(model, train_loader, evaluator, 'node classification', exp=exp,
+                                 lr=args.learning_rate)
 
     def test_can_overfit_pattern_dataset_with_position_gating__batch_norm_in_mlp_big_receptive(self):
         args, dataset_samples = self._get_pattern_overfit_config()
@@ -372,8 +372,8 @@ class Test(TestCase):
 
         exp = None
         exp = exp_utils.start_exp("test", args, model)
-        train_and_assert_overfit_on_train(model, train_loader, evaluator, 'node classification', exp=exp,
-                                          lr=args.learning_rate)
+        train_and_assert_overfit(model, train_loader, evaluator, 'node classification', exp=exp,
+                                 lr=args.learning_rate)
 
     # def test_can_overfit_pattern_dataset_with_position_attention(self):
     #     args, dataset_samples = self._get_pattern_overfit_config()
@@ -393,7 +393,7 @@ class Test(TestCase):
         num_tasks = consts.pattern_num_tasks if task == 'pattern' else consts.cluster_num_tasks
         model = get_model(args, num_tasks, compute.get_device(), task=task)
         exp = exp_utils.start_exp("test", args, model) if exp else None
-        train_and_assert_overfit_on_train(model, train_loader, evaluator, 'node classification', exp=exp)
+        train_and_assert_overfit(model, train_loader, evaluator, 'node classification', exp=exp)
 
     def test_can_overfit_pattern_dataset_with_gnn(self):
         args, dataset_samples = self._get_pattern_overfit_config()
@@ -469,7 +469,7 @@ class Test(TestCase):
                                                          batch_size=args.batch_size,
                                                          limit=dataset_samples)
         model = get_model(args, dataset.num_tasks, device, task='mol')
-        train_and_assert_overfit_on_train(model, train_loader, evaluator, dataset.task_type, score_needed)
+        train_and_assert_overfit(model, train_loader, evaluator, dataset.task_type, score_needed)
 
 
 if __name__ == '__main__':

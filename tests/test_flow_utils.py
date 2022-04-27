@@ -5,8 +5,8 @@ from train.eval import evaluate
 from train.training import train_epoch
 
 
-def train_and_assert_overfit_on_train(model, train_loader, evaluator, task_type, score_needed=0.9, exp=None,
-                                      lr=3e-5):
+def train_and_assert_overfit(model, train_loader, evaluator, task_type, score_needed=0.9, exp=None,
+                             lr=3e-5):
     device = compute.get_device()
     optimizer = optim.Adam(model.parameters(), lr=lr)
     for epoch in range(1, 500 + 1):
