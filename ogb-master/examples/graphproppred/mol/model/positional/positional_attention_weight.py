@@ -27,7 +27,7 @@ class AdjStackAttentionWeights(torch.nn.Module):
                 torch.nn.Linear(num_adj_stacks, hidden_dim),
                 torch.nn.BatchNorm1d(hidden_dim),
                 torch.nn.ReLU(),
-                torch.nn.Linear(hidden_dim, 1),
+                torch.nn.Linear(hidden_dim, num_heads, bias=bias),
             )
         else:
             self.weight = nn.Linear(in_features=num_adj_stacks, out_features=num_heads, bias=bias)
@@ -46,6 +46,7 @@ class AdjStackAttentionWeights(torch.nn.Module):
 
         real_nodes_edge_mask = self._create_real_edges_mask(b, mask, n, stacks)
 
+        adj_weights = self.weight(stacks[real_nodes_edge_mask])
         adj_weights = self.weight(stacks[real_nodes_edge_mask])
         assert adj_weights.shape[-1] == self.num_heads
 
