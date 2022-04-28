@@ -35,8 +35,8 @@ def evaluate(model, device, loader, evaluator: Evaluator, epoch=None):
         g = batch[0]
         g_pred = pred[:g.num_nodes]
         if epoch == 1:
-            visualization.draw_pyramid(g, 'x')
-            visualization.draw_pyramid(g, 'y')
-        visualization.draw_pyramid(g, g_pred)
+            visualization.draw_pyramid(g, 'x', 'input')
+            visualization.draw_pyramid(g, 'y', 'gold')
+        visualization.draw_pyramid(g, g_pred, f'epoch {epoch}')
 
     return evaluator.eval(input_dict)

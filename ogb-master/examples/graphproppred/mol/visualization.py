@@ -26,7 +26,7 @@ def draw_pyg_graph(graph: Union[torch_geometric.data.Data, nx.Graph], to_undirec
 
 
 def draw(graph: Union[torch_geometric.data.Data, nx.Graph], color_tensor, color_map=None, to_undirected=True,
-         positions=None, with_labels=False, alpha=None):
+         positions=None, with_labels=False, alpha=None, label=None):
     if isinstance(graph, torch_geometric.data.Data):
         graph = torch_geometric.utils.to_networkx(graph, to_undirected=to_undirected)
     # if got network predictions,take the argmax
@@ -38,21 +38,27 @@ def draw(graph: Union[torch_geometric.data.Data, nx.Graph], color_tensor, color_
     if color_map:
         colors = [color_map[x] for x in colors]
 
+    # fig, axe = plt.subplots(figsize=(11, 6))
+    fig, axe = plt.subplots()
+    axe.set_title(label, loc='right')
+
     nx.draw(graph,
             # dataset.positions,
             node_color=colors,
             pos=positions,
             # edge_color=edge_colors,
-            with_labels=with_labels,
-            alpha=alpha
+            with_labels=with_labels and alpha is None,
+            alpha=alpha,
+            label=label,
+            ax=axe
             )
     exp = get_global_exp()
     if exp:
-        exp.log_figure()
+        exp.log_figure(figure_name=label)
     plt.show()
 
 
-def draw_pyramid(data: torch_geometric.data.Data, color_with: Union[str, torch.Tensor]):
+def draw_pyramid(data: torch_geometric.data.Data, color_with: Union[str, torch.Tensor], label=None):
     """gets PyramidNodeColorDataset and colors it..
     uses positions from graph. color_with is either x, y or a tensor of predictions"""
     positions = data.graph.positions
@@ -70,7 +76,8 @@ def draw_pyramid(data: torch_geometric.data.Data, color_with: Union[str, torch.T
         colors = color_with.argmax(dim=-1)
         color_map = ['red', 'green', 'blue']
         alpha = color_with.softmax(dim=-1).max(dim=-1)[0].tolist()
-    draw(data.graph, color_tensor=colors, color_map=color_map, positions=positions, alpha=alpha)
+    draw(data.graph, color_tensor=colors, color_map=color_map, positions=positions, alpha=alpha, label=label,
+         with_labels=True)
 
 
 def show_matrix(stacks, cmap=None, text=None):
