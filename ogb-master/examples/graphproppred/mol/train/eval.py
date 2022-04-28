@@ -48,6 +48,7 @@ def evaluate(model, device, loader, evaluator: Evaluator, epoch=None):
         if epoch == 1:
             visualization.draw_pyramid(g, 'x', 'input')
             visualization.draw_pyramid(g, 'y', 'gold')
-        visualization.draw_pyramid(g, g_pred, f'epoch {_lexo(epoch, 1000)}. acc:{g_acc}')
+        if epoch is not None:
+            visualization.draw_pyramid(g, g_pred, f'epoch {_lexo(epoch, 1000)}. acc:{g_acc}')
 
     return evaluator.eval(input_dict)
