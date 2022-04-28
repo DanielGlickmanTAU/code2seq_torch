@@ -34,9 +34,11 @@ def evaluate(model, device, loader, evaluator: Evaluator, epoch=None):
     if evaluator.name == 'coloring':
         g = batch[0]
         g_pred = pred[:g.num_nodes]
+        g_acc = (g_pred.argmax(dim=-1) == g.y).float().mean()
+        g_acc = str(round(g_acc.item(), 2))
         if epoch == 1:
             visualization.draw_pyramid(g, 'x', 'input')
             visualization.draw_pyramid(g, 'y', 'gold')
-        visualization.draw_pyramid(g, g_pred, f'epoch {epoch}')
+        visualization.draw_pyramid(g, g_pred, f'epoch {epoch}. example acc:{g_acc}')
 
     return evaluator.eval(input_dict)
