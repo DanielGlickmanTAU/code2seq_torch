@@ -7,6 +7,7 @@ import torch
 
 # from train import evaluate
 from train.eval import evaluate
+
 from train.loss import sbm_loss
 
 cls_criterion = torch.nn.BCEWithLogitsLoss()
@@ -116,10 +117,10 @@ def full_train_flow(args, device, evaluator, model, test_loader, train_loader, v
                                      grad_accum_steps=args.grad_accum_steps, experiment=exp)
 
         print('Evaluating...')
-        valid_perf = evaluate(model, device, valid_loader, evaluator)
-        test_perf = evaluate(model, device, test_loader, evaluator)
+        valid_perf = evaluate(model, device, valid_loader, evaluator, epoch)
+        test_perf = evaluate(model, device, test_loader, evaluator, epoch)
         if global_config.log_train_acc:
-            train_pref = evaluate(model, device, train_loader, evaluator)
+            train_pref = evaluate(model, device, train_loader, evaluator, epoch)
 
         print(f'epoch loss {epoch_avg_loss}')
         print({'Validation': valid_perf, 'Test': test_perf})
