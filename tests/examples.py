@@ -37,7 +37,7 @@ class TestAdjStack(TestCase):
         stacks = torch.tensor(stacks)
         stacks_batch = torch.stack([stacks])
 
-        adj_bias_model = AdjStackAttentionWeights(num_adj_stacks, num_heads=3, bias=False)
+        adj_bias_model = AdjStackAttentionWeights(args, num_adj_stacks, num_heads=3, bias=False)
         adj_bias_model.weight = test_utils.MockModule(lambda x: x.sum(-1, keepdim=True))
 
         new_stacks = adj_bias_model(stacks_batch)
@@ -175,7 +175,7 @@ class TestAdjStack(TestCase):
         stacks[:-1] = 0
 
         stacks_batch = torch.stack([stacks])
-        adj_bias_model = AdjStackAttentionWeights(num_adj_stacks, num_heads=3, bias=False)
+        adj_bias_model = AdjStackAttentionWeights(args, num_adj_stacks, num_heads=3, bias=False)
         adj_bias_model.weight = test_utils.MockModule(lambda x: x.sum(-1, keepdim=True))
 
         new_stacks = adj_bias_model(stacks_batch)

@@ -13,9 +13,10 @@ from model.positional.positional_attention_weight import AdjStack
 from ogb.graphproppred import Evaluator
 from tests import test_flow_utils
 
-pyramid_size = 10
-dataset = PyramidNodeColorDataset(max_row_size=pyramid_size)
-dataset_test = PyramidNodeColorDataset(max_row_size=pyramid_size + 1)
+pyramid_size = 5
+num_adj_stacks = pyramid_size + 1
+dataset = PyramidNodeColorDataset.create(max_row_size=pyramid_size)
+dataset_test = PyramidNodeColorDataset.create(max_row_size=pyramid_size + 1)
 
 index_to_color = coloring_utils.index_to_color
 
@@ -23,11 +24,11 @@ print(dataset)
 args = get_default_args()
 # args.dataset = "PATTERN"
 args.num_transformer_layers = 0
-args.num_layer = 6
+args.num_layer = 4
 args.drop_ratio = 0.
 args.transformer_encoder_dropout = 0.
 args.emb_dim = 100
-args.adj_stack = list(range(pyramid_size + 1))
+args.adj_stack = list(range(num_adj_stacks))
 # args.num_heads = 1
 
 

@@ -4,16 +4,33 @@ from torch import nn
 from torch_geometric.data import Data
 
 import global_config
+from arg_parse_utils import bool_
 
 
 class AdjStackAttentionWeights(torch.nn.Module):
     _stack_dim = 1
 
-    def __init__(self, num_adj_stacks, num_heads, bias=True):
+    @staticmethod
+    def add_args(parser):
+        parser.add_argument('--use_ffn_for_attention_weights', type=bool_, default=False,
+                            help='should use 1 hidden layers ffn  to reduce edge to attention logit. If not, will use linear layer')
+        parser.add_argument('--attention_weights_ffn_hidden_multiplier', type=int, default=2)
+
+    def __init__(self, args, num_adj_stacks, num_heads, bias=True):
         super(AdjStackAttentionWeights, self).__init__()
+        self.args = args
         self.num_adj_stacks = num_adj_stacks
         self.num_heads = num_heads
-        self.weight = nn.Linear(in_features=num_adj_stacks, out_features=num_heads, bias=bias)
+        if self.args.use_ffn_for_attention_weights:
+            hidden_dim = num_adj_stacks * self.args.attention_weights_ffn_hidden_multiplier
+            self.weight = torch.nn.Sequential(
+                torch.nn.Linear(num_adj_stacks, hidden_dim),
+                torch.nn.BatchNorm1d(hidden_dim),
+                torch.nn.ReLU(),
+                torch.nn.Linear(hidden_dim, 1),
+            )
+        else:
+            self.weight = nn.Linear(in_features=num_adj_stacks, out_features=num_heads, bias=bias)
 
     # stacks shape is (batch,num_adj_stacks,n,n)
     # mask shape is (batch,n,n). True where should hide

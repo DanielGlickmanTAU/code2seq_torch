@@ -6,6 +6,7 @@ import torch.nn as nn
 from arg_parse_utils import bool_
 from code2seq.utils.compute import get_device
 from model.MyTransformerEncoderLayer import MyTransformerEncoderLayer
+from model.positional.positional_attention_weight import AdjStackAttentionWeights
 
 
 class GraphTransformerEncoder(nn.Module):
@@ -14,7 +15,7 @@ class GraphTransformerEncoder(nn.Module):
         parser.add_argument('--attention_type', type=str, default='content')
         parser.add_argument('--gating', type=bool_, default=False,
                             help='if true, use element wise sigmoid instead of softmax in attention')
-        # But default it is on, which is opposed to the original transformm but is adpodated by manny
+        # But default it is on, which is opposed to the original transformer but is used by many
         parser.add_argument('--norm_first', type=bool_, default=True,
                             help='apply layer norm before or after self attention and feedforward. Default True')
 
@@ -23,6 +24,8 @@ class GraphTransformerEncoder(nn.Module):
         parser.add_argument('--ff_norm_type', type=str, default='layer',
                             help='use layer or batch norm. see also norm_first')
         parser.add_argument('--use_batch_norm_in_transformer_mlp', type=bool_, default=False)
+
+        AdjStackAttentionWeights.add_args(parser)
 
     __constants__ = ['norm']
 

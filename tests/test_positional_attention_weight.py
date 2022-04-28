@@ -44,7 +44,7 @@ class TestAdjStack(TestCase):
         stacks = torch.tensor(stacks)
         stacks_batch = torch.stack([stacks, stacks + torch.rand(1)])
 
-        adj_bias_model = AdjStackAttentionWeights(num_adj_stacks, num_heads=num_adj_stacks, bias=False)
+        adj_bias_model = AdjStackAttentionWeights(args, num_adj_stacks, num_heads=num_adj_stacks, bias=False)
         with torch.no_grad():
             adj_bias_model.weight.weight.data = torch.eye(num_adj_stacks)
 
@@ -64,7 +64,7 @@ class TestAdjStack(TestCase):
         stacks = torch.tensor(stacks)
         stacks_batch = torch.stack([stacks])
 
-        adj_bias_model = AdjStackAttentionWeights(num_adj_stacks, num_heads=1, bias=False)
+        adj_bias_model = AdjStackAttentionWeights(args, num_adj_stacks, num_heads=1, bias=False)
         with torch.no_grad():
             adj_bias_model.weight.weight.data = torch.tensor([[0., 1., 2.]])
 
@@ -90,7 +90,7 @@ class TestAdjStack(TestCase):
         stacks = torch.tensor(stacks)
         stacks_batch = torch.stack([stacks])
 
-        adj_bias_model = AdjStackAttentionWeights(num_adj_stacks, num_heads=2, bias=False)
+        adj_bias_model = AdjStackAttentionWeights(args, num_adj_stacks, num_heads=2, bias=False)
         with torch.no_grad():
             adj_bias_model.weight.weight.data = torch.tensor([[1., 1., 1., 1.], [-1., -1., -1., -1.]])
 

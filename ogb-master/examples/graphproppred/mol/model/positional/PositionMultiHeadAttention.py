@@ -51,7 +51,7 @@ class PositionMultiHeadAttention(Module):
         else:
             self.bias_k = self.bias_v = None
 
-        self.positional_bias = AdjStackAttentionWeights(num_adj_stacks, num_heads)
+        self.positional_bias = AdjStackAttentionWeights(args, num_adj_stacks, num_heads)
         self.normalizer = AttentionWeightNormalizer(gating=self.gating)
 
         self._reset_parameters()
