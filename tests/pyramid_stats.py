@@ -14,6 +14,7 @@ from model.positional.positional_attention_weight import AdjStack, AdjStackAtten
 from tests import examples, test_utils
 import networkx as nx
 import matplotlib.pyplot as plt
+import pandas
 
 index_to_color = {0: 'red', 1: 'green', 2: 'blue'}
 
@@ -92,11 +93,11 @@ min_row_size = 1
 
 stats = {}
 
-for max_row_size in [4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]:
+for max_row_size in [5, 6]:
     graph, positions = coloring.graph_generation.create_pyramid(min_row_size, max_row_size)
     color_graph(graph)
     # for num_adj_stacks in range(max_row_size - 1, max_row_size + 10):
-    for num_adj_stacks in [max_row_size]:
+    for num_adj_stacks in [max_row_size, max_row_size + 1]:
         colors = [index_to_color[graph.nodes[x]['color']] for x in graph.nodes]
         # nx.draw(graph, positions, node_color=colors, with_labels=True)
         # plt.show()
@@ -118,4 +119,5 @@ for pyramid_base, edge_dim in stats:
     unique_edges, ambiguous, p_pairs_in_receptive = stats[(pyramid_base, edge_dim)]
     table.append([pyramid_base, edge_dim, unique_edges, ambiguous, p_pairs_in_receptive])
 
+df = pandas.DataFrame(table[1:], columns=table[0])
 print(tabulate.tabulate(table))
