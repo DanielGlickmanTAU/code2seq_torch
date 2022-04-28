@@ -38,7 +38,7 @@ def add_args(parser):
                         help='training early stopping patience')
     parser.add_argument('--lr_reduce_factor', type=float, default=0.5,
                         help='will set learning_rate = lr_reduce_factor * learning_rate every lr_schedule_patience epochs that the validation does not decrease')
-    parser.add_argument('--lr_schedule_patience', type=int, default=5, help='see lr_reduce_factor')
+    parser.add_argument('--lr_schedule_patience', type=int, default=10, help='see lr_reduce_factor')
     parser.add_argument('--num_workers', type=int, default=4 * torch.cuda.device_count(),
                         help='number of workers (default: 0)')
 
