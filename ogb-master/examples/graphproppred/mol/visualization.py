@@ -54,8 +54,9 @@ def draw(graph: Union[torch_geometric.data.Data, nx.Graph], color_tensor, color_
             )
     exp = get_global_exp()
     if exp:
-        exp.log_figure(figure_name=label)
-    plt.show()
+        exp.log_figure(figure=fig, figure_name=label)
+    else:
+        plt.show()
 
 
 def draw_pyramid(data: torch_geometric.data.Data, color_with: Union[str, torch.Tensor], label=None):
