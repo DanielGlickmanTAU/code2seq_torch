@@ -1,6 +1,6 @@
 # variables used mostly for debugging
 
-log_train_acc = True
+log_train_acc = False
 print_parameter_norms = False
 print_position_weights = False
 mask_far_away_nodes = True
