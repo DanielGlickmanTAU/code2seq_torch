@@ -5,6 +5,15 @@ from ogb.graphproppred import Evaluator
 import visualization
 
 
+def _lexo(n, max_val):
+    s = str(n)
+    n = n * 10
+    while n <= max_val:
+        s = '0' + s
+        n = n * 10
+    return s
+
+
 def evaluate(model, device, loader, evaluator: Evaluator, epoch=None):
     model.eval()
     y_true = []
@@ -39,6 +48,6 @@ def evaluate(model, device, loader, evaluator: Evaluator, epoch=None):
         if epoch == 1:
             visualization.draw_pyramid(g, 'x', 'input')
             visualization.draw_pyramid(g, 'y', 'gold')
-        visualization.draw_pyramid(g, g_pred, f'epoch {epoch}. example acc:{g_acc}')
+        visualization.draw_pyramid(g, g_pred, f'epoch {_lexo(epoch, 1000)}. acc:{g_acc}')
 
     return evaluator.eval(input_dict)
