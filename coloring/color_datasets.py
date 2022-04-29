@@ -68,9 +68,13 @@ class PyramidNodeColorDataset(Dataset):
         dir = os.path.join(compute.get_project_root(), 'data')
         file = os.path.join(dir, f'pyramid_color_{max_row_size}')
         if os.path.exists(file):
-            return torch.load(file)
+            try:
+                return torch.load(file)
+            except Exception as e:
+                print('fail loading dataset')
+
         ds = PyramidNodeColorDataset(max_row_size)
-        torch.save(ds,file)
+        torch.save(ds, file)
         return ds
 
     def __init__(self, max_row_size):
