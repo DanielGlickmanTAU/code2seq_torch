@@ -3,10 +3,10 @@ import matplotlib.pyplot as plt
 import tabulate
 
 from code2seq.utils import compute
+from coloring.color_datasets import PyramidEdgeColorDataset
 
 torch = compute.get_torch()
 from coloring.coloring_utils import tensor_to_tuple
-from coloring.datasets import PyramidEdgeColorDataset
 from tests.test_utils import MockModule
 
 from torch.utils.data import DataLoader
