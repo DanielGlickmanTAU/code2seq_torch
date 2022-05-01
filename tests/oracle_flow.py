@@ -67,13 +67,6 @@ def train_eval_loop(train_loader, eval_loader, model, draw_every=100, stop_thers
     wrong_edges = {d['nodes'] for d in wrong_predictions}
     mg = nx.MultiDiGraph(dataset.graph)
     mg.add_edges_from(wrong_edges)
-    edge_colors = ['red' if edge in wrong_edges else 'black' for edge in mg.edges()]
-    nx.draw(mg, dataset.positions,
-            node_color=[dataset.graph.nodes[x]['color'] for x in dataset.graph.nodes()],
-            edge_color=edge_colors,
-            with_labels=True)
-    plt.title(f'acc:{acc}')
-    plt.show()
 
     return {'final_acc': acc, 'final_acc_train': acc_train, 'final_fp': fp,
 
@@ -107,8 +100,7 @@ def get_model(num_adj_stacks, hidden_layer_multiplier, use_batch_norm, just_sum,
 
 
 table = [
-    ['pyramid base train', 'pyramid base test', 'edge size',
-     'final acc', 'final FP', 'final_acc_train', 'best acc', 'best fp']
+    ['pyramid base train', 'pyramid base test', 'edge size', 'acc_train', 'acc']
 
 ]
 device = compute.get_device()
@@ -127,12 +119,13 @@ class Oracle(torch.nn.Module):
         return torch.tensor([self.ground_truth[sample] if sample in self.ground_truth else 0. for sample in x])
 
 
-for max_row_size in [10]:
+for max_row_size in [15]:
     # for max_row_size in [4]:
     # for edge_size_plus in [0, 1, 2]:
     # for edge_size_plus in [-3, -2, -1, 0, 1]:
-    for test_size_plus in [0, 1, 2, 3, 4]:
-        for edge_size_plus in [-6, -5, -4, -3, -2, -1, 0]:
+    for test_size_plus in [1, 2, 3, 4]:
+        # for edge_size_plus in [-6, -5, -4, -3, -2, -1, 0]:
+        for edge_size_plus in [-6, -5, -4, -3, -2, -1, 0, 1]:
             num_adj_stacks = max_row_size + edge_size_plus
             dataset = PyramidEdgeColorDataset(max_row_size, num_adj_stacks)
             loader = DataLoader(dataset, batch_size=64000, shuffle=True)
@@ -145,11 +138,11 @@ for max_row_size in [10]:
 
             num_params = sum(p.numel() for p in model.parameters())
 
-            d = train_eval_loop(loader, test_loader, model, draw_every=1000)
+            d = train_eval_loop(loader, test_loader, model, draw_every=10000000)
             table.append(
                 [max_row_size, test_pyramid_base, num_adj_stacks,
 
-                 d['final_acc'], d['final_fp'], d['final_acc_train'], d['best_acc'], d['best_fp'],
+                 round(d['final_acc_train'], 3), round(d['best_acc'], 3),
 
                  ]
             )

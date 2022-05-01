@@ -7,9 +7,9 @@ import tabulate
 import coloring.graph_generation
 from code2seq.utils import compute
 from code2seq.utils.StoppingCritertion import StoppingCriterion
+from coloring.color_datasets import PyramidEdgeColorDataset
 from coloring.coloring_utils import color_graph, create_stacks, \
     map_tensor_edge_to_color, map_tensor_edge_to_networkx_node_ids
-from coloring.datasets import PyramidEdgeColorDataset
 from tests.test_utils import MockModule
 
 torch = compute.get_torch()
