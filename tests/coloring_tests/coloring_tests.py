@@ -7,9 +7,9 @@ from torch import optim
 from torch_geometric.loader import DataLoader
 
 from args_parse import get_default_args
-from coloring.datasets import PyramidNodeColorDataset
 import visualization
 from coloring import coloring_utils
+from coloring.color_datasets import PyramidNodeColorDataset
 from data import dataloader_utils
 from model import model_utils
 from model.positional.positional_attention_weight import AdjStack
