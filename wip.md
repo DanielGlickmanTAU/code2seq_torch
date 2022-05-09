@@ -611,6 +611,11 @@ model = d -> 2d -> BN+Relu -> 1
 pyramid base train  pyramid base test  edge size    final acc    final FP    final_acc_train     best acc  best fp               epochs to converge 
 5                   6                  5            0.782312     0.0544       0.88               0.84353   0.01360               3530               
 10                  11                 10           0.659090     0.3044       0.85               0.8670    0.00137               9618               
+15                  16                 14           0.783791     0.0181       0.80               0.8006    0.01005               8062                0.7631920415224913  0.7482698961937716
+
+
+15                  16                 13         2                       ffn_before_bn_ff  1158     0.6915008650519031  0.0                   0.81625             0.8027681660899654  0.0016219723183391003  7644                0.7541089965397924  0.6168901384083045
+
 
 ORACLE 5 TEST 6:
 edge size 5:amount of edges in test that are in train: 0.25170068027210885
