@@ -153,7 +153,7 @@ def full_train_flow(args, device, evaluator, model, test_loader, train_loader, v
             steps_with_no_improvement += 1
             if steps_with_no_improvement > args.patience:
                 break
-    if 'classification' in task_type:
+    if 'classification' in task_type or 'coloring' in task_type:
         best_val_epoch = np.argmax(np.array(valid_curve))
     else:
         best_val_epoch = np.argmin(np.array(valid_curve))
