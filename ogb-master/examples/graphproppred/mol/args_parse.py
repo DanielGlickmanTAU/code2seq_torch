@@ -59,6 +59,7 @@ def add_args(parser):
     parser.add_argument('--JK', type=str, default='last')
     parser.add_argument('--scheduler_use_max', type=bool_, default=True)
     parser.add_argument('--mask_far_away_nodes', type=bool_, default=True)
+    parser.add_argument('--reporter', type=str, default='',help= 'just some nonesense needed to make tests run in pycharm')
 
 
 def get_default_args():
