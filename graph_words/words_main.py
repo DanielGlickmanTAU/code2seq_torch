@@ -28,12 +28,12 @@ torch_geometric.seed_everything(args.seed)
 # num_adj_stacks = pyramid_size - 1
 
 args.num_transformer_layers = 0
-args.num_layer = 4
+args.num_layer = 5
 args.drop_ratio = 0.
 args.transformer_encoder_dropout = 0.
 args.emb_dim = 100
 args.num_heads = 1
-args.patience = 8888
+args.patience = 100
 args.epochs = 2000
 # args.lr_schedule_patience = 500
 args.lr_reduce_factor = 0.9

@@ -95,7 +95,8 @@ def _assert_no_zero_grad(model):
 
 
 class Visualizer:
-    def __init__(self, task_name, epoch, graph_indexes=[0, 1]):
+    def __init__(self, task_name, epoch, graph_indexes=[0, 1], label_names=None):
+        self.label_names = label_names
         self.epoch = epoch
         self.task_type = task_name
         self.graph_indexes = graph_indexes
@@ -135,7 +136,7 @@ class Visualizer:
             except Exception as e:
                 print(f'failed visualizing {e}')
 
-        get_global_exp().log_confusion_matrix(y_true.numpy(), y_predicted=y_pred.numpy())
+        get_global_exp().log_confusion_matrix(y_true.numpy(), y_predicted=y_pred.numpy(), labels=self.label_names)
 
 
 def full_train_flow(args, device, evaluator, model, test_loader, train_loader, valid_loader, task_type, eval_metric):
@@ -162,7 +163,9 @@ def full_train_flow(args, device, evaluator, model, test_loader, train_loader, v
                                      grad_accum_steps=args.grad_accum_steps, experiment=exp)
 
         print('Evaluating...')
-        visualizer = Visualizer(task_name=task_type, epoch=epoch)
+        visualizer = Visualizer(task_name=task_type, epoch=epoch, graph_indexes=[0, 1],
+                                label_names=['cycle_4', 'cycle_5', 'clique_4', 'clique_5',
+                                             ])
         valid_perf = evaluate(model, device, valid_loader, evaluator, visualizer)
         test_perf = evaluate(model, device, test_loader, evaluator)
         if global_config.log_train_acc:
