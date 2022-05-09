@@ -48,9 +48,14 @@ class WordGraphDataset(Dataset):
 
     def create_pyg_graph(self, graph):
         pyg_graph = torch_geometric.utils.from_networkx(graph.graph)
-        pyg_graph.x = torch.zeros((pyg_graph.num_nodes,))
+        pyg_graph.x = torch.zeros((pyg_graph.num_nodes,), dtype=torch.long)
         y_value = self.name_2_label[graph.name]
         pyg_graph.y = torch.full_like(pyg_graph.x, y_value)
+
+        N = len(graph.graph.nodes)
+        graph.graph.positions = {i: (i if i < N / 2 else N - i, 1 if i < N/2 else -1) for i, x in enumerate(
+            graph.graph.nodes)}
+        pyg_graph.graph = graph.graph
         return pyg_graph
 
     def __len__(self):
