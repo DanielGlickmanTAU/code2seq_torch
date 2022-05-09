@@ -46,7 +46,7 @@ def main():
     # exp = exp_utils.start_exp(args.exp_name, args, model)
     # test_flow_utils.train_and_assert_overfit(model, loader, evaluator, 'coloring', exp=exp, test_loader=test_loader)
 
-    training.full_train_flow(args, device, evaluator, model, test_loader, loader, loader, 'node classification',
+    training.full_train_flow(args, device, evaluator, model, test_loader, loader, loader, 'coloring',
                              'acc')
 
 
