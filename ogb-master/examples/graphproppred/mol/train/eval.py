@@ -34,6 +34,4 @@ def evaluate(model, device, loader, evaluator: Evaluator, visualizer=None):
     if visualizer:
         visualizer(graphs, y_true, y_pred)
 
-    # todo this
-    # get_global_exp().log_confusion_matrix(y_true, y_predicted=y_pred)
     return evaluator.eval(input_dict)

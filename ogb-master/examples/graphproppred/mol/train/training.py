@@ -1,6 +1,6 @@
 import global_config
 import visualization
-from exp_utils import start_exp
+from exp_utils import start_exp, get_global_exp
 import numpy as np
 from torch import optim as optim
 from tqdm import tqdm
@@ -134,6 +134,8 @@ class Visualizer:
                 visualization.draw_pyramid(g, g_pred, f'epoch {self._lexo(self.epoch, 1000)}. acc:{g_acc}')
             except Exception as e:
                 print(f'failed visualizing {e}')
+
+        get_global_exp().log_confusion_matrix(y_true.numpy(), y_predicted=y_pred.numpy())
 
 
 def full_train_flow(args, device, evaluator, model, test_loader, train_loader, valid_loader, task_type, eval_metric):
