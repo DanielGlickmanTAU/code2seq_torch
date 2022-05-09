@@ -57,6 +57,9 @@ def draw(graph: Union[torch_geometric.data.Data, nx.Graph], color_tensor, color_
         plt.show()
 
 
+basic_color_map = ['red', 'green', 'blue', 'pink', 'yellow', 'orange', 'purple']
+
+
 def draw_pyramid(data: torch_geometric.data.Data, color_with: Union[str, torch.Tensor], label=None):
     """gets PyramidNodeColorDataset and colors it..
     uses positions from graph. color_with is either x, y or a tensor of predictions"""
@@ -65,15 +68,15 @@ def draw_pyramid(data: torch_geometric.data.Data, color_with: Union[str, torch.T
     if isinstance(color_with, str):
         if color_with == 'x':
             colors = data.x
-            color_map = ['gray', 'red', 'green', 'blue']
+            color_map = ['gray'] + basic_color_map
         elif color_with == 'y':
             colors = data.y
-            color_map = ['red', 'green', 'blue']
+            color_map = basic_color_map
         else:
             raise Exception(f'only x and y supported as string. got {color_with}')
     else:  # color_with is predictions. tensor shape (n,n_colors)
         colors = color_with.argmax(dim=-1)
-        color_map = ['red', 'green', 'blue']
+        color_map = basic_color_map
         alpha = color_with.softmax(dim=-1).max(dim=-1)[0].tolist()
     draw(data.graph, color_tensor=colors, color_map=color_map, positions=positions, alpha=alpha, label=label,
          with_labels=True)
