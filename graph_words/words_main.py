@@ -5,18 +5,13 @@ import networkx as nx
 import visualization
 from graph_words import word_graphs
 
-cycle_4 = word_graphs.Cycle(4)
-cycle_5 = word_graphs.Cycle(5)
-clique_4 = word_graphs.Clique(4)
-clique_5 = word_graphs.Clique(5)
+dataset = word_graphs.WordGraphDataset()
 
-graphs = [cycle_4, cycle_5, clique_4, clique_5]
-
-# draw graphs
-for graph in graphs:
-    visualization.draw_pyg_graph(graph.graph)
-
-# color graphs
+# draw graphs, each should have different color(by label)
+for pyg_graph in dataset:
+    visualization.draw(pyg_graph, pyg_graph.y, color_map={0: 'pink', 1: 'red', 2: 'blue', 3: 'green', 4: 'yellow'})
+# color with x(no label) just as sanity
+visualization.draw(pyg_graph, pyg_graph.x, color_map={0: 'gray'})
 
 # join graphs
 
