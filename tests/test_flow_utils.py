@@ -18,7 +18,7 @@ def train_and_assert_overfit(model, train_loader, evaluator, task_type, score_ne
         if exp:
             exp.log_metric('loss', epoch_avg_loss)
 
-        eval_dict = evaluate(model, device, test_loader, evaluator, epoch)
+        eval_dict = evaluate(model, device, test_loader, evaluator)
         if 'rocauc' in eval_dict:
             metric = 'rocauc'
         elif 'acc' in eval_dict:
