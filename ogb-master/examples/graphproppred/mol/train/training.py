@@ -7,6 +7,7 @@ from tqdm import tqdm
 import torch
 
 # from train import evaluate
+from graph_words import word_graphs
 from train.eval import evaluate
 
 from train.loss import sbm_loss
@@ -119,8 +120,7 @@ def full_train_flow(args, device, evaluator, model, test_loader, train_loader, v
 
         print('Evaluating...')
         visualizer = Visualizer(task_name=task_type, epoch=epoch, graph_indexes=[0, 1],
-                                label_names=['cycle_4', 'cycle_5', 'clique_4', 'clique_5',
-                                             ])
+                                label_names=[graph.name for graph in word_graphs.basic_graphs])
         valid_perf = evaluate(model, device, valid_loader, evaluator, visualizer)
         test_perf = evaluate(model, device, test_loader, evaluator)
         if global_config.log_train_acc:
