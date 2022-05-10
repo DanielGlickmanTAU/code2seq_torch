@@ -33,13 +33,12 @@ clique_4 = Clique(4)
 clique_5 = Clique(5)
 
 basic_graphs = [cycle_4, cycle_5, clique_4, clique_5]
+name_2_label = {graph.name: i for i, graph in enumerate(basic_graphs)}
+label_2_name = {i: graph.name for i, graph in enumerate(basic_graphs)}
 
 
 class WordGraphDataset(Dataset):
     def __init__(self):
-        self.name_2_label = {graph.name: i for i, graph in enumerate(basic_graphs)}
-        self.label_2_name = {i: graph.name for i, graph in enumerate(basic_graphs)}
-
         self.dataset = []
         for graph in basic_graphs:
             pyg_graph = self.create_pyg_graph(graph)
@@ -48,7 +47,7 @@ class WordGraphDataset(Dataset):
     def create_pyg_graph(self, graph):
         pyg_graph = torch_geometric.utils.from_networkx(graph)
         pyg_graph.x = torch.zeros((pyg_graph.num_nodes,), dtype=torch.long)
-        y_value = self.name_2_label[graph.name]
+        y_value = name_2_label[graph.name]
         pyg_graph.y = torch.full_like(pyg_graph.x, y_value)
 
         N = len(graph.nodes)
