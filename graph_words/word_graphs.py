@@ -39,6 +39,7 @@ label_2_name = {i: graph.name for i, graph in enumerate(basic_graphs)}
 
 class WordGraphDataset(Dataset):
     def __init__(self):
+        self.name_2_label= name_2_label
         self.dataset = []
         for graph in basic_graphs:
             pyg_graph = self.create_pyg_graph(graph)
