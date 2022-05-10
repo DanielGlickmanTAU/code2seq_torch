@@ -74,27 +74,24 @@ class WordsCombinationGraphDataset(Dataset):
 def create_pyg_graph(graph):
     pyg_graph = torch_geometric.utils.from_networkx(graph)
     pyg_graph.x = torch.zeros((pyg_graph.num_nodes,), dtype=torch.long)
-    y_value = name_2_label[graph.name]
-    # pyg_graph.y = torch.full_like(pyg_graph.x, y_value)
+
     pyg_graph.y = torch.tensor([name_2_label[attr['color']] for _, attr in graph.nodes(data=True)])
 
     N = len(graph.nodes)
-    graph.positions = {i: (i if i < N / 2 else N - i, 1 if i < N / 2 else -1) for i, x in enumerate(
-        graph.nodes)}
+    # graph.positions = {i: (i if i < N / 2 else N - i, 1 if i < N / 2 else -1) for i, x in enumerate(
+    #     graph.nodes)}
+    graph.positions = None
     pyg_graph.graph = graph
     return pyg_graph
 
 
 def join_graphs(graphs):
     def merge_graphs(left_graph, right_graph):
-        # 3) create new graph
         new_graph = nx.disjoint_union(left_graph, right_graph)
-        # 1) get end of left, start of right
-        # 2) join with edge
         left_graph_end_edge, right_graph_start_edge = len(left_graph) - 1, len(left_graph)
         new_graph.add_edge(left_graph_end_edge, right_graph_start_edge)
 
-        # 4) offset right graph positions.. in test flow no position
+        # 4) todo: offset right graph positions.. in test flow no position
         return new_graph
 
     left_graph = graphs[0]
