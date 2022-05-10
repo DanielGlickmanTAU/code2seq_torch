@@ -29,20 +29,21 @@ class Cycle:
         self.name = f'{n}_cycle'
 
 
+cycle_4 = Cycle(4)
+cycle_5 = Cycle(5)
+clique_4 = Clique(4)
+clique_5 = Clique(5)
+
+basic_graphs = [cycle_4, cycle_5, clique_4, clique_5]
+
+
 class WordGraphDataset(Dataset):
     def __init__(self):
-        cycle_4 = Cycle(4)
-        cycle_5 = Cycle(5)
-        clique_4 = Clique(4)
-        clique_5 = Clique(5)
-
-        graphs = [cycle_4, cycle_5, clique_4, clique_5]
-
-        self.name_2_label = {graph.name: i for i, graph in enumerate(graphs)}
-        self.label_2_name = {i: graph.name for i, graph in enumerate(graphs)}
+        self.name_2_label = {graph.name: i for i, graph in enumerate(basic_graphs)}
+        self.label_2_name = {i: graph.name for i, graph in enumerate(basic_graphs)}
 
         self.dataset = []
-        for graph in graphs:
+        for graph in basic_graphs:
             pyg_graph = self.create_pyg_graph(graph)
             self.dataset.append(pyg_graph)
 
