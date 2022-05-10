@@ -39,7 +39,7 @@ label_2_name = {i: graph.name for i, graph in enumerate(basic_graphs)}
 
 class WordGraphDataset(Dataset):
     def __init__(self):
-        self.name_2_label= name_2_label
+        self.name_2_label = name_2_label
         self.dataset = []
         for graph in basic_graphs:
             pyg_graph = self.create_pyg_graph(graph)
@@ -66,11 +66,15 @@ class WordGraphDataset(Dataset):
 
 def join_graphs(graphs):
     def merge_graphs(left_graph, right_graph):
+        # 3) create new graph
+        new_graph = nx.disjoint_union(left_graph, right_graph)
         # 1) get end of left, start of right
         # 2) join with edge
-        # 3) create new graph
-        # 4) offset right graph positions
-        return left_graph
+        left_graph_end_edge, right_graph_start_edge = len(left_graph) - 1, len(left_graph)
+        new_graph.add_edge(left_graph_end_edge, right_graph_start_edge)
+
+        # 4) offset right graph positions.. in test flow no position
+        return new_graph
 
     left_graph = graphs[0]
     for right_graph in graphs[1:]:
