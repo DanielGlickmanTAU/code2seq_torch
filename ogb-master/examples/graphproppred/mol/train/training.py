@@ -165,7 +165,7 @@ def full_train_flow(args, device, evaluator, model, test_loader, train_loader, v
     print('Finished training!')
     print('Best validation score: {}'.format(valid_curve[best_val_epoch]))
     print('Test score: {}'.format(test_curve[best_val_epoch]))
-    exp.log_metric(f'last_test_', test_curve[best_val_epoch])
+    exp.log_metric(f'best_test_', test_curve[best_val_epoch])
     train_score = train_perf[eval_metric]
     exp.log_metric(f'train_{eval_metric}', train_score)
 
