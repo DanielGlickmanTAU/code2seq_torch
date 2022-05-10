@@ -8,25 +8,23 @@ import torch_geometric
 from torch.utils.data import Dataset
 
 
-class Clique:
-    @staticmethod
-    def _create_clique(n):
-        G = nx.Graph()
-        edges = itertools.combinations(range(0, n), 2)
-        G.add_edges_from(edges)
-        return G
-
-    def __init__(self, n):
-        self.n = n
-        self.graph = self._create_clique(n)
-        self.name = f'{n}_clique'
+def _create_clique(n):
+    G = nx.Graph()
+    edges = itertools.combinations(range(0, n), 2)
+    G.add_edges_from(edges)
+    return G
 
 
-class Cycle:
-    def __init__(self, n):
-        self.n = n
-        self.graph = nx.cycle_graph(n)
-        self.name = f'{n}_cycle'
+def Clique(n):
+    graph = _create_clique(n)
+    graph.name = f'{n}_clique'
+    return graph
+
+
+def Cycle(n):
+    graph = nx.cycle_graph(n)
+    graph.name = f'{n}_cycle'
+    return graph
 
 
 cycle_4 = Cycle(4)
@@ -48,15 +46,15 @@ class WordGraphDataset(Dataset):
             self.dataset.append(pyg_graph)
 
     def create_pyg_graph(self, graph):
-        pyg_graph = torch_geometric.utils.from_networkx(graph.graph)
+        pyg_graph = torch_geometric.utils.from_networkx(graph)
         pyg_graph.x = torch.zeros((pyg_graph.num_nodes,), dtype=torch.long)
         y_value = self.name_2_label[graph.name]
         pyg_graph.y = torch.full_like(pyg_graph.x, y_value)
 
-        N = len(graph.graph.nodes)
-        graph.graph.positions = {i: (i if i < N / 2 else N - i, 1 if i < N / 2 else -1) for i, x in enumerate(
-            graph.graph.nodes)}
-        pyg_graph.graph = graph.graph
+        N = len(graph.nodes)
+        graph.positions = {i: (i if i < N / 2 else N - i, 1 if i < N / 2 else -1) for i, x in enumerate(
+            graph.nodes)}
+        pyg_graph.graph = graph
         return pyg_graph
 
     def __len__(self):
@@ -64,3 +62,17 @@ class WordGraphDataset(Dataset):
 
     def __getitem__(self, idx):
         return self.dataset[idx]
+
+
+def join_graphs(graphs):
+    def merge_graphs(left_graph, right_graph):
+        # 1) get end of left, start of right
+        # 2) join with edge
+        # 3) create new graph
+        # 4) offset right graph positions
+        return left_graph
+
+    left_graph = graphs[0]
+    for right_graph in graphs[1:]:
+        left_graph = merge_graphs(left_graph, right_graph)
+    return left_graph
