@@ -28,15 +28,19 @@ torch_geometric.seed_everything(args.seed)
 # num_adj_stacks = pyramid_size - 1
 
 args.num_transformer_layers = 0
-args.num_layer = 6
+args.num_layer = 4
 args.drop_ratio = 0.
 args.transformer_encoder_dropout = 0.
-args.emb_dim = 100
+args.emb_dim = 30
 args.num_heads = 1
-args.patience = 400
-args.epochs = 2000
+args.patience = 4000
+args.lr_schedule_patience = 40
+args.epochs = 4000
 # args.lr_schedule_patience = 500
 args.lr_reduce_factor = 0.9
+
+args.conv_track_running_stats = False
+
 num_colors = len(dataset.name_2_label)
 device = compute.get_device()
 task = 'coloring'
@@ -46,13 +50,9 @@ loader = dataloader_utils.create_dataset_loader(dataset, batch_size=64, mapping=
 valid_loader = dataloader_utils.create_dataset_loader(dataset, batch_size=64, mapping=AdjStack(args), shuffle=False)
 test_loader = dataloader_utils.create_dataset_loader(dataset, batch_size=32, mapping=AdjStack(args),
                                                      shuffle=False)
-# exp = None
-# exp = exp_utils.start_exp(args.exp_name, args, model)
-# test_flow_utils.train_and_assert_overfit(model, loader, evaluator, 'coloring', exp=exp, test_loader=test_loader)
 
-training.full_train_flow(args, device, evaluator, model, test_loader, loader, valid_loader, 'coloring',
+# training.full_train_flow(args, device, evaluator, model, test_loader, loader, valid_loader, 'coloring',
+#                          'acc')
+
+training.full_train_flow(args, device, evaluator, model, valid_loader, valid_loader, valid_loader, 'coloring',
                          'acc')
-
-# join graphs
-
-# join edges(last node to first node...)

@@ -59,7 +59,10 @@ def add_args(parser):
     parser.add_argument('--JK', type=str, default='last')
     parser.add_argument('--scheduler_use_max', type=bool_, default=True)
     parser.add_argument('--mask_far_away_nodes', type=bool_, default=True)
-    parser.add_argument('--reporter', type=str, default='',help= 'just some nonesense needed to make tests run in pycharm')
+    parser.add_argument('--reporter', type=str, default='',
+                        help='just some nonesense needed to make tests run in pycharm')
+    parser.add_argument('--conv_track_running_stats', type=bool_, default=True,
+                        help='In conv gnn layers, with small dataset, tracking stats sometimes gives problems because the stats is different in eval and test.')
 
 
 def get_default_args():

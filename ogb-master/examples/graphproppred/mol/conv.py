@@ -16,7 +16,9 @@ class GINConv(MessagePassing):
         super(GINConv, self).__init__(aggr="add")
 
         hidden_dim = int(args.gin_conv_mlp_hidden_breath * emb_dim)
-        self.mlp = torch.nn.Sequential(torch.nn.Linear(emb_dim, hidden_dim), torch.nn.BatchNorm1d(hidden_dim),
+        self.mlp = torch.nn.Sequential(torch.nn.Linear(emb_dim, hidden_dim),
+                                       torch.nn.BatchNorm1d(hidden_dim,
+                                                            track_running_stats=args.conv_track_running_stats),
                                        torch.nn.ReLU(), torch.nn.Linear(hidden_dim, emb_dim))
         self.eps = torch.nn.Parameter(torch.Tensor([0]))
         if type == 'mol':
@@ -114,7 +116,7 @@ class GNN_node(torch.nn.Module):
             else:
                 raise ValueError('Undefined GNN type called {}'.format(gnn_type))
 
-            self.batch_norms.append(torch.nn.BatchNorm1d(emb_dim))
+            self.batch_norms.append(torch.nn.BatchNorm1d(emb_dim,track_running_stats=args.conv_track_running_stats))
 
     def forward(self, batched_data):
         if self.task == 'code':
@@ -127,7 +129,7 @@ class GNN_node(torch.nn.Module):
         for layer in range(self.num_layer):
 
             h = self.convs[layer](h_list[layer], edge_index, edge_attr)
-            h = self.batch_norms[layer](h)
+            # h = self.batch_norms[layer](h)
 
             if layer == self.num_layer - 1:
                 # remove relu for the last layer
