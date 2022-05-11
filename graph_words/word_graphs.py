@@ -1,3 +1,5 @@
+import numpy
+
 from code2seq.utils import compute
 
 torch = compute.get_torch()
@@ -63,14 +65,17 @@ class WordGraphDataset(Dataset):
 
 
 class WordsCombinationGraphDataset(Dataset):
-    def __init__(self, graphs):
-        self.graphs = graphs
-        self.name_2_label = {graph.name: i for i, graph in enumerate(graphs)}
-        self.label_2_name = {i: graph.name for i, graph in enumerate(graphs)}
+    def __init__(self, word_graphs, num_samples, words_per_sample):
+        self.word_graphs = word_graphs
+        self.name_2_label = {graph.name: i for i, graph in enumerate(word_graphs)}
+        self.label_2_name = {i: graph.name for i, graph in enumerate(word_graphs)}
         self.dataset = []
-        graph = join_graphs([cycle_4, clique_5])
-        pyg_graph = create_pyg_graph(graph, self.name_2_label)
-        self.dataset.append(pyg_graph)
+
+        for i in range(num_samples):
+            selected_words = numpy.random.choice(word_graphs, words_per_sample).tolist()
+            graph = join_graphs(selected_words)
+            pyg_graph = create_pyg_graph(graph, self.name_2_label)
+            self.dataset.append(pyg_graph)
 
     def __len__(self):
         return len(self.dataset)
