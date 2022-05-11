@@ -47,7 +47,7 @@ clique_5 = Clique(5)
 
 class WordGraphDataset(Dataset):
     def __init__(self, graphs):
-        self.graphs = [Clique(4), Cycle(4)]
+        self.graphs = graphs
         self.name_2_label = {graph.name: i for i, graph in enumerate(graphs)}
         self.label_2_name = {i: graph.name for i, graph in enumerate(graphs)}
         self.dataset = []
@@ -64,7 +64,7 @@ class WordGraphDataset(Dataset):
 
 class WordsCombinationGraphDataset(Dataset):
     def __init__(self, graphs):
-        self.graphs = [Clique(4), Cycle(4)]
+        self.graphs = graphs
         self.name_2_label = {graph.name: i for i, graph in enumerate(graphs)}
         self.label_2_name = {i: graph.name for i, graph in enumerate(graphs)}
         self.dataset = []
