@@ -304,6 +304,7 @@ class Evaluator:
 
     def _accuracy_coloring(self, y_true, y_pred):
         correct = y_true == y_pred.argmax(-1)
+        assert correct.ndim == 1
         acc = correct.mean()
         return {'acc': acc}
 
