@@ -119,7 +119,7 @@ def full_train_flow(args, device, evaluator, model, test_loader, train_loader, v
                                      grad_accum_steps=args.grad_accum_steps, experiment=exp)
 
         print('Evaluating...')
-        visualizer = Visualizer(task_name=task_type, epoch=epoch, graph_indexes=[0, 1, 2, 3, 4, 5],
+        visualizer = Visualizer(task_name=task_type, epoch=epoch, graph_indexes=[0, 1, 2],
                                 label_names=[train_loader.dataset.label_2_name[label] for label in
                                              train_loader.dataset.label_2_name])
         valid_perf = evaluate(model, device, valid_loader, evaluator, visualizer)
