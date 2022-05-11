@@ -12,7 +12,7 @@ from model.positional.positional_attention_weight import AdjStack
 from ogb.graphproppred import Evaluator
 from train import training
 
-dataset = word_graphs.WordsCombinationGraphDataset()
+dataset = word_graphs.WordsCombinationGraphDataset([word_graphs.Clique(4), word_graphs.Cycle(4)])
 
 # # draw graphs, each should have different color(by label)
 # for pyg_graph in dataset:

@@ -21,7 +21,11 @@ def get_train_val_test_loaders(dataset: GNNBenchmarkDataset, batch_size, num_wor
 def create_dataset_loader(dataset, batch_size, num_workers=0, limit=0, mapping=None, shuffle=True):
     dataset = dataset[: limit] if limit else dataset
     if mapping:
-        dataset = [mapping(x) for x in dataset]
+        new_dataset = [mapping(x) for x in dataset]
+        if hasattr(dataset, 'dataset'):
+            dataset.dataset = new_dataset
+        else:
+            dataset = new_dataset
     return DataLoader(dataset, batch_size=batch_size, shuffle=shuffle,
                       num_workers=num_workers)
 

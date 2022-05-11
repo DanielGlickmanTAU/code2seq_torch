@@ -120,7 +120,8 @@ def full_train_flow(args, device, evaluator, model, test_loader, train_loader, v
 
         print('Evaluating...')
         visualizer = Visualizer(task_name=task_type, epoch=epoch, graph_indexes=[0, 1],
-                                label_names=[word_graphs.label_2_name[label] for label in word_graphs.label_2_name])
+                                label_names=[train_loader.dataset.label_2_name[label] for label in
+                                             train_loader.dataset.label_2_name])
         valid_perf = evaluate(model, device, valid_loader, evaluator, visualizer)
         test_perf = evaluate(model, device, test_loader, evaluator)
         if global_config.log_train_acc:

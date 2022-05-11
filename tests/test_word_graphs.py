@@ -24,7 +24,7 @@ class Test(TestCase):
     def test_single_word_graphs_overfit_4cycle_vs_clique_with_gnn(self):
 
 
-        dataset = word_graphs.WordGraphDataset()
+        dataset = word_graphs.WordGraphDataset([word_graphs.Cycle(4),word_graphs.Clique(4)])
 
         args = get_default_args()
 

@@ -36,17 +36,23 @@ cycle_5 = Cycle(5)
 clique_4 = Clique(4)
 clique_5 = Clique(5)
 
-basic_graphs = [cycle_4, cycle_5, clique_4, clique_5]
-name_2_label = {graph.name: i for i, graph in enumerate(basic_graphs)}
-label_2_name = {i: graph.name for i, graph in enumerate(basic_graphs)}
+
+# basic_graphs = [cycle_4, cycle_5, clique_4, clique_5]
+# basic_graphs = [Cycle(3), Cycle(4), Cycle(5)]
+# basic_graphs = [Clique(3), Clique(4), Cycle(5)]
+# basic_graphs = [Clique(3), Cycle(4)]
+# basic_graphs = [ Clique(4),Cycle(4)]
+# basic_graphs = [Clique(4), Cycle(4), Clique(5), Clique(6), Clique(7)]
 
 
 class WordGraphDataset(Dataset):
-    def __init__(self):
-        self.name_2_label = name_2_label
+    def __init__(self, graphs):
+        self.graphs = [Clique(4), Cycle(4)]
+        self.name_2_label = {graph.name: i for i, graph in enumerate(graphs)}
+        self.label_2_name = {i: graph.name for i, graph in enumerate(graphs)}
         self.dataset = []
-        for graph in basic_graphs:
-            pyg_graph = create_pyg_graph(graph)
+        for graph in graphs:
+            pyg_graph = create_pyg_graph(graph, self.name_2_label)
             self.dataset.append(pyg_graph)
 
     def __len__(self):
@@ -57,11 +63,13 @@ class WordGraphDataset(Dataset):
 
 
 class WordsCombinationGraphDataset(Dataset):
-    def __init__(self):
-        self.name_2_label = name_2_label
+    def __init__(self, graphs):
+        self.graphs = [Clique(4), Cycle(4)]
+        self.name_2_label = {graph.name: i for i, graph in enumerate(graphs)}
+        self.label_2_name = {i: graph.name for i, graph in enumerate(graphs)}
         self.dataset = []
         graph = join_graphs([cycle_4, clique_5])
-        pyg_graph = create_pyg_graph(graph)
+        pyg_graph = create_pyg_graph(graph, self.name_2_label)
         self.dataset.append(pyg_graph)
 
     def __len__(self):
@@ -71,7 +79,7 @@ class WordsCombinationGraphDataset(Dataset):
         return self.dataset[idx]
 
 
-def create_pyg_graph(graph):
+def create_pyg_graph(graph, name_2_label):
     pyg_graph = torch_geometric.utils.from_networkx(graph)
     pyg_graph.x = torch.zeros((pyg_graph.num_nodes,), dtype=torch.long)
 
