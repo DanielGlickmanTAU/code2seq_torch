@@ -12,9 +12,15 @@ from model.positional.positional_attention_weight import AdjStack
 from ogb.graphproppred import Evaluator
 from train import training
 
-dataset = word_graphs.WordsCombinationGraphDataset([word_graphs.Cycle(4), word_graphs.Cycle(3)], num_samples=100,
+graphs = [word_graphs.Cycle(4), word_graphs.Cycle(3), word_graphs.Clique(4)]
+dataset = word_graphs.WordsCombinationGraphDataset(graphs, num_samples=100,
                                                    words_per_sample=5)
 
+dataset_val = word_graphs.WordsCombinationGraphDataset(graphs, num_samples=100,
+                                                       words_per_sample=8)
+
+dataset_train = word_graphs.WordsCombinationGraphDataset(graphs, num_samples=100,
+                                                         words_per_sample=8)
 
 # overfit train
 args = get_default_args()
@@ -41,11 +47,9 @@ task = 'coloring'
 model = model_utils.get_model(args, num_tasks=num_colors, device=device, task=task, num_embedding=num_colors + 1)
 evaluator = Evaluator('coloring')
 loader = dataloader_utils.create_dataset_loader(dataset, batch_size=64, mapping=AdjStack(args))
-valid_loader = dataloader_utils.create_dataset_loader(dataset, batch_size=64, mapping=AdjStack(args), shuffle=True)
-test_loader = dataloader_utils.create_dataset_loader(dataset, batch_size=64, mapping=AdjStack(args),
+valid_loader = dataloader_utils.create_dataset_loader(dataset_val, batch_size=64, mapping=AdjStack(args), shuffle=True)
+test_loader = dataloader_utils.create_dataset_loader(dataset_train, batch_size=64, mapping=AdjStack(args),
                                                      shuffle=True)
-
 
 training.full_train_flow(args, device, evaluator, model, test_loader, loader, valid_loader, 'coloring',
                          'acc')
-
