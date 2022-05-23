@@ -87,10 +87,12 @@ class AdjStack(torch_geometric.transforms.BaseTransform):
         parser.add_argument('--adj_stacks', nargs='+', type=int, default=[0, 1, 2, 3, 4],
                             help='list of powers to raise and stack the adj matrix.')
         parser.add_argument('--use_distance_bias', type=str, default=False)
+        parser.add_argument('--normalize', type=bool_, default=True, help='for debugging')
 
     def __init__(self, args):
         self.adj_stacks = args.adj_stacks
         self.use_distance_bias = args.use_distance_bias
+        self.normalize = args.normalize
         assert len(self.adj_stacks) == len(set(self.adj_stacks)), f'duplicate power in {self.adj_stacks}'
 
     def __call__(self, data: Data):
@@ -102,7 +104,8 @@ class AdjStack(torch_geometric.transforms.BaseTransform):
         adj[edge_index[0, :], edge_index[1, :]] = 1
         adj.fill_diagonal_(0)
 
-        adj = to_P_matrix(adj)
+        if self.normalize:
+            adj = to_P_matrix(adj)
         adj_stack = torch.stack([torch.matrix_power(adj, exp) for exp in self.adj_stacks])
         if self.use_distance_bias:
             adj_stack = self._turn_shortest_distance_one_hot(adj_stack, N)
