@@ -56,7 +56,10 @@ class GCNConv(MessagePassing):
 
     def forward(self, x, edge_index, edge_attr):
         x = self.linear(x)
-        edge_embedding = self.bond_encoder(edge_attr)
+        if edge_attr is not None:
+            edge_embedding = self.edge_encoder(edge_attr)
+        else:
+            edge_embedding = torch.zeros((edge_index.shape[-1], x.shape[-1]), device=x.device)
 
         row, col = edge_index
 
