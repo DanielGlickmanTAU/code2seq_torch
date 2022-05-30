@@ -886,3 +886,25 @@ adj_stacks of nodes 2,3 in second stack is different:
 unnormalized:
 1,1,3,0,1,0,1
 1,1,0,3,0,2,0
+
+A rows 2 and 3 have the same number of ones
+the difference is that 3 has ones in 4 and 6, which lead to 5.
+![img.png](img.png)
+
+A^2:![img_2.png](img_2.png)
+
+
+gcn on dataset:
+harder to learn than gin but works well enoguh .. > 0.9 https://www.comet.ml/danielglickmantau/graph-filter-network/226ef906cf02435cab826c40fe834491?assetId=f51b5f96c65a4fe2841865fbb61a047b&experiment-tab=confusionMatrix
+hard time for gcn telling between 3 and 4 cycle, but seem more like a learning issue the expressivity https://www.comet.ml/danielglickmantau/graph-filter-network/2398cbd33fdd4b5a881127699755784a?
+
+
+### 26/5
+Examning the triangle connected to square graph, we look at the nodes that connect the 2 shapes and wish to find when are there represention different.
+That is, the rows in (E^n)X corrospoinding to the triangle and square node's. 
+when just summing up(not normalizing by D^-1) when n=3
+and when noramlizing, it is for n=2.
+Why?
+
+[//]: # (let's examine n=1,n=2 for the 2 cases side by side.)
+actully lets examine n=1 for both cases, and see what rows are different

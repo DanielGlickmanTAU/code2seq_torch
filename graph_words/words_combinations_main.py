@@ -12,7 +12,8 @@ from model.positional.positional_attention_weight import AdjStack
 from ogb.graphproppred import Evaluator
 from train import training
 
-graphs = [word_graphs.Cycle(3), word_graphs.Cycle(4),word_graphs.Clique(4),word_graphs.Clique(5),word_graphs.Clique(6)]
+# graphs = [word_graphs.Cycle(3), word_graphs.Cycle(4),word_graphs.Clique(4),word_graphs.Clique(5),word_graphs.Clique(6)]
+graphs = [word_graphs.Cycle(3), word_graphs.Cycle(4)]
 # graphs = [word_graphs.Cycle(3), word_graphs.Clique(4), word_graphs.Clique(5)]
 dataset = word_graphs.WordsCombinationGraphDataset(graphs, num_samples=1000,
                                                    words_per_sample=10)
