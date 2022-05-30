@@ -33,6 +33,31 @@ def Cycle(n):
     return graph
 
 
+def HourGlass():
+    graph = nx.Graph()
+    graph.name = 'hg'
+    graph.add_edges_from(
+        [(0, 1), (1, 2), (2, 0),
+         (5, 3), (3, 4), (4, 5),
+         (0, 3)
+         ]
+    )
+    return graph
+
+def SatGraph():
+    graph = nx.Graph()
+    # return 5_clique - 5_cycle..
+
+def JoinedSquared():
+    graph = nx.Graph()
+    graph.name = 'jsquare'
+    graph.add_edges_from(
+        [(0, 1), (1, 2), (2, 3), (3, 0),
+         (1, 4), (4, 5), (5, 2)]
+    )
+    return graph
+
+
 cycle_4 = Cycle(4)
 cycle_5 = Cycle(5)
 clique_4 = Clique(4)
