@@ -908,3 +908,10 @@ Why?
 
 [//]: # (let's examine n=1,n=2 for the 2 cases side by side.)
 actully lets examine n=1 for both cases, and see what rows are different
+
+
+### 30/5
+
+programmed the ugly example that can not be distingiushed as a sanity check.
+indeed gnn cannot learn it and gets 0.6 node prediction acc.
+![img_3.png](img_3.png)
