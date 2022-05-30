@@ -66,13 +66,6 @@ clique_4 = Clique(4)
 clique_5 = Clique(5)
 
 
-# basic_graphs = [cycle_4, cycle_5, clique_4, clique_5]
-# basic_graphs = [Cycle(3), Cycle(4), Cycle(5)]
-# basic_graphs = [Clique(3), Clique(4), Cycle(5)]
-# basic_graphs = [Clique(3), Cycle(4)]
-# basic_graphs = [ Clique(4),Cycle(4)]
-# basic_graphs = [Clique(4), Cycle(4), Clique(5), Clique(6), Clique(7)]
-
 
 class WordGraphDataset(Dataset):
     def __init__(self, graphs):
