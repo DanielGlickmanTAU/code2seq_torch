@@ -44,9 +44,11 @@ def HourGlass():
     )
     return graph
 
+
 def SatGraph():
     graph = nx.Graph()
     # return 5_clique - 5_cycle..
+
 
 def JoinedSquared():
     graph = nx.Graph()
@@ -123,15 +125,16 @@ def create_pyg_graph(graph, name_2_label):
     return pyg_graph
 
 
+def merge_graphs(left_graph, right_graph):
+    new_graph = nx.disjoint_union(left_graph, right_graph)
+    left_graph_end_edge, right_graph_start_edge = len(left_graph) - 1, len(left_graph)
+    new_graph.add_edge(left_graph_end_edge, right_graph_start_edge)
+
+    # 4) todo: offset right graph positions.. in test flow no position
+    return new_graph
+
+
 def join_graphs(graphs):
-    def merge_graphs(left_graph, right_graph):
-        new_graph = nx.disjoint_union(left_graph, right_graph)
-        left_graph_end_edge, right_graph_start_edge = len(left_graph) - 1, len(left_graph)
-        new_graph.add_edge(left_graph_end_edge, right_graph_start_edge)
-
-        # 4) todo: offset right graph positions.. in test flow no position
-        return new_graph
-
     left_graph = graphs[0]
     for right_graph in graphs[1:]:
         left_graph = merge_graphs(left_graph, right_graph)
