@@ -7,7 +7,7 @@ from pytorch_lightning.loggers import CometLogger
 global_exp = None
 
 
-def get_global_exp():
+def get_global_exp() -> comet_ml.Experiment:
     return global_exp
 
 
