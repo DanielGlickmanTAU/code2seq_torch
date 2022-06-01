@@ -1,5 +1,9 @@
+import collections
+
 import visualization
 from exp_utils import get_global_exp
+import torch
+from ogb.graphproppred.evaluate import accuracy_coloring
 
 
 class Visualizer:
@@ -45,5 +49,20 @@ class Visualizer:
                 visualization.draw_pyramid(g, g_pred, label, fig_name=fig_name)
             except Exception as e:
                 print(f'failed visualizing {e}')
-
-        get_global_exp().log_confusion_matrix(y_true.numpy(), y_predicted=y_pred.numpy(), labels=self.label_names)
+        if 'shape' in graphs[0]:
+            name_to_node_indexes = collections.defaultdict(list)
+            shape_to_acc = {}
+            i = 0
+            for graph in graphs:
+                for node_shape in graph['shape']:
+                    name_to_node_indexes[node_shape].append(i)
+                    i = i + 1
+            assert sum(len(v) for v in name_to_node_indexes.values()) == len(y_true)
+            for shape_name in name_to_node_indexes:
+                indexes_of_nodes_in_shape = torch.tensor(name_to_node_indexes[shape_name])
+                shape_acc = accuracy_coloring(y_true[indexes_of_nodes_in_shape].numpy(),
+                                              y_pred[indexes_of_nodes_in_shape].numpy())
+                shape_to_acc[shape_name] = shape_acc
+            get_global_exp().log_table('shape_acc.csv', [shape_to_acc.keys(), shape_to_acc.values()])
+        else:
+            get_global_exp().log_confusion_matrix(y_true.numpy(), y_predicted=y_pred.numpy(), labels=self.label_names)

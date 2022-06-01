@@ -927,4 +927,23 @@ it is having a hard time telling between 4 and 5 cycles..
 Shape coloring task
 WOrdCombinationsGraphDataset
 How is colored assigned when each shape has a global color?
-dataset gets a 
+dataset gets a list of graph atoms, where each node has a color(=its name)
+labels are determined by the order of the graphs(        self.label_2_name = {i: graph.name for i, graph in enumerate(word_graphs)}
+convert the nodes to tensor with labels(    pyg_graph.y = torch.tensor([name_2_label[attr['color']] for _, attr in graph.nodes(data=True)])
+training:
+
+How is should work when graphs are colored per instance:
+dataset gets a list of graph atoms, where each node has a color(=its name). should remain for debugging 
+labels should be generated per atom.
+    should happen before merging words to nx graph
+
+take care of:
+num embeddings(?)
+training
+validation
+
+
+refactor:
+removing naming stuff from creationg(e.g Cycle(),Clique) to dataset init
+
+getting good results in propogating inside shape.. actually having most trouble with tree
