@@ -10,6 +10,13 @@ except ImportError:
 
 
 ### Evaluator for graph classification
+def _accuracy_coloring(y_true, y_pred):
+    correct = y_true == y_pred.argmax(-1)
+    assert correct.ndim == 1
+    acc = correct.mean()
+    return {'acc': acc}
+
+
 class Evaluator:
     def __init__(self, name):
         self.name = name
@@ -117,7 +124,7 @@ class Evaluator:
             return self._accuracy_SBM(y_pred, y_true)
         elif self.eval_metric == 'coloring':
             y_true, y_pred = self._parse_and_check_input(input_dict)
-            return self._accuracy_coloring(y_true, y_pred)
+            return _accuracy_coloring(y_true, y_pred)
         elif self.eval_metric == 'F1':
             seq_ref, seq_pred = self._parse_and_check_input(input_dict)
             return self._eval_F1(seq_ref, seq_pred)
@@ -301,61 +308,3 @@ class Evaluator:
         return {'precision': np.average(precision_list),
                 'recall': np.average(recall_list),
                 'F1': np.average(f1_list)}
-
-    def _accuracy_coloring(self, y_true, y_pred):
-        correct = y_true == y_pred.argmax(-1)
-        assert correct.ndim == 1
-        acc = correct.mean()
-        return {'acc': acc}
-
-
-if __name__ == '__main__':
-    evaluator = Evaluator('ogbg-code2')
-    print(evaluator.expected_input_format)
-    print(evaluator.expected_output_format)
-    seq_ref = [['tom', 'is'], ['he'], ['he'], ['hey', 'fea', 'he'], ['alpha'], ['fe4qfq', 'beta'], ['aa']]
-    seq_pred = [['tom', 'is'], ['he'], ['he'], ['hey', 'he', 'fea'], ['alpha'], ['beta', 'fe4qfq'], [
-        'aa']]  # [['tom', 'is'] , ['he'], ['the', 'he'], ['hey', 'fea', 'he'], ['alpha'], ['beta', 'fe4qfq', 'c', 'fe4qf'], ['']]
-    input_dict = {'seq_ref': seq_ref, 'seq_pred': seq_pred}
-    result = evaluator.eval(input_dict)
-    print(result)
-
-    # exit(-1)
-
-    evaluator = Evaluator('ogbg-molpcba')
-    print(evaluator.expected_input_format)
-    print(evaluator.expected_output_format)
-    y_true = torch.tensor(np.random.randint(2, size=(100, 128)))
-    y_pred = torch.tensor(np.random.randn(100, 128))
-    input_dict = {'y_true': y_true, 'y_pred': y_pred}
-    result = evaluator.eval(input_dict)
-    print(result)
-
-    evaluator = Evaluator('ogbg-molhiv')
-    print(evaluator.expected_input_format)
-    print(evaluator.expected_output_format)
-    y_true = torch.tensor(np.random.randint(2, size=(100, 1)))
-    y_pred = torch.tensor(np.random.randn(100, 1))
-    input_dict = {'y_true': y_true, 'y_pred': y_pred}
-    result = evaluator.eval(input_dict)
-    print(result)
-
-    ### rmse case
-    evaluator = Evaluator('ogbg-mollipo')
-    print(evaluator.expected_input_format)
-    print(evaluator.expected_output_format)
-    y_true = np.random.randn(100, 1)
-    y_pred = np.random.randn(100, 1)
-    input_dict = {'y_true': y_true, 'y_pred': y_pred}
-    result = evaluator.eval(input_dict)
-    print(result)
-
-    ### acc
-    evaluator = Evaluator('ogbg-ppa')
-    print(evaluator.expected_input_format)
-    print(evaluator.expected_output_format)
-    y_true = np.random.randint(5, size=(100, 1))
-    y_pred = np.random.randint(5, size=(100, 1))
-    input_dict = {'y_true': y_true, 'y_pred': y_pred}
-    result = evaluator.eval(input_dict)
-    print(result)
