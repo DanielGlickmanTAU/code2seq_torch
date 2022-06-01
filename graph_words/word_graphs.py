@@ -172,8 +172,7 @@ def join_graphs_old(graphs):
         left_graph_end_edge, right_graph_start_edge = len(left_graph) - 1, len(left_graph)
         new_graph.add_edge(left_graph_end_edge, right_graph_start_edge)
 
-    # 4) todo: offset right graph positions.. in test flow no position
-    return new_graph
+        return new_graph
 
     left_graph = graphs[0]
     for right_graph in graphs[1:]:

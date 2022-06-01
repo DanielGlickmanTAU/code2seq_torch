@@ -915,3 +915,16 @@ actully lets examine n=1 for both cases, and see what rows are different
 programmed the ugly example that can not be distingiushed as a sanity check.
 indeed gnn cannot learn it and gets 0.6 node prediction acc.
 ![img_3.png](img_3.png)
+
+
+### 31/5 
+atm: running line graph with several graphs(triangle,square, 5 cycle, 4 clique, 5 clieque).. and network not getting 100% with **GCN..**
+
+it is having a hard time telling between 4 and 5 cycles..
+
+
+### 1/6
+Shape coloring task
+WOrdCombinationsGraphDataset
+How is colored assigned when each shape has a global color?
+dataset gets a 
