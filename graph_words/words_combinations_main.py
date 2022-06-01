@@ -13,16 +13,16 @@ from ogb.graphproppred import Evaluator
 from train import training
 
 # graphs = [word_graphs.Cycle(3), word_graphs.Cycle(4),word_graphs.Clique(4),word_graphs.Clique(5),word_graphs.Clique(6)]
-graphs = [word_graphs.Cycle(3), word_graphs.Cycle(4)]
+graphs = [word_graphs.Cycle(3), word_graphs.Cycle(4), word_graphs.Cycle(5), word_graphs.Clique(4),
+          word_graphs.Cycle(6), word_graphs.Tree_small(), word_graphs.Tree_large()]
 # graphs = [word_graphs.Cycle(3), word_graphs.Clique(4), word_graphs.Clique(5)]
-dataset = word_graphs.WordsCombinationGraphDataset(graphs, num_samples=1000,
-                                                   words_per_sample=10)
+dataset = word_graphs.WordsCombinationGraphDataset(graphs, num_samples=500,
+                                                   words_per_sample=4, num_rows=4)
 
-dataset_val = word_graphs.WordsCombinationGraphDataset(graphs, num_samples=100,
-                                                       words_per_sample=8)
-
-dataset_train = word_graphs.WordsCombinationGraphDataset(graphs, num_samples=100,
-                                                         words_per_sample=12)
+dataset_val = word_graphs.WordsCombinationGraphDataset(graphs, num_samples=500,
+                                                       words_per_sample=4, num_rows=4)
+dataset_train = word_graphs.WordsCombinationGraphDataset(graphs, num_samples=500,
+                                                         words_per_sample=4, num_rows=4)
 
 # overfit train
 args = get_default_args()
@@ -42,7 +42,7 @@ args.epochs = 2000
 # args.lr_schedule_patience = 500
 args.lr_reduce_factor = 0.9
 args.conv_track_running_stats = False
-args.gnn = 'gcn'
+# args.gnn = 'gcn'
 num_colors = len(dataset.name_2_label)
 device = compute.get_device()
 task = 'coloring'

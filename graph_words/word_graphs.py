@@ -1,3 +1,4 @@
+import math
 import numpy
 
 from code2seq.utils import compute
@@ -22,6 +23,9 @@ def Clique(n):
     graph.name = f'{n}_clique'
     for node in graph.nodes:
         graph.nodes[node]['color'] = graph.name
+
+    pos = circle_sections(n)
+    graph.positions = {i: pos for i, pos in zip(graph, pos)}
     return graph
 
 
@@ -30,6 +34,39 @@ def Cycle(n):
     graph.name = f'{n}_cycle'
     for node in graph.nodes:
         graph.nodes[node]['color'] = graph.name
+    pos = circle_sections(n)
+    graph.positions = {i: pos for i, pos in zip(graph, pos)}
+    return graph
+
+
+def Tree_small():
+    graph = nx.Graph()
+    graph.add_edges_from(
+        [(0, 1), (0, 2)]
+    )
+    graph.name = f'tree_small'
+    for node in graph.nodes:
+        graph.nodes[node]['color'] = graph.name
+    graph.positions = {0: (0, 1), 1: (0.5, 0), 2: (-0.5, 0)}
+    return graph
+
+
+def Tree_large():
+    graph = nx.Graph()
+    graph.add_edges_from(
+        [(0, 1), (0, 2),
+         (1, 3), (1, 4),
+         (2, 5), (2, 6)
+         ]
+
+    )
+    graph.name = f'tree_large'
+    for node in graph.nodes:
+        graph.nodes[node]['color'] = graph.name
+    graph.positions = {0: (0, 1), 1: (-0.5, 0), 2: (0.5, 0),
+                       3: (-0.75, -0.7), 4: (-0.25, -0.7),
+                       5: (0.25, -0.7), 6: (0.75, -0.7)
+                       }
     return graph
 
 
@@ -45,11 +82,6 @@ def HourGlass():
     return graph
 
 
-def SatGraph():
-    graph = nx.Graph()
-    # return 5_clique - 5_cycle..
-
-
 def JoinedSquared():
     graph = nx.Graph()
     graph.name = 'jsquare'
@@ -60,11 +92,21 @@ def JoinedSquared():
     return graph
 
 
+def circle_sections(divisions, radius=1):
+    # the difference between angles in radians -- don't bother with degrees
+    angle = 2 * math.pi / divisions
+
+    # a list of all angles using a list comprehension
+    angles = [i * angle for i in range(divisions)]
+
+    # finally return the coordinates on the circle as a list of 2-tuples
+    return [(radius * math.cos(a), radius * math.sin(a)) for a in angles]
+
+
 cycle_4 = Cycle(4)
 cycle_5 = Cycle(5)
 clique_4 = Clique(4)
 clique_5 = Clique(5)
-
 
 
 class WordGraphDataset(Dataset):
@@ -85,15 +127,20 @@ class WordGraphDataset(Dataset):
 
 
 class WordsCombinationGraphDataset(Dataset):
-    def __init__(self, word_graphs, num_samples, words_per_sample):
+    def __init__(self, word_graphs, num_samples, words_per_sample, num_rows=1):
         self.word_graphs = word_graphs
         self.name_2_label = {graph.name: i for i, graph in enumerate(word_graphs)}
         self.label_2_name = {i: graph.name for i, graph in enumerate(word_graphs)}
         self.dataset = []
 
         for i in range(num_samples):
-            selected_words = numpy.random.choice(word_graphs, words_per_sample).tolist()
-            graph = join_graphs(selected_words)
+            selected_words = numpy.random.choice(word_graphs, words_per_sample * num_rows).tolist()
+
+            # spit to rows
+            words_in_grid = [selected_words[i:i + words_per_sample] for i in
+                             range(0, len(selected_words), words_per_sample)]
+
+            graph = join_graphs(words_in_grid)
             pyg_graph = create_pyg_graph(graph, self.name_2_label)
             self.dataset.append(pyg_graph)
 
@@ -113,22 +160,72 @@ def create_pyg_graph(graph, name_2_label):
     N = len(graph.nodes)
     # graph.positions = {i: (i if i < N / 2 else N - i, 1 if i < N / 2 else -1) for i, x in enumerate(
     #     graph.nodes)}
-    graph.positions = None
+    if not hasattr(graph, 'positions'):
+        graph.positions = None
     pyg_graph.graph = graph
     return pyg_graph
 
 
-def merge_graphs(left_graph, right_graph):
-    new_graph = nx.disjoint_union(left_graph, right_graph)
-    left_graph_end_edge, right_graph_start_edge = len(left_graph) - 1, len(left_graph)
-    new_graph.add_edge(left_graph_end_edge, right_graph_start_edge)
+def join_graphs_old(graphs):
+    def merge_graphs(left_graph, right_graph):
+        new_graph = nx.disjoint_union(left_graph, right_graph)
+        left_graph_end_edge, right_graph_start_edge = len(left_graph) - 1, len(left_graph)
+        new_graph.add_edge(left_graph_end_edge, right_graph_start_edge)
 
     # 4) todo: offset right graph positions.. in test flow no position
     return new_graph
 
-
-def join_graphs(graphs):
     left_graph = graphs[0]
     for right_graph in graphs[1:]:
         left_graph = merge_graphs(left_graph, right_graph)
     return left_graph
+
+
+def join_graphs(graphs):
+    def select_random_node(graph_index):
+        graph_lowest_node_id = first_labels[graph_index]
+        return numpy.random.randint(graph_lowest_node_id, graph_lowest_node_id + len(flat_graphs[graph_index]))
+
+    assert isinstance(graphs[0], list), f' expects list of list(grid) not {graphs}'
+
+    first_labels = [0]
+
+    flat_graphs = [graph for row in graphs for graph in row]
+
+    for G in flat_graphs[:-1]:
+        first_labels.append(len(G) + first_labels[-1])
+
+    relabeled = [
+        nx.convert_node_labels_to_integers(G, first_label=first_label)
+        for G, first_label in zip(flat_graphs, first_labels)
+    ]
+    R = nx.union_all(relabeled)
+
+    positions = []
+    for i_row, row in enumerate(graphs):
+        for i, G in enumerate(row):
+            R.graph.update(G.graph)
+            for (x, y) in G.positions.values():
+                # shift x position
+                positions.append((x + 3 * i, y - 3 * i_row))
+
+    assert len(R) == len(positions)
+    R.positions = {node: pos for node, pos in zip(R, positions)}
+
+    # connect to right in same row
+    for i, row in enumerate(graphs):
+        for j, left_graph in enumerate(row[:-1]):
+            graph_num = i * len(row) + j
+            left_node = select_random_node(graph_num)
+            right_node = select_random_node(graph_num + 1)
+            R.add_edge(left_node, right_node)
+
+    # connect down, with row below
+    for i, row in enumerate(graphs[:-1]):
+        for j, left_graph in enumerate(row):
+            graph_num = i * len(row) + j
+            left_node = select_random_node(graph_num)
+            right_node = select_random_node(graph_num + len(row))
+            R.add_edge(left_node, right_node)
+
+    return R
