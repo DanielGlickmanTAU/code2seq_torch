@@ -13,8 +13,9 @@ from ogb.graphproppred import Evaluator
 from train import training
 
 # graphs = [word_graphs.Cycle(3), word_graphs.Cycle(4),word_graphs.Clique(4),word_graphs.Clique(5),word_graphs.Clique(6)]
-graphs = [word_graphs.Cycle(3), word_graphs.Cycle(4), word_graphs.Cycle(5), word_graphs.Clique(4),
-          word_graphs.Cycle(6), word_graphs.Tree_small(), word_graphs.Tree_large()]
+graphs = [lambda: word_graphs.Cycle(3), lambda: word_graphs.Cycle(4), lambda: word_graphs.Cycle(5),
+          lambda: word_graphs.Clique(4),
+          lambda: word_graphs.Cycle(6), lambda: word_graphs.Tree_small(), lambda: word_graphs.Tree_large()]
 # graphs = [word_graphs.Cycle(3), word_graphs.Clique(4), word_graphs.Clique(5)]
 color_mode = 'instance'
 dataset = word_graphs.WordsCombinationGraphDataset(color_mode, graphs, num_samples=50,
