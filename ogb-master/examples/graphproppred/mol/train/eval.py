@@ -29,9 +29,9 @@ def evaluate(model, device, loader, evaluator: Evaluator, visualizer=None):
 
     y_true = torch.cat(y_true, dim=0)
     y_pred = torch.cat(y_pred, dim=0)
-    input_dict = {"y_true": y_true.numpy(), "y_pred": y_pred.numpy()}
 
     if visualizer:
         visualizer(graphs, y_true, y_pred)
 
+    input_dict = {"y_true": y_true.numpy(), "y_pred": y_pred.numpy()}
     return evaluator.eval(input_dict)
