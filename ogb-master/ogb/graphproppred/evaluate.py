@@ -10,7 +10,7 @@ except ImportError:
 
 
 ### Evaluator for graph classification
-def _accuracy_coloring(y_true, y_pred):
+def accuracy_coloring(y_true, y_pred):
     correct = y_true == y_pred.argmax(-1)
     assert correct.ndim == 1
     acc = correct.mean()
@@ -124,7 +124,7 @@ class Evaluator:
             return self._accuracy_SBM(y_pred, y_true)
         elif self.eval_metric == 'coloring':
             y_true, y_pred = self._parse_and_check_input(input_dict)
-            return {'acc': _accuracy_coloring(y_true, y_pred)}
+            return {'acc': accuracy_coloring(y_true, y_pred)}
         elif self.eval_metric == 'F1':
             seq_ref, seq_pred = self._parse_and_check_input(input_dict)
             return self._eval_F1(seq_ref, seq_pred)
