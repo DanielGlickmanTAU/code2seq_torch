@@ -65,11 +65,13 @@ def add_args(parser):
                         help='In conv gnn layers, with small dataset, tracking stats sometimes gives problems because the stats is different in eval and test.')
 
 
-def get_default_args():
+def get_default_args(add_args_callback=None):
     parser = argparse.ArgumentParser(description='GNN baselines on ogbgmol* data with Pytorch Geometrics')
     add_args(parser)
     AdjStack.add_args(parser)
     GraphTransformerEncoder.add_args(parser)
+    if add_args_callback:
+        add_args_callback(parser)
 
     args = parser.parse_args()
     if not args.transformer_encoder_dropout:
