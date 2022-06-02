@@ -59,10 +59,10 @@ def draw(graph: Union[torch_geometric.data.Data, nx.Graph], color_tensor, color_
         plt.show()
 
 
-basic_color_map = ['red', 'green', 'blue', 'pink', 'yellow', 'orange', 'purple', 'brown', 'black', 'crimson', 'cyan',
+basic_color_map = ['red', 'green', 'blue', 'pink', 'yellow', 'orange', 'purple', 'brown', 'crimson', 'cyan',
                    'antiquewhite',
                    'bisque', 'burlywood', 'cadetblue', 'chartreuse', 'chocolate', 'coral', 'cornflowerblue', 'cornsilk',
-                   'darkolivegreen', 'darksalmon', 'firebrick', 'deepskyblue']
+                   'darkolivegreen', 'darksalmon', 'firebrick', 'deepskyblue'] + (['black'] * 300)
 
 
 # force_show is for debugging. will show plt locally and not only on  comet
