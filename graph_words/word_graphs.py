@@ -117,9 +117,8 @@ def get_atom_set(number):
         return [lambda: Cycle(5), lambda: Cycle(6), lambda: Tree_small(),
                 lambda: JoinedCycles(), lambda: Tree_large(), lambda: ChordCycle()]
     if number == 5:
-        if number == 4:
-            return [lambda: Cycle(3), lambda: Cycle(4), lambda: Cycle(5), lambda: Cycle(6), lambda: Tree_small(),
-                    lambda: JoinedCycles(), lambda: Tree_large(), lambda: ChordCycle()]
+        return [lambda: Cycle(3), lambda: Cycle(4), lambda: Cycle(5), lambda: Cycle(6), lambda: Tree_small(),
+                lambda: JoinedCycles(), lambda: Tree_large(), lambda: ChordCycle()]
 
     raise Exception(f'unknown atom set option {number}')
 
