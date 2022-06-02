@@ -160,6 +160,8 @@ class WordsCombinationGraphDataset(Dataset):
             self.num_labels = num_colors
         elif color_mode == 'both':
             self.num_labels = len(self.name_2_label) * num_colors
+        else:
+            raise Exception(f'unsupported color mode {color_mode}')
 
         for i in range(num_samples):
             selected_words_ctors = numpy.random.choice(word_graphs, words_per_sample * num_rows)

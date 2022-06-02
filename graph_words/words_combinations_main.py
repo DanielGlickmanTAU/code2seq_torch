@@ -26,7 +26,6 @@ def add_args(parser):
 args = get_default_args(add_args)
 coloring_mode = args.coloring_mode
 num_colors = args.num_colors
-assert coloring_mode == 'global' or coloring_mode == 'instance', f'got {coloring_mode}'
 atom_set = args.atoms_set
 
 graphs = word_graphs.get_atom_set(atom_set)
