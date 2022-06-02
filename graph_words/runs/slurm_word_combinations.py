@@ -5,9 +5,10 @@ from code2seq.utils.slurm import run_on_slurm
 import os
 
 params_for_grid_search = {
-    'coloring_mode': ['instance', 'global'],
+    'coloring_mode': ['both', 'instance', 'global'],
     # 'atoms_set':[1,2,3]
-    'atoms_set': [2, 3, 4]
+    'atoms_set': [2, 3, 4, 5],
+    'num_colors': [2, 3, 4]
 }
 
 params = {

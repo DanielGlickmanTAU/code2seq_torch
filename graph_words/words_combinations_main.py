@@ -24,18 +24,19 @@ def add_args(parser):
 
 args = get_default_args(add_args)
 coloring_mode = args.coloring_mode
+num_colors = args.num_colors
 assert coloring_mode == 'global' or coloring_mode == 'instance', f'got {coloring_mode}'
 atom_set = args.atoms_set
 
 graphs = word_graphs.get_atom_set(atom_set)
 
 dataset = word_graphs.WordsCombinationGraphDataset(coloring_mode, graphs, num_samples=2000,
-                                                   words_per_sample=4, num_rows=4)
+                                                   words_per_sample=4, num_rows=4, num_colors=num_colors)
 
 dataset_val = word_graphs.WordsCombinationGraphDataset(coloring_mode, graphs, num_samples=250,
-                                                       words_per_sample=4, num_rows=4)
+                                                       words_per_sample=4, num_rows=4, num_colors=num_colors)
 dataset_train = word_graphs.WordsCombinationGraphDataset(coloring_mode, graphs, num_samples=250,
-                                                         words_per_sample=4, num_rows=4)
+                                                         words_per_sample=4, num_rows=4, num_colors=num_colors)
 
 torch_geometric.seed_everything(args.seed)
 
@@ -53,8 +54,8 @@ args.lr_reduce_factor = 0.9
 args.conv_track_running_stats = False
 device = compute.get_device()
 task = 'coloring'
-num_colors = 2 if coloring_mode == 'instance' else len(dataset.name_2_label)
-model = model_utils.get_model(args, num_tasks=num_colors, device=device, task=task, num_embedding=num_colors + 1)
+num_labels = dataset.num_labels
+model = model_utils.get_model(args, num_tasks=num_labels, device=device, task=task, num_embedding=num_labels + 1)
 evaluator = Evaluator('coloring')
 loader = dataloader_utils.create_dataset_loader(dataset, batch_size=64, mapping=AdjStack(args))
 valid_loader = dataloader_utils.create_dataset_loader(dataset_val, batch_size=64, mapping=AdjStack(args), shuffle=True)

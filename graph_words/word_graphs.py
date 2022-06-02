@@ -116,6 +116,10 @@ def get_atom_set(number):
     if number == 4:
         return [lambda: Cycle(5), lambda: Cycle(6), lambda: Tree_small(),
                 lambda: JoinedCycles(), lambda: Tree_large(), lambda: ChordCycle()]
+    if number == 5:
+        if number == 4:
+            return [lambda: Cycle(3), lambda: Cycle(4), lambda: Cycle(5), lambda: Cycle(6), lambda: Tree_small(),
+                    lambda: JoinedCycles(), lambda: Tree_large(), lambda: ChordCycle()]
 
     raise Exception(f'unknown atom set option {number}')
 
@@ -143,11 +147,19 @@ class WordGraphDataset(Dataset):
 
 
 class WordsCombinationGraphDataset(Dataset):
-    def __init__(self, color_mode, word_graphs, num_samples, words_per_sample, num_rows=1):
+    def __init__(self, color_mode, word_graphs, num_samples, words_per_sample, num_rows=1, num_colors=2):
         self.word_graphs = word_graphs
+        self.num_labels = num_colors
         self.name_2_label = {graph().name: i for i, graph in enumerate(word_graphs)}
         self.label_2_name = {i: graph().name for i, graph in enumerate(word_graphs)}
         self.dataset = []
+
+        if color_mode == 'global':
+            self.num_labels = len(self.name_2_label)
+        elif color_mode == 'instance':
+            self.num_labels = num_colors
+        elif color_mode == 'both':
+            self.num_labels = len(self.name_2_label) * num_colors
 
         for i in range(num_samples):
             selected_words_ctors = numpy.random.choice(word_graphs, words_per_sample * num_rows)
@@ -156,15 +168,20 @@ class WordsCombinationGraphDataset(Dataset):
             # spit to rows
             words_in_grid = [selected_words[i:i + words_per_sample] for i in
                              range(0, len(selected_words), words_per_sample)]
-            if color_mode == 'instance':
+            if color_mode == 'instance' or color_mode == 'both':
                 for row in words_in_grid:
                     for word_instance in row:
                         chosen_node = random.randint(0, len(word_instance) - 1)
-                        chosen_color = random.randint(1, 2)
+                        chosen_color = random.randint(1, num_colors)
                         for i, node in enumerate(word_instance.nodes):
                             word_instance.nodes[node]['shape'] = word_instance.name
-                            # -1 is so it will play nice with drawing the right color..
-                            word_instance.nodes[node]['y'] = chosen_color - 1
+                            if color_mode == 'instance':
+                                # -1 is so it will play nice with drawing the right color..
+                                word_instance.nodes[node]['y'] = chosen_color - 1
+                            elif color_mode == 'both':
+                                word_instance.nodes[node]['y'] = self.name_2_label[
+                                                                     word_instance.name] * num_colors + chosen_color - 1
+
                             if i == chosen_node:
                                 word_instance.nodes[node]['x'] = chosen_color
                             else:
