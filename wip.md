@@ -1066,3 +1066,6 @@ of patterns to appear
 
 sanity check 3cycle, 50 cycle, 100 cycle.
 gets 3 cycle perfect and 50, 100 cycle < 0.6
+
+
+cm.colors.CSS4_COLORS

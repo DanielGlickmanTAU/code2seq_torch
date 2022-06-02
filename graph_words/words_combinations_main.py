@@ -21,12 +21,14 @@ def add_args(parser):
                         help='coloring mode for task. either global or instance')
     parser.add_argument('--atoms_set', type=int, help='one of pre difined sets of atoms we test on')
     parser.add_argument('--num_colors', type=int)
+    parser.add_argument('--edge_p', type=float, default=1.)
 
 
 args = get_default_args(add_args)
 coloring_mode = args.coloring_mode
 num_colors = args.num_colors
 atom_set = args.atoms_set
+edge_p = args.edge_p
 
 graphs = word_graphs.get_atom_set(atom_set)
 

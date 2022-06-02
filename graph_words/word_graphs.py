@@ -119,6 +119,9 @@ def get_atom_set(number):
     if number == 5:
         return [lambda: Cycle(3), lambda: Cycle(4), lambda: Cycle(5), lambda: Cycle(6), lambda: Tree_small(),
                 lambda: JoinedCycles(), lambda: Tree_large(), lambda: ChordCycle()]
+    if number == 6:
+        return [lambda: Cycle(3), lambda: Cycle(4), lambda: Cycle(5), lambda: Cycle(6), lambda: Tree_small(),
+                lambda: JoinedCycles(), lambda: Tree_large(), lambda: ChordCycle()]
 
     raise Exception(f'unknown atom set option {number}')
 
@@ -146,7 +149,7 @@ class WordGraphDataset(Dataset):
 
 
 class WordsCombinationGraphDataset(Dataset):
-    def __init__(self, color_mode, word_graphs, num_samples, words_per_sample, num_rows=1, num_colors=2):
+    def __init__(self, color_mode, word_graphs, num_samples, words_per_sample, num_rows=1, num_colors=2, edge_p=1.):
         self.word_graphs = word_graphs
         self.num_labels = num_colors
         self.name_2_label = {graph().name: i for i, graph in enumerate(word_graphs)}
@@ -196,7 +199,7 @@ class WordsCombinationGraphDataset(Dataset):
                             word_instance.nodes[node]['y'] = self.name_2_label[word_instance.name]
                             word_instance.nodes[node]['x'] = 0
 
-            graph = join_graphs(words_in_grid)
+            graph = join_graphs(words_in_grid, edge_p)
             # node_colors = [self.name_2_label[attr['color']] for _, attr in graph.nodes(data=True)]
             node_colors = None
             pyg_graph = create_pyg_graph(graph, node_colors)
@@ -235,7 +238,7 @@ def join_graphs_old(graphs):
     return left_graph
 
 
-def join_graphs(graphs):
+def join_graphs(graphs, edge_p=1.):
     def select_random_node(graph_index):
         graph_lowest_node_id = first_labels[graph_index]
         return numpy.random.randint(graph_lowest_node_id, graph_lowest_node_id + len(flat_graphs[graph_index]))
@@ -269,6 +272,8 @@ def join_graphs(graphs):
     # connect to right in same row
     for i, row in enumerate(graphs):
         for j, left_graph in enumerate(row[:-1]):
+            if random.random() < edge_p:
+                continue
             graph_num = i * len(row) + j
             left_node = select_random_node(graph_num)
             right_node = select_random_node(graph_num + 1)

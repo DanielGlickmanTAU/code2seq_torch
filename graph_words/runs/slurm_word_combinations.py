@@ -8,7 +8,10 @@ params_for_grid_search = {
     'coloring_mode': ['both', 'instance', 'global'],
     # 'atoms_set':[1,2,3]
     'atoms_set': [2, 3, 4, 5],
-    'num_colors': [2, 3, 4]
+    # 'atoms_set': [5],
+    'num_colors': [2, 3, 4],
+    # 'edge_p':[1.,0.7]
+    'edge_p': [0.5]
 }
 
 params = {
