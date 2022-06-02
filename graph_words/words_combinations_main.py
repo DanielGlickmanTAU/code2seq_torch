@@ -19,7 +19,8 @@ from train import training
 def add_args(parser):
     parser.add_argument('--coloring_mode', type=str,
                         help='coloring mode for task. either global or instance')
-    parser.add_argument('--atoms_set', type=int, help='one of predifined sets of atoms we test on')
+    parser.add_argument('--atoms_set', type=int, help='one of pre difined sets of atoms we test on')
+    parser.add_argument('--num_colors', type=int)
 
 
 args = get_default_args(add_args)
