@@ -11,7 +11,7 @@ slurm_file = 'my_slurm.slurm'
 
 def get_partition_and_time_limit():
     num_jobs_in_student_batch = os.popen('squeue | grep glick | grep studentba | wc -l').read()
-    num_jobs_in_student_batch = int(num_jobs_in_student_batch)
+    num_jobs_in_student_batch = int(num_jobs_in_student_batch) if num_jobs_in_student_batch else 0
     # if 'studentb' in os.popen('squeue | grep glickman').read():
     num_jobs_that_can_run_on_studentbatch_at_one_time = 2
     if num_jobs_in_student_batch > num_jobs_that_can_run_on_studentbatch_at_one_time:
