@@ -2,7 +2,6 @@ import torch
 from tqdm import tqdm
 
 from ogb.graphproppred import Evaluator
-import visualization
 
 
 def evaluate(model, device, loader, evaluator: Evaluator, visualizer=None):
