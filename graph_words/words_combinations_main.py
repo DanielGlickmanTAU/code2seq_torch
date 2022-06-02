@@ -12,42 +12,48 @@ from model.positional.positional_attention_weight import AdjStack
 from ogb.graphproppred import Evaluator
 from train import training
 
+
 # graphs = [word_graphs.Cycle(3), word_graphs.Cycle(4),word_graphs.Clique(4),word_graphs.Clique(5),word_graphs.Clique(6)]
-graphs = [lambda: word_graphs.Cycle(3), lambda: word_graphs.Cycle(4), lambda: word_graphs.Cycle(5),
-          lambda: word_graphs.Clique(4),
-          lambda: word_graphs.Cycle(6), lambda: word_graphs.Tree_small(), lambda: word_graphs.Tree_large()]
-# graphs = [word_graphs.Cycle(3), word_graphs.Clique(4), word_graphs.Clique(5)]
-color_mode = 'instance'
-dataset = word_graphs.WordsCombinationGraphDataset(color_mode, graphs, num_samples=50,
+
+
+def add_args(parser):
+    parser.add_argument('--coloring_mode', type=str,
+                        help='coloring mode for task. either global or instance')
+    parser.add_argument('--atoms_set', type=int, help='one of predifined sets of atoms we test on')
+
+
+args = get_default_args(add_args)
+coloring_mode = args.coloring_mode
+assert coloring_mode == 'global' or coloring_mode == 'instance', f'got {coloring_mode}'
+atom_set = args.atoms_set
+
+graphs = word_graphs.get_atom_set(atom_set)
+
+dataset = word_graphs.WordsCombinationGraphDataset(coloring_mode, graphs, num_samples=2000,
                                                    words_per_sample=4, num_rows=4)
 
-dataset_val = word_graphs.WordsCombinationGraphDataset(color_mode, graphs, num_samples=50,
+dataset_val = word_graphs.WordsCombinationGraphDataset(coloring_mode, graphs, num_samples=250,
                                                        words_per_sample=4, num_rows=4)
-dataset_train = word_graphs.WordsCombinationGraphDataset(color_mode, graphs, num_samples=50,
+dataset_train = word_graphs.WordsCombinationGraphDataset(coloring_mode, graphs, num_samples=250,
                                                          words_per_sample=4, num_rows=4)
-
-# overfit train
-args = get_default_args()
 
 torch_geometric.seed_everything(args.seed)
 
-# num_adj_stacks = pyramid_size - 1
+args.num_layer = 6
 
 args.num_transformer_layers = 0
-args.num_layer = 6
 args.drop_ratio = 0.
 args.transformer_encoder_dropout = 0.
 args.emb_dim = 100
 args.num_heads = 1
-args.patience = 400
+args.patience = 100
 args.epochs = 2000
 # args.lr_schedule_patience = 500
 args.lr_reduce_factor = 0.9
 args.conv_track_running_stats = False
-# args.gnn = 'gcn'
 device = compute.get_device()
 task = 'coloring'
-num_colors = 2 if color_mode == 'instance' else len(dataset.name_2_label)
+num_colors = 2 if coloring_mode == 'instance' else len(dataset.name_2_label)
 model = model_utils.get_model(args, num_tasks=num_colors, device=device, task=task, num_embedding=num_colors + 1)
 evaluator = Evaluator('coloring')
 loader = dataloader_utils.create_dataset_loader(dataset, batch_size=64, mapping=AdjStack(args))

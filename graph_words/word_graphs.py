@@ -37,6 +37,24 @@ def Cycle(n):
     return graph
 
 
+def JoinedCycles():
+    graph = nx.cycle_graph(10)
+    graph.add_edges_from([(0, 5)])
+    graph.name = f'Jcycle'
+    pos = circle_sections(10)
+    graph.positions = {i: pos for i, pos in zip(graph, pos)}
+    return graph
+
+
+def ChordCycle():
+    graph = nx.cycle_graph(6)
+    graph.add_edges_from([(0, 3)])
+    graph.name = f'ChordCycle'
+    pos = circle_sections(6)
+    graph.positions = {i: pos for i, pos in zip(graph, pos)}
+    return graph
+
+
 def Tree_small():
     graph = nx.Graph()
     graph.add_edges_from(
@@ -86,6 +104,22 @@ def JoinedSquared():
     return graph
 
 
+def get_atom_set(number):
+    if number == 1:
+        return [lambda: Cycle(4), lambda: Cycle(5), lambda: Cycle(6), lambda: Tree_large()]
+    if number == 2:
+        return [lambda: Cycle(5), lambda: Cycle(6),
+                lambda: JoinedCycles(), lambda: Tree_large()]
+    if number == 3:
+        return [lambda: Cycle(5), lambda: Cycle(6), lambda: Tree_small(),
+                lambda: JoinedCycles(), lambda: Tree_large()]
+    if number == 4:
+        return [lambda: Cycle(5), lambda: Cycle(6), lambda: Tree_small(),
+                lambda: JoinedCycles(), lambda: Tree_large(), lambda: ChordCycle()]
+
+    raise Exception(f'unknown atom set option {number}')
+
+
 def circle_sections(divisions, radius=1):
     # the difference between angles in radians -- don't bother with degrees
     angle = 2 * math.pi / divisions
@@ -95,12 +129,6 @@ def circle_sections(divisions, radius=1):
 
     # finally return the coordinates on the circle as a list of 2-tuples
     return [(radius * math.cos(a), radius * math.sin(a)) for a in angles]
-
-
-cycle_4 = Cycle(4)
-cycle_5 = Cycle(5)
-clique_4 = Clique(4)
-clique_5 = Clique(5)
 
 
 class WordGraphDataset(Dataset):
