@@ -63,6 +63,6 @@ class Visualizer:
                 shape_acc = accuracy_coloring(y_true[indexes_of_nodes_in_shape].numpy(),
                                               y_pred[indexes_of_nodes_in_shape].numpy())
                 shape_to_acc[shape_name] = shape_acc
-            get_global_exp().log_metrics(shape_to_acc)
+            get_global_exp().log_metrics(shape_to_acc, prefix='shape')
         else:
             get_global_exp().log_confusion_matrix(y_true.numpy(), y_predicted=y_pred.numpy(), labels=self.label_names)
