@@ -30,7 +30,6 @@ def evaluate(model, device, loader, evaluator: Evaluator, visualizer=None):
     y_pred = torch.cat(y_pred, dim=0)
 
     if visualizer:
-        #[(i,batch[i].y.float().var()) for i in range(batch.num_graphs)]
         visualizer(graphs, y_true, y_pred)
 
     input_dict = {"y_true": y_true.numpy(), "y_pred": y_pred.numpy()}
