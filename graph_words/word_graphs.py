@@ -287,7 +287,7 @@ def join_graphs(graphs, edge_p=1.):
     # connect to right in same row
     for i, row in enumerate(graphs):
         for j, left_graph in enumerate(row[:-1]):
-            if random.random() < edge_p:
+            if random.random() > edge_p:
                 continue
             graph_num = i * len(row) + j
             left_node = select_random_node(graph_num)
