@@ -30,15 +30,19 @@ num_colors = args.num_colors
 atom_set = args.atoms_set
 edge_p = args.edge_p
 
+row_size = 5
+
 graphs = word_graphs.get_atom_set(atom_set)
 
-dataset = word_graphs.WordsCombinationGraphDataset(coloring_mode, graphs, num_samples=2000,
-                                                   words_per_sample=4, num_rows=4, num_colors=num_colors)
+dataset = word_graphs.WordsCombinationGraphDataset(coloring_mode, graphs, num_samples=3000,
+                                                   words_per_sample=row_size, num_rows=row_size, num_colors=num_colors)
 
-dataset_val = word_graphs.WordsCombinationGraphDataset(coloring_mode, graphs, num_samples=250,
-                                                       words_per_sample=4, num_rows=4, num_colors=num_colors)
-dataset_train = word_graphs.WordsCombinationGraphDataset(coloring_mode, graphs, num_samples=250,
-                                                         words_per_sample=4, num_rows=4, num_colors=num_colors)
+dataset_val = word_graphs.WordsCombinationGraphDataset(coloring_mode, graphs, num_samples=300,
+                                                       words_per_sample=row_size, num_rows=row_size,
+                                                       num_colors=num_colors)
+dataset_train = word_graphs.WordsCombinationGraphDataset(coloring_mode, graphs, num_samples=300,
+                                                         words_per_sample=row_size, num_rows=row_size,
+                                                         num_colors=num_colors)
 
 torch_geometric.seed_everything(args.seed)
 
