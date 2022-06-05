@@ -48,8 +48,8 @@ def JoinedCycles():
 
 def ChordCycle(size=6):
     graph = nx.cycle_graph(size)
-    graph.add_edges_from([(0, int(size) / 2)])
-    graph.name = f'ChordCycle'
+    graph.add_edges_from([(0, int(size / 2))])
+    graph.name = f'ChordCycle_{size}'
     pos = circle_sections(size)
     graph.positions = {i: pos for i, pos in zip(graph, pos)}
     return graph
@@ -133,9 +133,9 @@ def get_atom_set(number):
                 lambda: JoinedCycles(), lambda: Tree_large(), lambda: ChordCycle()]
 
     if number == 7:
-        return [lambda: Cycle(3), lambda: Cycle(4), lambda: Cycle(5), lambda: Cycle(6),
+        return [lambda: Cycle(4), lambda: Cycle(5), lambda: Cycle(6),
                 lambda: Tree_small(), lambda: Tree_large(),
-                lambda: Dot(),
+                # lambda: Dot(),
                 lambda: JoinedCycles(), lambda: ChordCycle(5), lambda: ChordCycle(6)]
 
     raise Exception(f'unknown atom set option {number}')
