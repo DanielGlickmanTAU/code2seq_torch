@@ -23,8 +23,8 @@ class Visualizer:
         return s
 
     def __call__(self, graphs, y_true, y_pred):
-        if not self.task_type == 'coloring':
-            return
+        # if not self.task_type == 'coloring':
+        #     return
 
         graph_to_prediction_indexes = {}
         predictions_start = 0
