@@ -114,6 +114,10 @@ def JoinedSquared():
 
 
 def get_atom_set(number):
+    if number == 33:
+        return [lambda: Cycle(3)]
+    if number == 0:
+        return [lambda: Cycle(3), lambda: Cycle(4)]
     if number == 1:
         return [lambda: Cycle(4), lambda: Cycle(5), lambda: Cycle(6), lambda: Tree_large()]
     if number == 2:
@@ -135,7 +139,7 @@ def get_atom_set(number):
     if number == 7:
         return [lambda: Cycle(4), lambda: Cycle(5), lambda: Cycle(6),
                 lambda: Tree_small(), lambda: Tree_large(),
-                # lambda: Dot(),
+                lambda: Dot(),
                 lambda: JoinedCycles(), lambda: ChordCycle(5), lambda: ChordCycle(6)]
 
     raise Exception(f'unknown atom set option {number}')
@@ -164,6 +168,15 @@ class WordGraphDataset(Dataset):
 
 
 class WordsCombinationGraphDataset(Dataset):
+    def set_color_if_all_nodes_have_same_shape(self, atoms_in_row):
+        colors_in_rows = set(atom.nodes[0]['x'] for atom in atoms_in_row)
+        shapes_in_rows = set(atom.nodes[0]['shape'] for atom in atoms_in_row)
+        #col/row has same shape row and color
+        if len(colors_in_rows) == 1 and len(shapes_in_rows) == 1:
+            for atom in atoms_in_row:
+                for node in atom.nodes:
+                    atom.nodes[node]['y'] = 1
+
     def __init__(self, color_mode, word_graphs, num_samples, words_per_sample, num_rows=1, num_colors=2, edge_p=1.):
         self.word_graphs = word_graphs
         self.num_labels = num_colors
@@ -175,7 +188,7 @@ class WordsCombinationGraphDataset(Dataset):
             self.num_labels = len(self.name_2_label)
         elif color_mode == 'instance':
             self.num_labels = num_colors
-        elif color_mode == 'both':
+        elif color_mode == 'both' or color_mode == 'rows':
             self.num_labels = len(self.name_2_label) * num_colors
         else:
             raise Exception(f'unsupported color mode {color_mode}')
@@ -205,6 +218,23 @@ class WordsCombinationGraphDataset(Dataset):
                                 word_instance.nodes[node]['x'] = chosen_color
                             else:
                                 word_instance.nodes[node]['x'] = 0
+
+            if color_mode == 'rows':
+                # first color all nodes(x)
+                for row in words_in_grid:
+                    for word_instance in row:
+                        chosen_color = random.randint(1, num_colors)
+                        for i, node in enumerate(word_instance.nodes):
+                            word_instance.nodes[node]['shape'] = word_instance.name
+                            word_instance.nodes[node]['y'] = 0
+                            word_instance.nodes[node]['x'] = chosen_color
+
+                # now go by rows and see if any contain all with same shape + color
+                for i in range(len(words_in_grid)):
+                    atoms_in_row = words_in_grid[i]
+                    self.set_color_if_all_nodes_have_same_shape(atoms_in_row)
+                    atoms_in_col = [words_in_grid[j][i] for j in range(len(words_in_grid))]
+                    self.set_color_if_all_nodes_have_same_shape(atoms_in_col)
 
             if color_mode == 'global':
                 for row in words_in_grid:
