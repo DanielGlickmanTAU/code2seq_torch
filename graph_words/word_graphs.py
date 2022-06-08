@@ -168,28 +168,32 @@ class WordGraphDataset(Dataset):
 
 
 class WordsCombinationGraphDataset(Dataset):
-    def set_color_if_all_nodes_have_same_shape(self, atoms_in_row):
+    def set_color_if_all_nodes_have_same_shape(self, atoms_in_row, only_color):
         colors_in_rows = set(atom.nodes[0]['x'] for atom in atoms_in_row)
         shapes_in_rows = set(atom.nodes[0]['shape'] for atom in atoms_in_row)
-        #col/row has same shape row and color
-        if len(colors_in_rows) == 1 and len(shapes_in_rows) == 1:
+        # col/row has same shape row and color
+        if len(colors_in_rows) == 1 and (only_color or len(shapes_in_rows) == 1):
             for atom in atoms_in_row:
                 for node in atom.nodes:
                     atom.nodes[node]['y'] = 1
 
-    def __init__(self, color_mode, word_graphs, num_samples, words_per_sample, num_rows=1, num_colors=2, edge_p=1.):
+    def __init__(self, color_mode, word_graphs, num_samples, words_per_sample, num_rows=1, num_colors=2, edge_p=1.,
+                 only_color=False):
         self.word_graphs = word_graphs
-        self.num_labels = num_colors
         self.name_2_label = {graph().name: i for i, graph in enumerate(word_graphs)}
         self.label_2_name = {i: graph().name for i, graph in enumerate(word_graphs)}
         self.dataset = []
 
+        self.num_labels = num_colors
         if color_mode == 'global':
             self.num_labels = len(self.name_2_label)
         elif color_mode == 'instance':
             self.num_labels = num_colors
-        elif color_mode == 'both' or color_mode == 'rows':
+        elif color_mode == 'both':
             self.num_labels = len(self.name_2_label) * num_colors
+        #just 2 labels, match/ no match
+        elif color_mode == 'rows':
+            self.num_labels = 2
         else:
             raise Exception(f'unsupported color mode {color_mode}')
 
@@ -232,9 +236,9 @@ class WordsCombinationGraphDataset(Dataset):
                 # now go by rows and see if any contain all with same shape + color
                 for i in range(len(words_in_grid)):
                     atoms_in_row = words_in_grid[i]
-                    self.set_color_if_all_nodes_have_same_shape(atoms_in_row)
+                    self.set_color_if_all_nodes_have_same_shape(atoms_in_row, only_color)
                     atoms_in_col = [words_in_grid[j][i] for j in range(len(words_in_grid))]
-                    self.set_color_if_all_nodes_have_same_shape(atoms_in_col)
+                    self.set_color_if_all_nodes_have_same_shape(atoms_in_col, only_color)
 
             if color_mode == 'global':
                 for row in words_in_grid:
