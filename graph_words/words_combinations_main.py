@@ -1,3 +1,4 @@
+from arg_parse_utils import bool_
 from code2seq.utils import compute
 
 import networkx as nx
@@ -22,6 +23,7 @@ def add_args(parser):
     parser.add_argument('--atoms_set', type=int, help='one of pre difined sets of atoms we test on')
     parser.add_argument('--num_colors', type=int)
     parser.add_argument('--edge_p', type=float, default=1.)
+    parser.add_argument('--only_color', type=bool_, default=False)
 
 
 args = get_default_args(add_args)
@@ -30,43 +32,49 @@ num_colors = args.num_colors
 atom_set = args.atoms_set
 edge_p = args.edge_p
 
-row_size = 5
+row_size = 4
+# args.num_layer = 16
+only_color = args.only_color
 
 graphs = word_graphs.get_atom_set(atom_set)
 
-dataset = word_graphs.WordsCombinationGraphDataset(coloring_mode, graphs, num_samples=3000,
-                                                   words_per_sample=row_size, num_rows=row_size, num_colors=num_colors)
+n_train = 10000
+# n_train = 20
+dataset = word_graphs.WordsCombinationGraphDataset(coloring_mode, graphs, num_samples=n_train,
+                                                   words_per_sample=row_size, num_rows=row_size, num_colors=num_colors,
+                                                   only_color=only_color)
 
-dataset_val = word_graphs.WordsCombinationGraphDataset(coloring_mode, graphs, num_samples=300,
+dataset_val = word_graphs.WordsCombinationGraphDataset(coloring_mode, graphs, num_samples=1000,
                                                        words_per_sample=row_size, num_rows=row_size,
-                                                       num_colors=num_colors)
+                                                       num_colors=num_colors, only_color=only_color)
 dataset_train = word_graphs.WordsCombinationGraphDataset(coloring_mode, graphs, num_samples=300,
                                                          words_per_sample=row_size, num_rows=row_size,
-                                                         num_colors=num_colors)
+                                                         num_colors=num_colors, only_color=only_color)
 
 torch_geometric.seed_everything(args.seed)
-
-args.num_layer = 6
 
 args.num_transformer_layers = 0
 args.drop_ratio = 0.
 args.transformer_encoder_dropout = 0.
 args.emb_dim = 100
 args.num_heads = 1
-args.patience = 100
+args.patience = 500
 args.epochs = 2000
 # args.lr_schedule_patience = 500
 args.lr_reduce_factor = 0.9
 args.conv_track_running_stats = False
 device = compute.get_device()
-task = 'coloring'
+# task = 'coloring'
+task = 'PATTERN'
+# task_type = 'coloring'
+task_type = 'node classification'
 num_labels = dataset.num_labels
-model = model_utils.get_model(args, num_tasks=num_labels, device=device, task=task, num_embedding=num_labels + 1)
-evaluator = Evaluator('coloring')
-loader = dataloader_utils.create_dataset_loader(dataset, batch_size=64, mapping=AdjStack(args))
-valid_loader = dataloader_utils.create_dataset_loader(dataset_val, batch_size=64, mapping=AdjStack(args), shuffle=True)
+model = model_utils.get_model(args, num_tasks=num_labels, device=device, task='coloring', num_embedding=num_labels + 1)
+evaluator = Evaluator(task)
+loader = dataloader_utils.create_dataset_loader(dataset, batch_size=64, mapping=AdjStack(args), shuffle=True)
+valid_loader = dataloader_utils.create_dataset_loader(dataset_val, batch_size=64, mapping=AdjStack(args), shuffle=False)
 test_loader = dataloader_utils.create_dataset_loader(dataset_train, batch_size=64, mapping=AdjStack(args),
-                                                     shuffle=True)
+                                                     shuffle=False)
 
-training.full_train_flow(args, device, evaluator, model, test_loader, loader, valid_loader, 'coloring',
+training.full_train_flow(args, device, evaluator, model, test_loader, loader, valid_loader, task_type,
                          'acc')

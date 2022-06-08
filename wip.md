@@ -1069,3 +1069,32 @@ gets 3 cycle perfect and 50, 100 cycle < 0.6
 
 
 cm.colors.CSS4_COLORS
+
+
+### 5/6
+both task: looks like when adding colors, the task becomes harder..?
+
+edge prob < 1. seems easier...
+
+todo:
+instance,both , 2,3,10 colors.. no triangle
+can be interesting to watch on what it fails...
+
+should i move to gps implementation?
+should i use gnn as positional/structural encoding?
+if I add visualization can be useful..
+
+### 7/6
+task rows: probability of a single shape in a grid getting label one
+2 * p^(n-1)
+p is 1/number of shapes+colors
+n is row size 
+2 is because we consider both rows and cols
+
+### 8/6 
+task rows: thinking about what is the right metric to use..
+macro average seems fine
+
+going for now for only_color=True.. i.e labels row/col if all the shapes are in the same color, with no regards to shape
+
+0.2371 are labeled as 1(row/col match) # compute.get_torch().cat([_.y for _ in dataset]).float().mean() 
