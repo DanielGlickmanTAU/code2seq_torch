@@ -69,6 +69,7 @@ task = 'PATTERN'
 # task_type = 'coloring'
 task_type = 'node classification'
 num_labels = dataset.num_labels
+assert coloring_mode == 'rows', 'else need to restore task_type and task.'
 model = model_utils.get_model(args, num_tasks=num_labels, device=device, task='coloring', num_embedding=num_labels + 1)
 evaluator = Evaluator(task)
 loader = dataloader_utils.create_dataset_loader(dataset, batch_size=64, mapping=AdjStack(args), shuffle=True)
