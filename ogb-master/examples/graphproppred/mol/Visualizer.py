@@ -45,6 +45,9 @@ class Visualizer:
                 if self.epoch == 1:
                     visualization.draw_pyramid(g, 'x', 'input', fig_name=f'{fig_name}_input')
                     visualization.draw_pyramid(g, 'y', 'gold', fig_name=f'{fig_name}_gold')
+
+                    visualization.draw_pyramid(g, 'x', 'input', fig_name=fig_name)
+                    visualization.draw_pyramid(g, 'y', 'gold', fig_name=fig_name)
                 label = f'epoch {self._lexo(self.epoch, 1000)}. acc:{g_acc}'
                 visualization.draw_pyramid(g, g_pred, label, fig_name=fig_name)
             except Exception as e:
