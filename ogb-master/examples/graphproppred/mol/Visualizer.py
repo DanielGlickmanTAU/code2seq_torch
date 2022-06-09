@@ -46,10 +46,10 @@ class Visualizer:
                     visualization.draw_pyramid(g, 'x', 'input', fig_name=f'{fig_name}_input')
                     visualization.draw_pyramid(g, 'y', 'gold', fig_name=f'{fig_name}_gold')
 
-                    visualization.draw_pyramid(g, 'x', 'input', fig_name=fig_name, step=0)
-                    visualization.draw_pyramid(g, 'y', 'gold', fig_name=fig_name, step=0)
+                    visualization.draw_pyramid(g, 'x', 'input', fig_name=fig_name, step=1)
+                    visualization.draw_pyramid(g, 'y', 'gold', fig_name=fig_name, step=2)
                 label = f'epoch {self._lexo(self.epoch, 1000)}. acc:{g_acc}'
-                visualization.draw_pyramid(g, g_pred, label, fig_name=fig_name, step=self.epoch)
+                visualization.draw_pyramid(g, g_pred, label, fig_name=fig_name, step=self.epoch + 2)
             except Exception as e:
                 print(f'failed visualizing {e}')
         if 'shape' in graphs[0]:
