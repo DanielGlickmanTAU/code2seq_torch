@@ -184,7 +184,9 @@ class WordsCombinationGraphDataset(Dataset):
         self.label_2_name = {i: graph().name for i, graph in enumerate(word_graphs)}
         self.dataset = []
 
-        self.num_labels = num_colors
+        if color_mode == 'global':
+            assert num_colors <= 1
+
         if color_mode == 'global':
             self.num_labels = len(self.name_2_label)
         elif color_mode == 'instance':

@@ -38,13 +38,15 @@ only_color = args.only_color
 
 graphs = word_graphs.get_atom_set(atom_set)
 
-n_train = 10000
-# n_train = 20
+# n_train = 3000
+# n_valid = 1000
+n_train = 20
+n_valid = 10
 dataset = word_graphs.WordsCombinationGraphDataset(coloring_mode, graphs, num_samples=n_train,
                                                    words_per_sample=row_size, num_rows=row_size, num_colors=num_colors,
                                                    only_color=only_color)
 
-dataset_val = word_graphs.WordsCombinationGraphDataset(coloring_mode, graphs, num_samples=1000,
+dataset_val = word_graphs.WordsCombinationGraphDataset(coloring_mode, graphs, num_samples=n_valid,
                                                        words_per_sample=row_size, num_rows=row_size,
                                                        num_colors=num_colors, only_color=only_color)
 dataset_train = word_graphs.WordsCombinationGraphDataset(coloring_mode, graphs, num_samples=300,
@@ -58,7 +60,7 @@ args.drop_ratio = 0.
 args.transformer_encoder_dropout = 0.
 args.emb_dim = 100
 args.num_heads = 1
-args.patience = 500
+args.patience = 250
 args.epochs = 2000
 # args.lr_schedule_patience = 500
 args.lr_reduce_factor = 0.9
@@ -70,7 +72,7 @@ task = 'PATTERN'
 task_type = 'node classification'
 num_labels = dataset.num_labels
 assert coloring_mode == 'rows', 'else need to restore task_type and task.'
-model = model_utils.get_model(args, num_tasks=num_labels, device=device, task='coloring', num_embedding=num_labels + 1)
+model = model_utils.get_model(args, num_tasks=num_labels, device=device, task='coloring', num_embedding=num_colors + 1)
 evaluator = Evaluator(task)
 loader = dataloader_utils.create_dataset_loader(dataset, batch_size=64, mapping=AdjStack(args), shuffle=True)
 valid_loader = dataloader_utils.create_dataset_loader(dataset_val, batch_size=64, mapping=AdjStack(args), shuffle=False)
