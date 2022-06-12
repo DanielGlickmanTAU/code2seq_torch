@@ -24,6 +24,7 @@ def add_args(parser):
     parser.add_argument('--num_colors', type=int)
     parser.add_argument('--edge_p', type=float, default=1.)
     parser.add_argument('--only_color', type=bool_, default=False)
+    parser.add_argument('--unique_atoms_per_example', type=bool_, default=False)
 
 
 args = get_default_args(add_args)
@@ -31,6 +32,7 @@ coloring_mode = args.coloring_mode
 num_colors = args.num_colors
 atom_set = args.atoms_set
 edge_p = args.edge_p
+unique_atoms_per_example = args.unique_atoms_per_example
 
 row_size = 4
 # args.num_layer = 16
@@ -38,20 +40,20 @@ only_color = args.only_color
 
 graphs = word_graphs.get_atom_set(atom_set)
 
-# n_train = 3000
-# n_valid = 1000
-n_train = 20
-n_valid = 10
+n_train = 3000
+n_valid = 1000
+# n_train = 20
+# n_valid = 10
 dataset = word_graphs.WordsCombinationGraphDataset(coloring_mode, graphs, num_samples=n_train,
                                                    words_per_sample=row_size, num_rows=row_size, num_colors=num_colors,
-                                                   only_color=only_color)
+                                                   only_color=only_color,unique_atoms_per_example= unique_atoms_per_example)
 
 dataset_val = word_graphs.WordsCombinationGraphDataset(coloring_mode, graphs, num_samples=n_valid,
                                                        words_per_sample=row_size, num_rows=row_size,
-                                                       num_colors=num_colors, only_color=only_color)
+                                                       num_colors=num_colors, only_color=only_color,unique_atoms_per_example= unique_atoms_per_example)
 dataset_train = word_graphs.WordsCombinationGraphDataset(coloring_mode, graphs, num_samples=300,
                                                          words_per_sample=row_size, num_rows=row_size,
-                                                         num_colors=num_colors, only_color=only_color)
+                                                         num_colors=num_colors, only_color=only_color,unique_atoms_per_example= unique_atoms_per_example)
 
 torch_geometric.seed_everything(args.seed)
 
@@ -81,3 +83,4 @@ test_loader = dataloader_utils.create_dataset_loader(dataset_train, batch_size=6
 
 training.full_train_flow(args, device, evaluator, model, test_loader, loader, valid_loader, task_type,
                          'acc')
+print(f'task  {task_type}')

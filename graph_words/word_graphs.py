@@ -178,7 +178,7 @@ class WordsCombinationGraphDataset(Dataset):
                     atom.nodes[node]['y'] = 1
 
     def __init__(self, color_mode, word_graphs, num_samples, words_per_sample, num_rows=1, num_colors=2, edge_p=1.,
-                 only_color=False):
+                 only_color=False, unique_atoms_per_example=False):
         self.word_graphs = word_graphs
         self.name_2_label = {graph().name: i for i, graph in enumerate(word_graphs)}
         self.label_2_name = {i: graph().name for i, graph in enumerate(word_graphs)}
@@ -193,14 +193,19 @@ class WordsCombinationGraphDataset(Dataset):
             self.num_labels = num_colors
         elif color_mode == 'both':
             self.num_labels = len(self.name_2_label) * num_colors
-        #just 2 labels, match/ no match
+        # just 2 labels, match/ no match
         elif color_mode == 'rows':
             self.num_labels = 2
         else:
             raise Exception(f'unsupported color mode {color_mode}')
 
         for i in range(num_samples):
-            selected_words_ctors = numpy.random.choice(word_graphs, words_per_sample * num_rows)
+            if unique_atoms_per_example:
+                num_unique_atoms = 2
+                unique_atoms = numpy.random.choice(word_graphs, num_unique_atoms)
+                selected_words_ctors = numpy.random.choice(unique_atoms, words_per_sample * num_rows)
+            else:
+                selected_words_ctors = numpy.random.choice(word_graphs, words_per_sample * num_rows)
             selected_words = [g() for g in selected_words_ctors]
 
             # spit to rows
