@@ -51,7 +51,7 @@ def draw(graph: Union[torch_geometric.data.Data, nx.Graph], color_tensor, color_
             )
     exp = get_global_exp()
     if exp:
-        exp.log_figure(figure=fig, figure_name=fig_name,step=step)
+        exp.log_figure(figure=fig, figure_name=fig_name,step=step,overwrite=False)
         if force_show:
             plt.show()
         plt.close('all')
