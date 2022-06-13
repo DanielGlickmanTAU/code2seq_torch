@@ -25,6 +25,8 @@ def add_args(parser):
                         help='if True, each instance will be composed of 2 atom types. This increases the probability of having matching row/cols')
     parser.add_argument('--unique_colors_per_example', type=bool_, default=False,
                         help='if True, each instance will be composed of 2 colors only. This increases the probability of having matching row/cols')
+    parser.add_argument('--row_size', type=int, default=4)
+
 
 args = get_default_args(add_args)
 coloring_mode = args.coloring_mode
@@ -34,7 +36,7 @@ edge_p = args.edge_p
 unique_atoms_per_example = args.unique_atoms_per_example
 unique_colors_per_example = args.unique_colors_per_example
 
-row_size = 4
+row_size = args.row_size
 # args.num_layer = 16
 only_color = args.only_color
 
@@ -42,7 +44,7 @@ graphs = word_graphs.get_atom_set(atom_set)
 
 # n_train = 3000
 # n_valid = 1000
-n_train = 2000
+n_train = 200
 n_valid = 100
 dataset = word_graphs.WordsCombinationGraphDataset(coloring_mode, graphs, num_samples=n_train,
                                                    words_per_sample=row_size, num_rows=row_size, num_colors=num_colors,
@@ -85,5 +87,5 @@ test_loader = dataloader_utils.create_dataset_loader(dataset_train, batch_size=6
                                                      shuffle=False)
 
 training.full_train_flow(args, device, evaluator, model, test_loader, loader, valid_loader, task_type,
-                         'acc')
+                         'f1')
 print(f'task  {task_type}')

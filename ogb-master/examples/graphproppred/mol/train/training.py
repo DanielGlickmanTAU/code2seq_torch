@@ -144,7 +144,7 @@ def full_train_flow(args, device, evaluator, model, test_loader, train_loader, v
         exp.log_metric(f'test_{eval_metric}', test_score)
         exp.log_metric('learning_rate_', optimizer.param_groups[0]['lr'])
         for key in valid_perf:
-            if key.startswith('acc_'):
+            if key != eval_metric:
                 exp.log_metric(key, valid_perf[key])
 
         # scheduler.step(validation_score - 0.00001 * epoch)

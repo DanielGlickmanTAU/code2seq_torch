@@ -37,7 +37,8 @@ def accuracy_coloring_f1(y_true, y_pred):
     precision = (predictions[predictions == 1] == y_true[predictions == 1]).mean()
     recall = (y_true[y_true == 1] == predictions[y_true == 1]).mean()
 
-    return 2 * (precision * recall) / (precision + recall)
+    f1 = 2 * (precision * recall) / (precision + recall)
+    return {'f1': f1, 'precision': precision, 'recall': recall}
 
 
 class Evaluator:
@@ -150,8 +151,9 @@ class Evaluator:
             return {'acc': accuracy_coloring(y_true, y_pred)}
         elif self.eval_metric == 'coloring-f1':
             y_true, y_pred = self._parse_and_check_input(input_dict)
-            return {'acc': accuracy_coloring_f1(y_true, y_pred)}
-        elif self.eval_metric == 'F1':
+            return accuracy_coloring_f1(y_true, y_pred)
+            # return {'F1': accuracy_coloring_f1(y_true, y_pred)}
+        elif self.eval_metric == 'f1':
             seq_ref, seq_pred = self._parse_and_check_input(input_dict)
             return self._eval_F1(seq_ref, seq_pred)
         else:
