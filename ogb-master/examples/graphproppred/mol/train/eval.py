@@ -20,7 +20,7 @@ def evaluate(model, device, loader, evaluator: Evaluator, visualizer=None):
                 pred: torch.Tensor = model(batch)
 
             assert not pred.isnan().any()
-            if evaluator.eval_metric == 'smb' or evaluator.eval_metric == 'coloring':
+            if evaluator.eval_metric == 'smb' or evaluator.eval_metric == 'coloring' or evaluator.eval_metric == 'coloring-f1':
                 y_true.append(batch.y.detach().cpu())
             else:
                 y_true.append(batch.y.view(pred.shape).detach().cpu())

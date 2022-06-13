@@ -17,6 +17,29 @@ def accuracy_coloring(y_true, y_pred):
     return acc
 
 
+def accuracy_coloring_f1(y_true, y_pred):
+    predictions = y_pred.argmax(-1)
+
+    # same as below, but more explicit
+    # true_positive = sum(predictions[predictions == 1] == y_true[predictions == 1])
+    # false_positive = sum(predictions[predictions == 1] != y_true[predictions == 1])
+    # assert false_positive == len(predictions[predictions == 1]) - true_positive
+    #
+    # true_negative = sum(predictions[predictions == 0] == y_true[predictions == 0])
+    # false_negative = sum(predictions[predictions == 0] != y_true[predictions == 0])
+    #
+    # assert false_negative == len(predictions[predictions ==0]) - true_negative
+    #
+    #
+    # precision = true_positive / (true_positive + false_positive)
+    # recall = true_positive / (true_positive + false_negative)
+
+    precision = (predictions[predictions == 1] == y_true[predictions == 1]).mean()
+    recall = (y_true[y_true == 1] == predictions[y_true == 1]).mean()
+
+    return 2 * (precision * recall) / (precision + recall)
+
+
 class Evaluator:
     def __init__(self, name):
         self.name = name
@@ -26,9 +49,9 @@ class Evaluator:
             self.eval_metric = 'smb'
             return
 
-        if name == 'coloring':
+        if name == 'coloring' or name.lower() == 'coloring-f1':
             self.num_tasks = 1
-            self.eval_metric = 'coloring'
+            self.eval_metric = name.lower()
             return
 
         meta_info = pd.read_csv(os.path.join(os.path.dirname(__file__), 'master.csv'), index_col=0)
@@ -43,7 +66,7 @@ class Evaluator:
         self.eval_metric = meta_info[self.name]['eval metric']
 
     def _parse_and_check_input(self, input_dict):
-        if self.eval_metric == 'rocauc' or self.eval_metric == 'ap' or self.eval_metric == 'rmse' or self.eval_metric == 'acc' or self.eval_metric == 'smb' or self.eval_metric == 'coloring':
+        if self.eval_metric == 'rocauc' or self.eval_metric == 'ap' or self.eval_metric == 'rmse' or self.eval_metric == 'acc' or self.eval_metric == 'smb' or self.eval_metric == 'coloring' or self.eval_metric == 'coloring-f1':
             if not 'y_true' in input_dict:
                 raise RuntimeError('Missing key of y_true')
             if not 'y_pred' in input_dict:
@@ -67,7 +90,7 @@ class Evaluator:
             if not isinstance(y_true, np.ndarray):
                 raise RuntimeError('Arguments to Evaluator need to be either numpy ndarray or torch tensor')
 
-            if self.eval_metric == 'smb' or self.eval_metric == 'coloring':
+            if self.eval_metric == 'smb' or self.eval_metric == 'coloring' or self.eval_metric == 'coloring-f1':
                 return y_true, y_pred
 
             if not y_true.shape == y_pred.shape:
@@ -125,6 +148,9 @@ class Evaluator:
         elif self.eval_metric == 'coloring':
             y_true, y_pred = self._parse_and_check_input(input_dict)
             return {'acc': accuracy_coloring(y_true, y_pred)}
+        elif self.eval_metric == 'coloring-f1':
+            y_true, y_pred = self._parse_and_check_input(input_dict)
+            return {'acc': accuracy_coloring_f1(y_true, y_pred)}
         elif self.eval_metric == 'F1':
             seq_ref, seq_pred = self._parse_and_check_input(input_dict)
             return self._eval_F1(seq_ref, seq_pred)
