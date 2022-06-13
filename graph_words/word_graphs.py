@@ -257,8 +257,7 @@ class WordsCombinationGraphDataset(Dataset):
 
             graph = join_graphs(words_in_grid, edge_p)
             # node_colors = [self.name_2_label[attr['color']] for _, attr in graph.nodes(data=True)]
-            node_colors = None
-            pyg_graph = create_pyg_graph(graph, node_colors)
+            pyg_graph = create_pyg_graph(graph)
             self.dataset.append(pyg_graph)
 
     def __len__(self):
@@ -268,12 +267,8 @@ class WordsCombinationGraphDataset(Dataset):
         return self.dataset[idx]
 
 
-def create_pyg_graph(graph, node_colors: List[int]):
+def create_pyg_graph(graph):
     pyg_graph = torch_geometric.utils.from_networkx(graph)
-    # pyg_graph.x = torch.zeros((pyg_graph.num_nodes,), dtype=torch.long)
-
-    # pyg_graph.y = torch.tensor(node_colors)
-
     if not hasattr(graph, 'positions'):
         graph.positions = None
     pyg_graph.graph = graph
