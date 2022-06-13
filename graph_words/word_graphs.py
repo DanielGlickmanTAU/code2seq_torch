@@ -178,7 +178,7 @@ class WordsCombinationGraphDataset(Dataset):
                     atom.nodes[node]['y'] = 1
 
     def __init__(self, color_mode, word_graphs, num_samples, words_per_sample, num_rows=1, num_colors=2, edge_p=1.,
-                 only_color=False, unique_atoms_per_example=False):
+                 only_color=False, unique_atoms_per_example=False, unique_colors_per_example=False):
         self.word_graphs = word_graphs
         self.name_2_label = {graph().name: i for i, graph in enumerate(word_graphs)}
         self.label_2_name = {i: graph().name for i, graph in enumerate(word_graphs)}
@@ -202,20 +202,27 @@ class WordsCombinationGraphDataset(Dataset):
         for i in range(num_samples):
             if unique_atoms_per_example:
                 num_unique_atoms = 2
-                unique_atoms = numpy.random.choice(word_graphs, num_unique_atoms)
+                unique_atoms = numpy.random.choice(word_graphs, num_unique_atoms, replace=False)
                 selected_words_ctors = numpy.random.choice(unique_atoms, words_per_sample * num_rows)
             else:
                 selected_words_ctors = numpy.random.choice(word_graphs, words_per_sample * num_rows)
+
+            if unique_colors_per_example:
+                unique_colors = numpy.random.choice(list(range(1, num_colors + 1)), 2, replace=False)
+                selected_colors = numpy.random.choice(unique_colors, words_per_sample * num_rows)
+            else:
+                selected_colors = numpy.random.choice(list(range(1, num_colors + 1)), words_per_sample * num_rows)
             selected_words = [g() for g in selected_words_ctors]
 
             # spit to rows
             words_in_grid = [selected_words[i:i + words_per_sample] for i in
                              range(0, len(selected_words), words_per_sample)]
+            colors_in_grid = [selected_colors[i:i + words_per_sample] for i in
+                              range(0, len(selected_words), words_per_sample)]
             if color_mode == 'instance' or color_mode == 'both':
-                for row in words_in_grid:
-                    for word_instance in row:
+                for row, color_row in zip(words_in_grid, colors_in_grid):
+                    for word_instance, chosen_color in zip(row, color_row):
                         chosen_node = random.randint(0, len(word_instance) - 1)
-                        chosen_color = random.randint(1, num_colors)
                         for i, node in enumerate(word_instance.nodes):
                             word_instance.nodes[node]['shape'] = word_instance.name
                             if color_mode == 'instance':
@@ -232,9 +239,8 @@ class WordsCombinationGraphDataset(Dataset):
 
             if color_mode == 'rows':
                 # first color all nodes(x)
-                for row in words_in_grid:
-                    for word_instance in row:
-                        chosen_color = random.randint(1, num_colors)
+                for row, color_row in zip(words_in_grid, colors_in_grid):
+                    for word_instance, chosen_color in zip(row, color_row):
                         for i, node in enumerate(word_instance.nodes):
                             word_instance.nodes[node]['shape'] = word_instance.name
                             word_instance.nodes[node]['y'] = 0

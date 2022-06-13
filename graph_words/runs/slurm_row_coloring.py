@@ -19,15 +19,15 @@ import os
 params_for_grid_search = {
     'coloring_mode': ['rows'],
     # 'atoms_set': [0, 1, 6],
-    'atoms_set': [1, 6],
+    'atoms_set': [6],
     # 'num_colors': [2],
     'num_colors': [2],
-    'edge_p': [1.],
     # 'num_layer': [12, 24],
     'num_layer': [24],
     # 'only_color': [True]
     'only_color': [False],
-    'unique_atoms_per_example': [True]
+    # 'unique_atoms_per_example': [True]
+    'unique_colors_per_example': [True]
 }
 
 params = {

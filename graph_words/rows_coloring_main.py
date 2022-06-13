@@ -23,7 +23,8 @@ def add_args(parser):
     parser.add_argument('--only_color', type=bool_, default=False)
     parser.add_argument('--unique_atoms_per_example', type=bool_, default=False,
                         help='if True, each instance will be composed of 2 atom types. This increases the probability of having matching row/cols')
-
+    parser.add_argument('--unique_colors_per_example', type=bool_, default=False,
+                        help='if True, each instance will be composed of 2 colors only. This increases the probability of having matching row/cols')
 
 args = get_default_args(add_args)
 coloring_mode = args.coloring_mode
@@ -31,6 +32,7 @@ num_colors = args.num_colors
 atom_set = args.atoms_set
 edge_p = args.edge_p
 unique_atoms_per_example = args.unique_atoms_per_example
+unique_colors_per_example = args.unique_colors_per_example
 
 row_size = 4
 # args.num_layer = 16
@@ -40,21 +42,24 @@ graphs = word_graphs.get_atom_set(atom_set)
 
 # n_train = 3000
 # n_valid = 1000
-n_train = 60
-n_valid = 10
+n_train = 2000
+n_valid = 100
 dataset = word_graphs.WordsCombinationGraphDataset(coloring_mode, graphs, num_samples=n_train,
                                                    words_per_sample=row_size, num_rows=row_size, num_colors=num_colors,
                                                    only_color=only_color,
-                                                   unique_atoms_per_example=unique_atoms_per_example)
+                                                   unique_atoms_per_example=unique_atoms_per_example,
+                                                   unique_colors_per_example=unique_colors_per_example)
 
 dataset_val = word_graphs.WordsCombinationGraphDataset(coloring_mode, graphs, num_samples=n_valid,
                                                        words_per_sample=row_size, num_rows=row_size,
                                                        num_colors=num_colors, only_color=only_color,
-                                                       unique_atoms_per_example=unique_atoms_per_example)
+                                                       unique_atoms_per_example=unique_atoms_per_example,
+                                                       unique_colors_per_example=unique_colors_per_example)
 dataset_train = word_graphs.WordsCombinationGraphDataset(coloring_mode, graphs, num_samples=300,
                                                          words_per_sample=row_size, num_rows=row_size,
                                                          num_colors=num_colors, only_color=only_color,
-                                                         unique_atoms_per_example=unique_atoms_per_example)
+                                                         unique_atoms_per_example=unique_atoms_per_example,
+                                                         unique_colors_per_example=unique_colors_per_example)
 
 torch_geometric.seed_everything(args.seed)
 
