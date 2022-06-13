@@ -43,7 +43,7 @@ class WordsCombinationGraphDataset(Dataset):
                 (0, 10)
             ]
             )
-            pyg_graph = create_pyg_graph(graph, self.name_2_label)
+            pyg_graph = create_pyg_graph(graph)
             # t, p = nx.check_planarity(graph)
             # assert t
             # pyg_graph.graph.positions = nx.combinatorial_embedding_to_pos(p)
