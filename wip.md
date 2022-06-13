@@ -1102,6 +1102,6 @@ going for now for only_color=True.. i.e labels row/col if all the shapes are in 
 
 ### 13/6
 visualizing the graph color with my position or with network random positions
-![](../../Desktop/myplot.png)
+ ![](myplot.png)
 there 2 are the same:
-![](../../Desktop/myplot1.png)  ![](../../Desktop/myplot22.png)  ![](../../Desktop/myplot888.png)
+![](myplot1.png)  ![](myplot2.png)  ![](myplot888.png)
