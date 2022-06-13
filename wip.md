@@ -1098,3 +1098,10 @@ macro average seems fine
 going for now for only_color=True.. i.e labels row/col if all the shapes are in the same color, with no regards to shape
 
 0.2371 are labeled as 1(row/col match) # compute.get_torch().cat([_.y for _ in dataset]).float().mean() 
+
+
+### 13/6
+visualizing the graph color with my position or with network random positions
+![](../../Desktop/myplot.png)
+there 2 are the same:
+![](../../Desktop/myplot1.png)  ![](../../Desktop/myplot22.png)  ![](../../Desktop/myplot888.png)
