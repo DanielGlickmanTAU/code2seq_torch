@@ -1121,3 +1121,16 @@ number of nodes in molpcba with 45>=n>=15 which covers 0.97 of the nodes.
 note there are some graphs with over 300 nodes and grpahs with 1 node...
 
 free space ![](molpcbg-n=15-45-freespace-45-y.png)
+
+
+## 22/6
+global config in torch geometric experiment:
+cfg =CM() object.. global object
+- how to get it?
+??
+-how are argsparse args join into it?
+method call load_cfg
+
+- how to i make argparse work with my existing config?
+chnage main.py call to parse_args(torch_geometric) to my call rows_coloring_main#add_args
+
