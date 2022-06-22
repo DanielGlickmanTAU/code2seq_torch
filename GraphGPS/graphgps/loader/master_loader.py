@@ -135,11 +135,13 @@ def load_dataset_master(format, name, dataset_dir):
         elif name.startswith('ogbl-'):
             # GraphGym default loader.
             dataset = load_ogb(name, dataset_dir)
+
             # OGB link prediction datasets are binary classification tasks,
             # however the default loader creates float labels => convert to int.
             def convert_to_int(ds, prop):
                 tmp = getattr(ds.data, prop).int()
                 set_dataset_attr(ds, prop, tmp, len(tmp))
+
             convert_to_int(dataset, 'train_edge_label')
             convert_to_int(dataset, 'val_edge_label')
             convert_to_int(dataset, 'test_edge_label')
@@ -169,12 +171,14 @@ def load_dataset_master(format, name, dataset_dir):
         # Estimate directedness based on 10 graphs to save time.
         is_undirected = all(d.is_undirected() for d in dataset[:10])
         logging.info(f"  ...estimated to be undirected: {is_undirected}")
+        max_examples = cfg.max_examples
         pre_transform_in_memory(dataset,
                                 partial(compute_posenc_stats,
                                         pe_types=pe_enabled_list,
                                         is_undirected=is_undirected,
                                         cfg=cfg),
-                                show_progress=True
+                                show_progress=True,
+                                max_examples=max_examples
                                 )
         elapsed = time.perf_counter() - start
         timestr = time.strftime('%H:%M:%S', time.gmtime(elapsed)) \
@@ -183,7 +187,8 @@ def load_dataset_master(format, name, dataset_dir):
 
     # Set standard dataset train/val/test splits
     if hasattr(dataset, 'split_idxs'):
-        set_dataset_splits(dataset, dataset.split_idxs)
+        # set_dataset_splits(dataset, dataset.split_idxs)
+        set_dataset_splits(dataset, [split[split < max_examples] for split in dataset.split_idxs])
         delattr(dataset, 'split_idxs')
 
     # Verify or generate dataset train/val/test splits
@@ -302,6 +307,7 @@ def preformat_OGB_Graph(dataset_dir, name):
         def add_zeros(data):
             data.x = torch.zeros(data.num_nodes, dtype=torch.long)
             return data
+
         dataset.transform = add_zeros
     elif name == 'ogbg-code2':
         from graphgps.loader.ogbg_code2_utils import idx2vocab, \
@@ -311,7 +317,7 @@ def preformat_OGB_Graph(dataset_dir, name):
 
         seq_len_list = np.array([len(seq) for seq in dataset.data.y])
         logging.info(f"Target sequences less or equal to {max_seq_len} is "
-            f"{np.sum(seq_len_list <= max_seq_len) / len(seq_len_list)}")
+                     f"{np.sum(seq_len_list <= max_seq_len) / len(seq_len_list)}")
 
         # Building vocabulary for sequence prediction. Only use training data.
         vocab2idx, idx2vocab_local = get_vocab_mapping(
@@ -359,7 +365,6 @@ def preformat_OGB_PCQM4Mv2(dataset_dir, name):
         logging.error('ERROR: Failed to load PygPCQM4Mv2Dataset, '
                       'make sure RDKit is installed.')
         raise e
-
 
     dataset = PygPCQM4Mv2Dataset(root=dataset_dir)
     split_idx = dataset.get_idx_split()
