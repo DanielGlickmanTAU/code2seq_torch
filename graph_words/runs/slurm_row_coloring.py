@@ -21,17 +21,20 @@ params_for_grid_search = {
     # 'atoms_set': [0, 1, 6],
     'atoms_set': [6],
     # 'num_colors': [2],
-    'num_colors': [2],
+    'num_colors': [20],
     # 'num_layer': [12, 24],
-    'num_layer': [24],
+    'num_layer': [ 60],
     # 'only_color': [True]
-    'only_color': [False],
+    'only_color': [True],
     # 'unique_atoms_per_example': [True]
-    'unique_colors_per_example': [True]
+    'unique_colors_per_example': [True],
+    # 'row_size': [3, 4]
+    'row_size': [4]
 }
 
 params = {
     'exp_name': 'row_coloring',
+    # 'exp_name': 'row_coloring_should_overfit',
 }
 
 os.chdir('..')

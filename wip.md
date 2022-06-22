@@ -1105,3 +1105,19 @@ visualizing the graph color with my position or with network random positions
  ![](myplot.png)
 there 2 are the same:
 ![](myplot1.png)  ![](myplot2.png)  ![](myplot888.png)
+
+
+GNN fails finally:
+https://www.comet.ml/danielglickmantau/row-coloring/view/new/experiments
+
+##14/6
+with 60 layers can get 100% accuracy, no ambigiousy
+https://www.comet.ml/danielglickmantau/row-coloring-should-overfit/4bc6b955afed467198660eed5554e5b6?experiment-tab=chart&showOutliers=true&smoothing=0&transformY=smoothing&xAxis=step
+
+
+## 21/6
+number of nodes in molpcba with 45>=n>=15 which covers 0.97 of the nodes.  
+![](molpcba-n=15-45.png)
+note there are some graphs with over 300 nodes and grpahs with 1 node...
+
+free space ![](molpcbg-n=15-45-freespace-45-y.png)
