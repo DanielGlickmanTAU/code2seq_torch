@@ -5,7 +5,6 @@ import logging
 
 import graphgps  # noqa, register custom modules
 
-from torch_geometric.graphgym.cmd_args import parse_args
 from torch_geometric.graphgym.config import (cfg, dump_cfg,
                                              set_agg_dir, set_cfg, load_cfg,
                                              makedirs_rm_exist)
@@ -21,6 +20,7 @@ from torch_geometric.graphgym.utils.device import auto_select_device
 from torch_geometric.graphgym.register import train_dict
 from torch_geometric import seed_everything
 
+from custom.config import parse_args
 from graphgps.finetuning import load_pretrained_model_cfg, \
     init_model_from_pretrained
 from graphgps.logger import create_logger
@@ -110,6 +110,8 @@ if __name__ == '__main__':
     # Load config file
     set_cfg(cfg)
     load_cfg(cfg, args)
+    for key,value in args.__dict__.items():
+        cfg[key] = value
     custom_set_out_dir(cfg, args.cfg_file, cfg.name_tag)
     dump_cfg(cfg)
     # Set Pytorch environment
