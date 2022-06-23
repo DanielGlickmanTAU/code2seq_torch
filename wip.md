@@ -1134,3 +1134,9 @@ method call load_cfg
 - how to i make argparse work with my existing config?
 chnage main.py call to parse_args(torch_geometric) to my call rows_coloring_main#add_args
 
+
+
+models register to network_dict with #register_network
+
+## 23/6
+set up expirment name with cfg.wandb.project
