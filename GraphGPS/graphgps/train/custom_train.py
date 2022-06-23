@@ -11,6 +11,7 @@ from torch_geometric.graphgym.checkpoint import load_ckpt, save_ckpt, \
 
 from torch_geometric.graphgym.register import register_train
 
+from custom.info import get_wandb
 from graphgps.loss.subtoken_prediction_loss import subtoken_cross_entropy
 from graphgps.utils import cfg_to_dict, flatten_dict, make_wandb_name
 
@@ -107,8 +108,14 @@ def custom_train(loggers, loaders, model, optimizer, scheduler):
             wandb_name = make_wandb_name(cfg)
         else:
             wandb_name = cfg.wandb.name
-        run = wandb.init(entity=cfg.wandb.entity, project=cfg.wandb.project,
-                         name=wandb_name)
+        try:
+            run = wandb.init(entity=cfg.wandb.entity, project=cfg.wandb.project,
+                             name=wandb_name)
+        except Exception:
+            wandb.login(key=get_wandb())
+            run = wandb.init(entity=cfg.wandb.entity, project=cfg.wandb.project,
+                             name=wandb_name)
+
         run.config.update(cfg_to_dict(cfg))
 
     num_splits = len(loggers)
@@ -201,5 +208,6 @@ def custom_train(loggers, loaders, model, optimizer, scheduler):
         run = None
 
     logging.info('Task done, results saved in {}'.format(cfg.run_dir))
+
 
 register_train('custom', custom_train)
