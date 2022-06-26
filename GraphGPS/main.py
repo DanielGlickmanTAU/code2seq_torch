@@ -8,7 +8,7 @@ from yacs.config import CfgNode
 import graphgps  # noqa, register custom modules
 
 from torch_geometric.graphgym.config import (cfg, dump_cfg,
-                                             set_agg_dir, set_cfg, load_cfg,
+                                             set_cfg, load_cfg,
                                              makedirs_rm_exist)
 from torch_geometric.graphgym.loader import create_loader
 from torch_geometric.graphgym.logger import set_printing
@@ -23,6 +23,7 @@ from torch_geometric.graphgym.register import train_dict
 from torch_geometric import seed_everything
 
 from custom.config import parse_args
+# from graphgps.config.wandb2_config import set_cfg_wandb
 from graphgps.finetuning import load_pretrained_model_cfg, \
     init_model_from_pretrained
 from graphgps.logger import create_logger
@@ -111,8 +112,7 @@ if __name__ == '__main__':
     args = parse_args()
     # Load config file
     set_cfg(cfg)
-    if 'wandb' not in cfg:
-        cfg['wandb'] = CfgNode({'use': False, 'project': 'gps'})
+
     load_cfg(cfg, args)
     for key, value in args.__dict__.items():
         try:

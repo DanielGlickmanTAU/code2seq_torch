@@ -12,7 +12,7 @@ def set_cfg_wandb(cfg):
     # Use wandb or not
     cfg.wandb.use = False
 
-    # Wandb entity name, should exist beforehand
+    # Wandb entity name, should exist beforehands
     cfg.wandb.entity = "daniel-ai"
 
     # Wandb project name, will be created in your team if doesn't exist already
