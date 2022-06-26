@@ -110,8 +110,18 @@ if __name__ == '__main__':
     # Load config file
     set_cfg(cfg)
     load_cfg(cfg, args)
-    for key,value in args.__dict__.items():
-        cfg[key] = value
+    for key, value in args.__dict__.items():
+        try:
+            # this handle nested props like optim.base_lr
+            keys = key.split('.')
+            cfg_dict = cfg
+            for k in keys[:-1]:
+                cfg_dict = cfg_dict[k]
+            cfg_dict[key] = value
+            print(f'overwrite {key}:{value}')
+        except Exception:
+            print(f'fail to overwrite {key}:{value}')
+
     custom_set_out_dir(cfg, args.cfg_file, cfg.name_tag)
     dump_cfg(cfg)
     # Set Pytorch environment

@@ -17,8 +17,8 @@ def parse_args():
         help='mark yaml as yaml_done after a job has finished',
     )
 
+    parser.add_argument('--max_examples', type=int, default=0,
+                        help='limit to dataset size, useful for debugging.')
     parser.add_argument('opts', help='See graphgym/config.py for all options',
                         default=None, nargs=argparse.REMAINDER)
-    parser.add_argument('--max_examples', type=int, default=0,
-                        help='limit to dataset size, useful for debugging. train+val+test = max_examples')
     return parser.parse_args()
