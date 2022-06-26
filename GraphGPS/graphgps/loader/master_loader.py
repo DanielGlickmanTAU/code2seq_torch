@@ -165,6 +165,16 @@ def load_dataset_master(format, name, dataset_dir):
                 logging.info(f"Parsed {pe_name} PE kernel times / steps: "
                              f"{pecfg.kernel.times}")
     max_examples = cfg.max_examples
+    # Set standard dataset train/val/test splits
+    if hasattr(dataset, 'split_idxs'):
+        # set_dataset_splits(dataset, dataset.split_idxs)
+        # idxs_ = [[x for x in split if x < max_examples] for split in
+        #          dataset.split_idxs] if max_examples else dataset.split_idxs
+        idxs_ = [split[:max_examples] for split in
+                 dataset.split_idxs] if max_examples else dataset.split_idxs
+        set_dataset_splits(dataset, idxs_)
+        delattr(dataset, 'split_idxs')
+
     if pe_enabled_list:
         start = time.perf_counter()
         logging.info(f"Precomputing Positional Encoding statistics: "
@@ -172,26 +182,19 @@ def load_dataset_master(format, name, dataset_dir):
         # Estimate directedness based on 10 graphs to save time.
         is_undirected = all(d.is_undirected() for d in dataset[:10])
         logging.info(f"  ...estimated to be undirected: {is_undirected}")
+        relevant_indexes = sum(idxs_, []) if hasattr(dataset, 'split_idxs') else (range(len(dataset)))
         pre_transform_in_memory(dataset,
                                 partial(compute_posenc_stats,
                                         pe_types=pe_enabled_list,
                                         is_undirected=is_undirected,
                                         cfg=cfg),
                                 show_progress=True,
-                                max_examples=max_examples
+                                relevant_indexes=relevant_indexes
                                 )
         elapsed = time.perf_counter() - start
         timestr = time.strftime('%H:%M:%S', time.gmtime(elapsed)) \
                   + f'{elapsed:.2f}'[-3:]
         logging.info(f"Done! Took {timestr}")
-
-    # Set standard dataset train/val/test splits
-    if hasattr(dataset, 'split_idxs'):
-        # set_dataset_splits(dataset, dataset.split_idxs)
-        idxs_ = [[x for x in split if x < max_examples] for split in
-                 dataset.split_idxs] if max_examples else dataset.split_idxs
-        set_dataset_splits(dataset, idxs_)
-        delattr(dataset, 'split_idxs')
 
     # Verify or generate dataset train/val/test splits
     prepare_splits(dataset)

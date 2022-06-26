@@ -1,0 +1,30 @@
+cfg =CM() object.. global object
+- how to get it?
+??
+-how are argsparse args join into it?
+method call load_cfg
+
+- how to i make argparse work with my existing config?
+chnage main.py call to parse_args(torch_geometric) to my call rows_coloring_main#add_args
+
+
+
+models register to network_dict with #register_network
+
+
+
+loggers:
+there is a seperate logger for train/eval/test
+
+after computing loss/eval metric the training or eval flow calls logger#update_stats
+
+after that the train/eval flow calls logger#write_epoch
+
+
+
+
+loading dataset:
+there is a register method called master_Loader
+there is plays around with some attributes on the dataset like train_idx etc, because it makes use of pyg-gym stuff.. better not get into it
+
+how i limit the examples: filter idxs_ and pass the list of filtered indexes to pre_transformer_in_memory..

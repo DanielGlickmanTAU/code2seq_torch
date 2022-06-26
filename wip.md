@@ -1140,3 +1140,18 @@ models register to network_dict with #register_network
 
 ## 23/6
 set up expirment name with cfg.wandb.project
+
+
+
+## 26/6
+
+
+training was failing because when tried to evaluate, it thought the batch size so far was 0.
+looks like it was failing since I was limiting the number of examples, which caused the eval
+dataset to be empty
+
+
+- set_dataset_splits(dataset, idxs_) on pattenr dataset filters out all of val and test because all
+of the indexes there are < max_examples(train/eval/test indexes are sorted in this dataset)
+- currently the implementation takes the first max_examples for processing in pre_transform_in_memory
+- ideally, we would want to first limit the dataset and then simply process

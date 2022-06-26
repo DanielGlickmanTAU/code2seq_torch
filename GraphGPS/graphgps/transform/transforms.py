@@ -5,7 +5,7 @@ from torch_geometric.utils import subgraph
 from tqdm import tqdm
 
 
-def pre_transform_in_memory(dataset, transform_func, show_progress=False, max_examples=0):
+def pre_transform_in_memory(dataset, transform_func, show_progress=False, relevant_indexes=None):
     """Pre-transform already loaded PyG dataset object.
 
     Apply transform function to a loaded PyG dataset object so that
@@ -24,12 +24,13 @@ def pre_transform_in_memory(dataset, transform_func, show_progress=False, max_ex
     if transform_func is None:
         return dataset
 
-    dataset_size = min(len(dataset), max_examples) if max_examples > 0 else len(dataset)
+    # dataset_size = min(len(dataset), max_examples) if max_examples > 0 else len(dataset)
+    relevant_indexes = relevant_indexes if relevant_indexes else range(len(dataset))
     data_list = [transform_func(dataset.get(i))
-                 for i in tqdm(range(dataset_size),
+                 for i in tqdm(relevant_indexes,
                                disable=not show_progress,
                                mininterval=10,
-                               miniters=dataset_size // 20)]
+                               miniters=len(relevant_indexes) // 20)]
     data_list = list(filter(None, data_list))
 
     dataset._indices = None
