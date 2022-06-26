@@ -175,7 +175,7 @@ def custom_train(loggers, loaders, model, optimizer, scheduler):
                             bstats[f"best/{s}_{m}"] = perf[i][best_epoch][m]
                             run.summary[f"best_{s}_perf"] = \
                                 perf[i][best_epoch][m]
-                        for x in ['hits@1', 'hits@3', 'hits@10', 'mrr']:
+                        for x in ['hits@1', 'hits@3', 'hits@10', 'mrr', 'f1']:
                             if x in perf[i][best_epoch]:
                                 bstats[f"best/{s}_{x}"] = perf[i][best_epoch][x]
                     run.log(bstats, step=cur_epoch)
