@@ -1,3 +1,6 @@
+from code2seq.utils import compute
+
+compute.get_torch()
 import datetime
 import os
 import torch
@@ -130,6 +133,7 @@ if __name__ == '__main__':
     dump_cfg(cfg)
     # Set Pytorch environment
     torch.set_num_threads(cfg.num_threads)
+    cfg.device = str(compute.get_device())
     # Repeat for multiple experiment runs
     for run_id, seed, split_index in zip(*run_loop_settings()):
         # Set configurations for each run
