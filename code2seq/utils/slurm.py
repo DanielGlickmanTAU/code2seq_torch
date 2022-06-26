@@ -25,6 +25,7 @@ def run_on_slurm(job_name, params, no_flag_param='', slurm=True, gpu=True, sleep
     python_file = job_name
     python_file = python_file.replace('.py', '')
     job_name = job_name + str(time.time())
+    #need to for gps main stuff
     if isinstance(no_flag_param, dict):
         no_flag_param = ' '.join([f'{key} {value}' for key, value in no_flag_param.items()])
     if slurm:
