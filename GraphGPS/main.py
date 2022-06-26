@@ -3,6 +3,8 @@ import os
 import torch
 import logging
 
+from yacs.config import CfgNode
+
 import graphgps  # noqa, register custom modules
 
 from torch_geometric.graphgym.config import (cfg, dump_cfg,
@@ -109,6 +111,8 @@ if __name__ == '__main__':
     args = parse_args()
     # Load config file
     set_cfg(cfg)
+    if 'wandb' not in cfg:
+        cfg['wandb'] = CfgNode({'use': False, 'project': 'gps'})
     load_cfg(cfg, args)
     for key, value in args.__dict__.items():
         try:
