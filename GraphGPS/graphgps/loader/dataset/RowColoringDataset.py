@@ -17,6 +17,9 @@ class RowColoringDataset(InMemoryDataset):
                                           words_per_sample=4
                                           )
         self.data, self.slices = self.collate(ds.dataset)
+        # in WOrdCombinationGraphDataset x gets values from 1 to num_colors(because of some issue with drawing the graph colors).. but here we want it to get values from 0 to num_colors-1
+        self.data.x = self.data.x - self.data.x.min()
+        self.data.x = self.data.x.unsqueeze(1)
 
     def get_idx_split(self):
         indexes = torch.arange(len(self))

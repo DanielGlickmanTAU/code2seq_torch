@@ -97,7 +97,6 @@ def load_dataset_master(format, name, dataset_dir):
     if name == 'row-coloring':
         dataset = RowColoringDataset()
         dataset.name = name
-        # pre_transform_in_memory(dataset, T.Compose([]))
 
         split_dict = dataset.get_idx_split()
         dataset.split_idxs = [split_dict['train'],

@@ -7,11 +7,17 @@ wandb:
 dataset:
   format: PyG-GNNBenchmarkDataset
   name: 'row-coloring'
+  node_encoder: True
+#  this num_types == num_colors
+  node_encoder_num_types: 2
+  node_encoder_name: TypeDictNode
+  node_encoder_bn: False
   task: graph
   task_type: classification
   transductive: False
   split_mode: standard
 train:
+  mode: custom
   batch_size: 64
   eval_period: 1
   ckpt_period: 100
