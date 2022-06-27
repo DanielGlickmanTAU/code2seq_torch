@@ -9,7 +9,7 @@ dataset:
   name: 'row-coloring'
   node_encoder: True
 #  this num_types == num_colors
-  node_encoder_num_types: 2
+  node_encoder_num_types: 20
   node_encoder_name: TypeDictNode
   node_encoder_bn: False
   task: graph
@@ -30,7 +30,7 @@ model:
 gnn:
   head: inductive_node
   layers_pre_mp: 1
-  layers_mp: 2
+  layers_mp: 10
   layers_post_mp: 1
   dim_inner: 300
   layer_type: gcnconv

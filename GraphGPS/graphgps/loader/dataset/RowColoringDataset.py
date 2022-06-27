@@ -10,8 +10,8 @@ class RowColoringDataset(InMemoryDataset):
         super().__init__()
         ds = WordsCombinationGraphDataset(color_mode='rows',
                                           word_graphs=graph_words.word_graphs.get_atom_set(6),
-                                          num_samples=1000,
-                                          num_colors=2,
+                                          num_samples=2_000,
+                                          num_colors=20,
                                           only_color=True,
                                           unique_colors_per_example=True,
                                           words_per_row=4
