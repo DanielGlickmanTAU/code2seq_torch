@@ -158,7 +158,7 @@ def circle_sections(divisions, radius=1):
 
 class WordGraphDataset(Dataset):
     def __init__(self, graphs):
-        self.dataset = WordsCombinationGraphDataset('global', graphs, len(graphs) * 10, words_per_sample=1)
+        self.dataset = WordsCombinationGraphDataset('global', graphs, len(graphs) * 10, words_per_row=1)
 
     def __len__(self):
         return len(self.dataset)
@@ -177,7 +177,7 @@ class WordsCombinationGraphDataset(Dataset):
                 for node in atom.nodes:
                     atom.nodes[node]['y'] = 1
 
-    def __init__(self, color_mode, word_graphs, num_samples, words_per_sample, num_rows=1, num_colors=2, edge_p=1.,
+    def __init__(self, color_mode, word_graphs, num_samples, words_per_row, num_rows=1, num_colors=2, edge_p=1.,
                  only_color=False, unique_atoms_per_example=False, unique_colors_per_example=False):
         self.word_graphs = word_graphs
         self.name_2_label = {graph().name: i for i, graph in enumerate(word_graphs)}
@@ -203,22 +203,22 @@ class WordsCombinationGraphDataset(Dataset):
             if unique_atoms_per_example:
                 num_unique_atoms = 2
                 unique_atoms = numpy.random.choice(word_graphs, num_unique_atoms, replace=False)
-                selected_words_ctors = numpy.random.choice(unique_atoms, words_per_sample * num_rows)
+                selected_words_ctors = numpy.random.choice(unique_atoms, words_per_row * num_rows)
             else:
-                selected_words_ctors = numpy.random.choice(word_graphs, words_per_sample * num_rows)
+                selected_words_ctors = numpy.random.choice(word_graphs, words_per_row * num_rows)
 
             if unique_colors_per_example:
                 unique_colors = numpy.random.choice(list(range(1, num_colors + 1)), 2, replace=False)
-                selected_colors = numpy.random.choice(unique_colors, words_per_sample * num_rows)
+                selected_colors = numpy.random.choice(unique_colors, words_per_row * num_rows)
             else:
-                selected_colors = numpy.random.choice(list(range(1, num_colors + 1)), words_per_sample * num_rows)
+                selected_colors = numpy.random.choice(list(range(1, num_colors + 1)), words_per_row * num_rows)
             selected_words = [g() for g in selected_words_ctors]
 
             # spit to rows
-            words_in_grid = [selected_words[i:i + words_per_sample] for i in
-                             range(0, len(selected_words), words_per_sample)]
-            colors_in_grid = [selected_colors[i:i + words_per_sample] for i in
-                              range(0, len(selected_words), words_per_sample)]
+            words_in_grid = [selected_words[i:i + words_per_row] for i in
+                             range(0, len(selected_words), words_per_row)]
+            colors_in_grid = [selected_colors[i:i + words_per_row] for i in
+                              range(0, len(selected_words), words_per_row)]
             if color_mode == 'instance' or color_mode == 'both':
                 for row, color_row in zip(words_in_grid, colors_in_grid):
                     for word_instance, chosen_color in zip(row, color_row):

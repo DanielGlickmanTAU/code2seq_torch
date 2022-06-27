@@ -16,7 +16,7 @@ from train import training
 
 graphs = [word_graphs.Cycle(3), word_graphs.Cycle(4)]
 dataset = word_graphs.WordsCombinationGraphDataset(graphs, num_samples=1,
-                                                   words_per_sample=2)[0]
+                                                   words_per_row=2)[0]
 
 # overfit train
 args = get_default_args()

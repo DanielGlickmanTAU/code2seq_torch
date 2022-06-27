@@ -46,16 +46,16 @@ n_valid = 1000
 # n_train = 20
 # n_valid = 10
 dataset = word_graphs.WordsCombinationGraphDataset(coloring_mode, graphs, num_samples=n_train,
-                                                   words_per_sample=row_size, num_rows=row_size, num_colors=num_colors,
+                                                   words_per_row=row_size, num_rows=row_size, num_colors=num_colors,
                                                    only_color=only_color,
                                                    unique_atoms_per_example=unique_atoms_per_example)
 
 dataset_val = word_graphs.WordsCombinationGraphDataset(coloring_mode, graphs, num_samples=n_valid,
-                                                       words_per_sample=row_size, num_rows=row_size,
+                                                       words_per_row=row_size, num_rows=row_size,
                                                        num_colors=num_colors, only_color=only_color,
                                                        unique_atoms_per_example=unique_atoms_per_example)
 dataset_train = word_graphs.WordsCombinationGraphDataset(coloring_mode, graphs, num_samples=300,
-                                                         words_per_sample=row_size, num_rows=row_size,
+                                                         words_per_row=row_size, num_rows=row_size,
                                                          num_colors=num_colors, only_color=only_color,
                                                          unique_atoms_per_example=unique_atoms_per_example)
 
