@@ -69,10 +69,13 @@ def custom_set_run_dir(cfg, run_id):
     """
     cfg.run_dir = os.path.join(cfg.out_dir, str(run_id))
     # Make output directory
-    if cfg.train.auto_resume:
-        os.makedirs(cfg.run_dir, exist_ok=True)
-    else:
-        makedirs_rm_exist(cfg.run_dir)
+    try:
+        if cfg.train.auto_resume:
+            os.makedirs(cfg.run_dir, exist_ok=True)
+        else:
+            makedirs_rm_exist(cfg.run_dir)
+    except Exception as e:
+        print(e)
 
 
 def run_loop_settings():
