@@ -23,8 +23,9 @@ def train_epoch(logger, loader, model, optimizer, scheduler, batch_accumulation)
     for iter, batch in enumerate(loader):
         batch.split = 'train'
         batch.to(torch.device(cfg.device))
-        pred, true = model(batch)
+        #before model call because it changes it in place-_-
         #visualization.draw_pyramid(batch[1],'x')
+        pred, true = model(batch)
         if cfg.dataset.name == 'ogbg-code2':
             loss, pred_score = subtoken_cross_entropy(pred, true)
             _true = true
