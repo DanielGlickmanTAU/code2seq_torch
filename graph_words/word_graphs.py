@@ -177,8 +177,10 @@ class WordsCombinationGraphDataset(Dataset):
                 for node in atom.nodes:
                     atom.nodes[node]['y'] = 1
 
-    def __init__(self, color_mode, word_graphs, num_samples, words_per_row, num_rows=1, num_colors=2, edge_p=1.,
+    def __init__(self, color_mode, word_graphs, num_samples, words_per_row, num_rows=None, num_colors=2, edge_p=1.,
                  only_color=False, unique_atoms_per_example=False, unique_colors_per_example=False):
+        if not num_rows:
+            num_rows = words_per_row
         self.word_graphs = word_graphs
         self.name_2_label = {graph().name: i for i, graph in enumerate(word_graphs)}
         self.label_2_name = {i: graph().name for i, graph in enumerate(word_graphs)}
