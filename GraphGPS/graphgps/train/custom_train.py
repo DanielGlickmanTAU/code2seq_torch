@@ -24,6 +24,7 @@ def train_epoch(logger, loader, model, optimizer, scheduler, batch_accumulation)
         batch.split = 'train'
         batch.to(torch.device(cfg.device))
         pred, true = model(batch)
+        #visualization.draw_pyramid(batch[1],'x')
         if cfg.dataset.name == 'ogbg-code2':
             loss, pred_score = subtoken_cross_entropy(pred, true)
             _true = true
