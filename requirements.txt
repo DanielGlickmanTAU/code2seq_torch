@@ -1,3 +1,4 @@
+tensorboardX
 tqdm==4.62.3
 wandb==0.12.7
 omegaconf==2.1.1
