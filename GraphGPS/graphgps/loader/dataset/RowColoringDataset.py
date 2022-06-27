@@ -7,6 +7,7 @@ from graph_words.word_graphs import WordsCombinationGraphDataset
 
 class RowColoringDataset(InMemoryDataset):
     def __init__(self):
+        super().__init__()
         ds = WordsCombinationGraphDataset(color_mode='rows',
                                           word_graphs=graph_words.word_graphs.get_atom_set(6),
                                           num_samples=1000,
@@ -15,7 +16,6 @@ class RowColoringDataset(InMemoryDataset):
                                           unique_colors_per_example=True,
                                           words_per_sample=4
                                           )
-        super().__init__()
         self.data, self.slices = self.collate(ds.dataset)
 
     def get_idx_split(self):
