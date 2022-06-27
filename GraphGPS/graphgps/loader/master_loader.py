@@ -7,6 +7,8 @@ import numpy as np
 import torch
 import torch_geometric.transforms as T
 from numpy.random import default_rng
+
+from graphgps.loader.dataset.RowColoringDataset import RowColoringDataset
 from ogb.graphproppred import PygGraphPropPredDataset
 from torch_geometric.datasets import (GNNBenchmarkDataset, Planetoid, TUDataset,
                                       WikipediaNetwork, ZINC)
@@ -92,7 +94,16 @@ def load_dataset_master(format, name, dataset_dir):
     Returns:
         PyG dataset object with applied perturbation transforms and data splits
     """
-    if format.startswith('PyG-'):
+    if name == 'row-coloring':
+        dataset = RowColoringDataset()
+        dataset.name = name
+        # pre_transform_in_memory(dataset, T.Compose([]))
+
+        split_dict = dataset.get_idx_split()
+        dataset.split_idxs = [split_dict['train'],
+                              split_dict['valid'],
+                              split_dict['test']]
+    elif format.startswith('PyG-'):
         pyg_dataset_id = format.split('-', 1)[1]
         dataset_dir = osp.join(dataset_dir, pyg_dataset_id)
 
