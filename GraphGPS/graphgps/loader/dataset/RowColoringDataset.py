@@ -4,13 +4,19 @@ from torch_geometric.data import InMemoryDataset
 import graph_words.word_graphs
 from graph_words.word_graphs import WordsCombinationGraphDataset
 
+from torch_geometric.graphgym.config import cfg
+
+
 
 class RowColoringDataset(InMemoryDataset):
     def __init__(self):
         super().__init__()
+        num_samples = 5_000
+        if 'max_examples' in cfg and cfg['max_examples']:
+            num_samples = cfg['max_examples']
         ds = WordsCombinationGraphDataset(color_mode='rows',
                                           word_graphs=graph_words.word_graphs.get_atom_set(6),
-                                          num_samples=5_000,
+                                          num_samples=num_samples,
                                           num_colors=20,
                                           only_color=True,
                                           unique_colors_per_example=True,
