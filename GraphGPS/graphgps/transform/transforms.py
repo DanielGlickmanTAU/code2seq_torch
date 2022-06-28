@@ -24,8 +24,7 @@ def pre_transform_in_memory(dataset, transform_func, show_progress=False, releva
     if transform_func is None:
         return dataset
 
-    # dataset_size = min(len(dataset), max_examples) if max_examples > 0 else len(dataset)
-    relevant_indexes = relevant_indexes if relevant_indexes else range(len(dataset))
+    relevant_indexes = relevant_indexes if relevant_indexes is not None else range(len(dataset))
     data_list = [transform_func(dataset.get(i))
                  for i in tqdm(relevant_indexes,
                                disable=not show_progress,
