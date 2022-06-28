@@ -7,13 +7,13 @@ import os
 params_for_grid_search = {
     'optim.base_lr': [0.001, 0.0005],
     # 'gnn.layer_type': ['gcnconv', 'GINE']
-    'gnn.layer_type': ['ginconv']
+    # 'gnn.layer_type': ['ginconv']
 
 }
 
 params = {
     # '--cfg': 'tests/configs/graph/row-coloring.yaml'
-    # '--cfg': 'tests/configs/graph/row-coloring-laplace.yaml'
+    '--cfg': 'tests/configs/graph/row-coloring-laplace.yaml'
     # '--cfg': 'tests/configs/graph/row-coloring-restore.yaml'
 }
 

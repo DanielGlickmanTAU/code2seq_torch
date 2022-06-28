@@ -11,7 +11,7 @@ from torch_geometric.graphgym.config import cfg
 class RowColoringDataset(InMemoryDataset):
     def __init__(self):
         super().__init__()
-        num_samples = 5_000
+        num_samples = 10_000
         if 'max_examples' in cfg and cfg['max_examples']:
             num_samples = cfg['max_examples']
         ds = WordsCombinationGraphDataset(color_mode='rows',

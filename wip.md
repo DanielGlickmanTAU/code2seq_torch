@@ -1155,3 +1155,6 @@ dataset to be empty
 of the indexes there are < max_examples(train/eval/test indexes are sorted in this dataset)
 - currently the implementation takes the first max_examples for processing in pre_transform_in_memory
 - ideally, we would want to first limit the dataset and then simply process
+
+
+## can restore results with gin and 10 layers! https://wandb.ai/daniel-ai/molpcba/runs/rmmbzu7d/overview?workspace=user-danielglickman
