@@ -5,11 +5,16 @@ from code2seq.utils.slurm import run_on_slurm
 import os
 
 params_for_grid_search = {
-    'optim.base_lr': [0.01, 0.001]
+    'optim.base_lr': [0.001, 0.0005],
+    # 'gnn.layer_type': ['gcnconv', 'GINE']
+    'gnn.layer_type': ['ginconv']
+
 }
 
 params = {
-    '--cfg': 'tests/configs/graph/pattern_temp.yaml'
+    # '--cfg': 'tests/configs/graph/row-coloring.yaml'
+    # '--cfg': 'tests/configs/graph/row-coloring-laplace.yaml'
+    # '--cfg': 'tests/configs/graph/row-coloring-restore.yaml'
 }
 
 os.chdir('..')

@@ -23,10 +23,33 @@ train:
   ckpt_period: 100
   sampler: full_batch
 model:
-  type: gnn
+  type: GPSModel
   loss_fun: weighted_cross_entropy
   edge_decoding: dot
   graph_pooling: add
+posenc_LapPE:
+  enable: True
+  eigen:
+    laplacian_norm: sym
+    eigvec_norm: L2
+    max_freqs: 10
+  model: DeepSet  # Transformer
+  dim_pe: 16
+  layers: 3
+  n_heads: 4  # Only used when `posenc.model: Transformer`
+  raw_norm_type: none
+
+gt:
+  layer_type: CustomGatedGCN+Transformer
+  layers: 3
+  n_heads: 4
+  dim_hidden: 304  # `gt.dim_hidden` must match `gnn.dim_inner`
+  dropout: 0.2
+  attn_dropout: 0.5
+  layer_norm: False
+  batch_norm: True
+
+
 gnn:
   head: inductive_node
   layers_pre_mp: 1
