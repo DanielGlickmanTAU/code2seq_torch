@@ -75,7 +75,7 @@ class GPSLayer(nn.Module):
         self.local_gnn_type = local_gnn_type
 
         # Global attention transformer-style model.
-        if global_model_type == 'None' or global_model_type == None:
+        if global_model_type == 'None' or global_model_type is None:
             self.self_attn = None
         elif global_model_type == 'Transformer':
             self.self_attn = torch.nn.MultiheadAttention(
