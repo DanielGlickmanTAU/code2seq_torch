@@ -43,7 +43,7 @@ class GatedGCNLayer(pyg_nn.conv.MessagePassing):
     def forward(self, batch):
         x, e, edge_index = batch.x, batch.edge_attr, batch.edge_index
         if e is None:
-            e = torch.zeros(edge_index.shape[-1], x.shape[-1])
+            e = torch.zeros(edge_index.shape[-1], x.shape[-1], device=x.device)
         """
         x               : [n_nodes, in_dim]
         e               : [n_edges, in_dim]
