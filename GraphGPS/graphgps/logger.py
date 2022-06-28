@@ -243,7 +243,7 @@ class CustomLogger(Logger):
         # print
         logging.info('{}: {}'.format(self.name, stats))
         # json
-        dict_to_json(stats, '{}/stats.json'.format(self.out_dir))
+        # dict_to_json(stats, '{}/stats.json'.format(self.out_dir))
         # tensorboard
         if cfg.tensorboard_each_run:
             dict_to_tb(stats, self.tb_writer, cur_epoch)
