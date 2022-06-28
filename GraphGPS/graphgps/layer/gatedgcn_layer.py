@@ -15,6 +15,7 @@ class GatedGCNLayer(pyg_nn.conv.MessagePassing):
         Residual Gated Graph ConvNets
         https://arxiv.org/pdf/1711.07553.pdf
     """
+
     def __init__(self, in_dim, out_dim, dropout, residual,
                  equivstable_pe=False, **kwargs):
         super().__init__(**kwargs)
@@ -41,7 +42,8 @@ class GatedGCNLayer(pyg_nn.conv.MessagePassing):
 
     def forward(self, batch):
         x, e, edge_index = batch.x, batch.edge_attr, batch.edge_index
-
+        if e is None:
+            e = torch.zeros(edge_index.shape[-1], x.shape[-1])
         """
         x               : [n_nodes, in_dim]
         e               : [n_edges, in_dim]
@@ -138,12 +140,14 @@ class GatedGCNGraphGymLayer(nn.Module):
     Residual Gated Graph ConvNets
     https://arxiv.org/pdf/1711.07553.pdf
     """
+
     def __init__(self, layer_config: LayerConfig, **kwargs):
         super().__init__()
         self.model = GatedGCNLayer(in_dim=layer_config.dim_in,
                                    out_dim=layer_config.dim_out,
                                    dropout=0.,  # Dropout is handled by GraphGym's `GeneralLayer` wrapper
-                                   residual=False,  # Residual connections are handled by GraphGym's `GNNStackStage` wrapper
+                                   residual=False,
+                                   # Residual connections are handled by GraphGym's `GNNStackStage` wrapper
                                    **kwargs)
 
     def forward(self, batch):
