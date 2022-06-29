@@ -8,6 +8,7 @@ from torch_geometric.graphgym.register import register_network
 
 from graphgps.layer.gps_layer import GPSLayer
 
+
 class FeatureEncoder(torch.nn.Module):
     """
     Encoding node and edge features
@@ -15,6 +16,7 @@ class FeatureEncoder(torch.nn.Module):
     Args:
         dim_in (int): Input feature dimension
     """
+
     def __init__(self, dim_in):
         super(FeatureEncoder, self).__init__()
         self.dim_in = dim_in
@@ -68,12 +70,26 @@ class GPSModel(torch.nn.Module):
             local_gnn_type, global_model_type = cfg.gt.layer_type.split('+')
         except:
             raise ValueError(f"Unexpected layer type: {cfg.gt.layer_type}")
+        if 'n_layers_gnn_only' in cfg.gt:
+            n_layers_gnn_only = cfg.gt['n_layers_gnn_only']
+        else:
+            n_layers_gnn_only = 0
+
         layers = []
-        for _ in range(cfg.gt.layers):
+        for i, _ in enumerate(range(cfg.gt.layers)):
+            layer_gnn_type = local_gnn_type
+            layer_global_model = global_model_type
+            if n_layers_gnn_only:
+                # in the first n_layers_gnn_only layers, dont use global model
+                if i < n_layers_gnn_only:
+                    layer_global_model = 'None'
+                else: #  i>= n_layers_gnn_only
+                    layer_gnn_type = 'None'
+
             layers.append(GPSLayer(
                 dim_h=cfg.gt.dim_hidden,
-                local_gnn_type=local_gnn_type,
-                global_model_type=global_model_type,
+                local_gnn_type=layer_gnn_type,
+                global_model_type=layer_global_model,
                 num_heads=cfg.gt.n_heads,
                 pna_degrees=cfg.gt.pna_degrees,
                 equivstable_pe=cfg.posenc_EquivStableLapPE.enable,
