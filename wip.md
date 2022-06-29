@@ -1158,3 +1158,25 @@ of the indexes there are < max_examples(train/eval/test indexes are sorted in th
 
 
 ## can restore results with gin and 10 layers! https://wandb.ai/daniel-ai/molpcba/runs/rmmbzu7d/overview?workspace=user-danielglickman
+
+
+## 29/6
+
+so I was sure that laplacian positional was working because it was set in the .yaml file and I did not consider it not working
+I noticed that the number of parameters remaind the same when I disabled the laplacian
+I decided to debug it
+confirmed that enabling laplacian adds the "EignVal" attribute
+I wanted to see where was that attribute being used, so I can disable the parameters using it.
+Saw it was not being used.
+
+q: will doing dicttype+laplacian work?
+yes
+
+if posenc_LapPE.enable is True, node_encoder_name should contain 'LapPE'
+if it is disabled num layer should be false..
+
+conclustion:
+* when I am changing a variable, check at least once that the change I expect indeed happens
+* have comet/wandb show clear parameters that are not confusing 
+* write assertions and checks to handle edgy logic
+
