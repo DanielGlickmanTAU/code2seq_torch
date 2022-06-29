@@ -5,9 +5,17 @@ from code2seq.utils.slurm import run_on_slurm
 import os
 
 params_for_grid_search = {
-    'optim.base_lr': [0.001, 0.0005],
+    'optim.base_lr': [0.0005],
     # 'gnn.layer_type': ['gcnconv', 'GINE']
+    'gt.layers': [6],
+    'gt.n_layers_gnn_only': [2, 4],
+    'posenc_LapPE.model': ['Transformer'],
+    'posenc_LapPE.layers': [1, 3],
+
+    # 'posenc_LapPE.enable': [False]
+
     # 'gnn.layer_type': ['ginconv']
+    # 'wandb.project': 'molpcba'
 
 }
 
