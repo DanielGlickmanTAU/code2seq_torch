@@ -119,6 +119,7 @@ def cfg_assertions(cfg):
             'node_encoder_name'], 'laplacian pe is enabled, should add LapPe to node_encoder_name'
     else:
         cfg.posenc_LapPE.layers = 0
+        cfg.dataset['node_encoder_name'] = cfg.dataset['node_encoder_name'].replace('+LapPE', '')
 
 
 if __name__ == '__main__':
