@@ -113,6 +113,14 @@ def run_loop_settings():
     return run_ids, seeds, split_indices
 
 
+def cfg_assertions(cfg):
+    if cfg.posenc_LapPE.enable:
+        assert 'LapPE' in cfg.dataset[
+            'node_encoder_name'], 'laplacian pe is enabled, should add LapPe to node_encoder_name'
+    else:
+        cfg.posenc_LapPE.layers = 0
+
+
 if __name__ == '__main__':
     # Load cmd line args
     args = parse_args()
@@ -132,8 +140,11 @@ if __name__ == '__main__':
         except Exception:
             print(f'fail to overwrite {key}:{value}')
 
-    custom_set_out_dir(cfg, args.cfg_file, cfg.name_tag)
-    dump_cfg(cfg)
+    cfg_assertions(cfg)
+
+    # custom_set_out_dir(cfg, args.cfg_file, cfg.name_tag)
+    # dump_cfg(cfg)
+
     # Set Pytorch environment
     torch.set_num_threads(cfg.num_threads)
     cfg.device = str(compute.get_device())
@@ -177,7 +188,7 @@ if __name__ == '__main__':
             train_dict[cfg.train.mode](loggers, loaders, model, optimizer,
                                        scheduler)
     # Aggregate results from different seeds
-    agg_runs(cfg.out_dir, cfg.metric_best)
+    # agg_runs(cfg.out_dir, cfg.metric_best)
     # When being launched in batch mode, mark a yaml as done
     if args.mark_done:
         os.rename(args.cfg_file, '{}_done'.format(args.cfg_file))
