@@ -11,6 +11,7 @@ from torch_geometric.graphgym.checkpoint import load_ckpt, save_ckpt, \
 
 from torch_geometric.graphgym.register import register_train
 
+from code2seq.utils.StoppingCritertion import StoppingCriterion
 from custom.info import get_wandb
 from graphgps.loss.subtoken_prediction_loss import subtoken_cross_entropy
 from graphgps.utils import cfg_to_dict, flatten_dict, make_wandb_name
@@ -23,8 +24,8 @@ def train_epoch(logger, loader, model, optimizer, scheduler, batch_accumulation)
     for iter, batch in enumerate(loader):
         batch.split = 'train'
         batch.to(torch.device(cfg.device))
-        #before model call because it changes it in place-_-
-        #visualization.draw_pyramid(batch[1],'x')
+        # before model call because it changes it in place-_-
+        # visualization.draw_pyramid(batch[1],'x')
         pred, true = model(batch)
         if cfg.dataset.name == 'ogbg-code2':
             loss, pred_score = subtoken_cross_entropy(pred, true)
@@ -120,6 +121,8 @@ def custom_train(loggers, loaders, model, optimizer, scheduler):
 
         run.config.update(cfg_to_dict(cfg))
 
+    stop_crit = StoppingCriterion(patience=cfg.optim.early_stop_patience, higher_is_better='max' in cfg.metric_agg)
+
     num_splits = len(loggers)
     split_names = ['val', 'test']
     full_epoch_times = []
@@ -166,7 +169,7 @@ def custom_train(loggers, loaders, model, optimizer, scheduler):
                     # Note: For some datasets it is too expensive to compute
                     # the main metric on the training set.
                     best_train = f"train_{m}: {0:.4f}"
-                best_val = f"val_{m}: {perf[1][best_epoch][m]:.4f}"
+                best_val = f"val_{m}: {perf[1][best_epoch][m] :.4f}"
                 best_test = f"test_{m}: {perf[2][best_epoch][m]:.4f}"
 
                 if cfg.wandb.use:
@@ -183,6 +186,9 @@ def custom_train(loggers, loaders, model, optimizer, scheduler):
                     run.log(bstats, step=cur_epoch)
                     run.summary["full_epoch_time_avg"] = np.mean(full_epoch_times)
                     run.summary["full_epoch_time_sum"] = np.sum(full_epoch_times)
+                if stop_crit(val_perf[-1][m]):
+                    logging.info(f'early stopping after {cur_epoch} epochs')
+                    break
             logging.info(
                 f"> Epoch {cur_epoch}: took {full_epoch_times[-1]:.1f}s "
                 f"(avg {np.mean(full_epoch_times):.1f}s) | "

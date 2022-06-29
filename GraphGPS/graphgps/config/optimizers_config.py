@@ -25,5 +25,7 @@ def extended_optim_cfg(cfg):
     # Clip gradient norms while training
     cfg.optim.clip_grad_norm = False
 
+    cfg.optim.early_stop_patience = 80
+
 
 register_config('extended_optim', extended_optim_cfg)
