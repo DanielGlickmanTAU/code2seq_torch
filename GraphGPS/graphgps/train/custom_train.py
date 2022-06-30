@@ -208,6 +208,7 @@ def custom_train(loggers, loaders, model, optimizer, scheduler):
     logging.info(f"Total train loop time: {np.sum(full_epoch_times) / 3600:.2f}h")
     try:
         run.save('{}/{}.ckpt'.format(get_ckpt_dir(), best_epoch))
+        logging.info('uploaded checkpoint to wandb')
     except:
         logging.warning('fail uploading checkpoint to wandb')
     for logger in loggers:
