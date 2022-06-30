@@ -7,7 +7,7 @@ from torch_geometric.graphgym.config import cfg
 from torch_geometric.graphgym.loss import compute_loss
 from torch_geometric.graphgym.utils.epoch import is_eval_epoch, is_ckpt_epoch
 from torch_geometric.graphgym.checkpoint import load_ckpt, save_ckpt, \
-    clean_ckpt
+    clean_ckpt, get_ckpt_dir
 
 from torch_geometric.graphgym.register import register_train
 
@@ -206,6 +206,10 @@ def custom_train(loggers, loaders, model, optimizer, scheduler):
                                      f"gamma={gtl.attention.gamma.item()}")
     logging.info(f"Avg time per epoch: {np.mean(full_epoch_times):.2f}s")
     logging.info(f"Total train loop time: {np.sum(full_epoch_times) / 3600:.2f}h")
+    try:
+        run.save('{}/{}.ckpt'.format(get_ckpt_dir(), best_epoch))
+    except:
+        logging.warning('fail uploading checkpoint to wandb')
     for logger in loggers:
         logger.close()
     if cfg.train.ckpt_clean:
