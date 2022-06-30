@@ -209,8 +209,8 @@ def custom_train(loggers, loaders, model, optimizer, scheduler):
     try:
         run.save('{}/{}.ckpt'.format(get_ckpt_dir(), best_epoch))
         logging.info('uploaded checkpoint to wandb')
-    except:
-        logging.warning('fail uploading checkpoint to wandb')
+    except Exception as e:
+        logging.warning(f'fail uploading checkpoint to wandb: {e}')
     for logger in loggers:
         logger.close()
     if cfg.train.ckpt_clean:
