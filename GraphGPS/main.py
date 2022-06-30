@@ -174,6 +174,11 @@ if __name__ == '__main__':
         optimizer = create_optimizer(model.parameters(),
                                      new_optimizer_config(cfg))
         scheduler = create_scheduler(optimizer, new_scheduler_config(cfg))
+        # from torch_geometric.graphgym.checkpoint import load_ckpt, save_ckpt, \
+        #     clean_ckpt
+        #
+        # print(f'epoch {load_ckpt(model, optimizer, scheduler)}')
+
         # Print model info
         logging.info(model)
         logging.info(cfg)
