@@ -1,5 +1,5 @@
 out_dir: tests/results
-metric_best: accuracy
+metric_best: f1
 wandb:
   use: True
   project: molpcba
@@ -32,14 +32,14 @@ gnn:
   layers_pre_mp: 1
   layers_mp: 10
   layers_post_mp: 1
-  dim_inner: 300
-  layer_type: gcnconv
+  dim_inner: 100
+  layer_type: gatedgcnconv
   stage_type: skipsum
   batchnorm: True
-  act: prelu
+  act: relu
   dropout: 0.0
   normalize_adj: False
 optim:
   optimizer: adam
   base_lr: 0.01
-  max_epoch: 500
+  max_epoch: 1000

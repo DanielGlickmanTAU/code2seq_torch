@@ -57,7 +57,7 @@ gnn:
   layers_mp: 10
   layers_post_mp: 1
   dim_inner: 300
-  layer_type: gcnconv
+  layer_type: gcnconv #gatedgcnconv
   stage_type: skipsum
   batchnorm: True
   act: prelu
