@@ -1,0 +1,70 @@
+out_dir: tests/results
+metric_best: f1
+wandb:
+  use: True
+  project: molpcba
+
+dataset:
+  format: PyG-GNNBenchmarkDataset
+  name: 'row-coloring'
+  node_encoder: True
+  #  this num_types == num_colors
+  node_encoder_num_types: 20
+
+  node_encoder_bn: False
+  node_encoder_name: TypeDictNode+SignNet
+  task: graph
+  task_type: classification
+  transductive: False
+  split_mode: standard
+train:
+  mode: custom
+  batch_size: 64
+  eval_period: 1
+  ckpt_period: 100
+  sampler: full_batch
+model:
+  type: GPSModel
+  loss_fun: weighted_cross_entropy
+  edge_decoding: dot
+  graph_pooling: add
+posenc_SignNet:
+  enable: True
+  eigen:
+    laplacian_norm: none
+    eigvec_norm: L2
+    max_freqs: 16  # Max graph size in CIFAR10 is 150, but they are 8-NN graphs
+  model: DeepSet
+  dim_pe: 16  # Note: In original SignNet codebase dim_pe is always equal to max_freq
+  layers: 8  # Num. layers in \phi model
+  post_layers: 3  # Num. layers in \rho model; The original uses the same as in \phi
+  phi_hidden_dim: 64
+  phi_out_dim: 64
+gt:
+  layer_type: CustomGatedGCN+Transformer
+  layers: 3
+  n_layers_gnn_only: 0
+  n_heads: 4
+  dim_hidden: 300  # `gt.dim_hidden` must match `gnn.dim_inner`
+  dropout: 0.2
+  attn_dropout: 0.5
+  layer_norm: False
+  batch_norm: True
+
+
+gnn:
+  head: inductive_node
+  layers_pre_mp: 1
+  layers_mp: 10
+  layers_post_mp: 1
+  dim_inner: 300
+  layer_type: gcnconv #gatedgcnconv
+  stage_type: skipsum
+  batchnorm: True
+  act: prelu
+  dropout: 0.0
+  normalize_adj: False
+optim:
+  optimizer: adam
+  base_lr: 0.01
+  max_epoch: 1000
