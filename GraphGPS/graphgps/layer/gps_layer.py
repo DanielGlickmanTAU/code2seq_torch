@@ -116,17 +116,18 @@ class GPSLayer(nn.Module):
         self.dropout_attn = nn.Dropout(dropout)
 
         # Feed Forward block.
-        self.activation = F.relu
-        self.ff_linear1 = nn.Linear(dim_h, dim_h * 2)
-        self.ff_linear2 = nn.Linear(dim_h * 2, dim_h)
-        if self.layer_norm:
-            # self.norm2 = pygnn.norm.LayerNorm(dim_h)
-            self.norm2 = pygnn.norm.GraphNorm(dim_h)
-            # self.norm2 = pygnn.norm.InstanceNorm(dim_h)
-        if self.batch_norm:
-            self.norm2 = nn.BatchNorm1d(dim_h)
-        self.ff_dropout1 = nn.Dropout(dropout)
-        self.ff_dropout2 = nn.Dropout(dropout)
+        if self.self_attn is not None:
+            self.activation = F.relu
+            self.ff_linear1 = nn.Linear(dim_h, dim_h * 2)
+            self.ff_linear2 = nn.Linear(dim_h * 2, dim_h)
+            if self.layer_norm:
+                # self.norm2 = pygnn.norm.LayerNorm(dim_h)
+                self.norm2 = pygnn.norm.GraphNorm(dim_h)
+                # self.norm2 = pygnn.norm.InstanceNorm(dim_h)
+            if self.batch_norm:
+                self.norm2 = nn.BatchNorm1d(dim_h)
+            self.ff_dropout1 = nn.Dropout(dropout)
+            self.ff_dropout2 = nn.Dropout(dropout)
 
     def forward(self, batch):
         h = batch.x
@@ -183,17 +184,20 @@ class GPSLayer(nn.Module):
                 h_attn = self.norm1_attn(h_attn)
             h_out_list.append(h_attn)
 
-        # Combine local and global outputs.
-        # h = torch.cat(h_out_list, dim=-1)
-        #todo insert all of this to if self.atten , and if not using self,attn do h=h_out_list[0]
-        h = sum(h_out_list)
+            # Combine local and global outputs.
+            h = sum(h_out_list)
 
-        # Feed Forward block.
-        h = h + self._ff_block(h)
-        if self.layer_norm:
-            h = self.norm2(h, batch.batch)
-        if self.batch_norm:
-            h = self.norm2(h)
+            # Feed Forward block.
+            h = h + self._ff_block(h)
+            if self.layer_norm:
+                h = self.norm2(h, batch.batch)
+            if self.batch_norm:
+                h = self.norm2(h)
+        else:
+            assert len(h_out_list) == 1
+            h = h_out_list[0]
+
+
 
         batch.x = h
         return batch

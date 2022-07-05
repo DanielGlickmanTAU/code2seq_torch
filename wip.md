@@ -1190,3 +1190,9 @@ GineConvLayer: linear->relu->linear->relu
 GINEConvGraphGymLayer: linear->relu->linear
 
 gps_layer is using GINEConv..guess it is ok because gin is not linear....
+
+
+num params 6 gt.layers 0 gt.n_layers_gnn_only: Num parameters: 7157862
+num params 12 gt.layers 6 gt.n_layers_gnn_only:Num parameters: 7165062
+good!
+6 x (gnn + attention + ffn) == 6 * (gnn) + 6 * (attention + ffn)
