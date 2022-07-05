@@ -1180,3 +1180,13 @@ conclustion:
 * have comet/wandb show clear parameters that are not confusing 
 * write assertions and checks to handle edgy logic
 
+### 6.7
+
+Looks like at some level of a lot of transformer params and layers, it manages to solve the dataset.
+Using deep set over transformer, as the positonal mixing, does not seem to solve it
+
+GineConvLayer: linear->relu->linear->relu
+
+GINEConvGraphGymLayer: linear->relu->linear
+
+gps_layer is using GINEConv..guess it is ok because gin is not linear....

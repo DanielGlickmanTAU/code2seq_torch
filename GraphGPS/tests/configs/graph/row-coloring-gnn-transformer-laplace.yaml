@@ -42,7 +42,7 @@ posenc_LapPE:
 gt:
   layer_type: CustomGatedGCN+Transformer
   layers: 8
-  n_layers_gnn_only:4
+  n_layers_gnn_only: 4
   n_heads: 4
   dim_hidden: 300  # `gt.dim_hidden` must match `gnn.dim_inner`
   dropout: 0.2
