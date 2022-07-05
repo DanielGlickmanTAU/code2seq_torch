@@ -185,6 +185,7 @@ class GPSLayer(nn.Module):
 
         # Combine local and global outputs.
         # h = torch.cat(h_out_list, dim=-1)
+        #todo insert all of this to if self.atten , and if not using self,attn do h=h_out_list[0]
         h = sum(h_out_list)
 
         # Feed Forward block.
