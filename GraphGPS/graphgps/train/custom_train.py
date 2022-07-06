@@ -187,6 +187,7 @@ def custom_train(loggers, loaders, model, optimizer, scheduler):
                     run.summary["full_epoch_time_avg"] = np.mean(full_epoch_times)
                     run.summary["full_epoch_time_sum"] = np.sum(full_epoch_times)
                 if stop_crit(val_perf[-1][m]):
+                    save_ckpt(model, optimizer, scheduler, cur_epoch)
                     logging.info(f'early stopping after {cur_epoch} epochs')
                     break
             logging.info(
@@ -207,8 +208,11 @@ def custom_train(loggers, loaders, model, optimizer, scheduler):
     logging.info(f"Avg time per epoch: {np.mean(full_epoch_times):.2f}s")
     logging.info(f"Total train loop time: {np.sum(full_epoch_times) / 3600:.2f}h")
     try:
-        run.save('{}/{}.ckpt'.format(get_ckpt_dir(), best_epoch))
-        logging.info('uploaded checkpoint to wandb')
+        res = run.save('{}/{}.ckpt'.format(get_ckpt_dir(), cur_epoch), policy='now')
+        if res:
+            logging.info(f'uploaded last checkpoint to wandb {res}')
+        else:
+            logging.warning('did not find what to upload')
     except Exception as e:
         logging.warning(f'fail uploading checkpoint to wandb: {e}')
     for logger in loggers:

@@ -1,3 +1,5 @@
+import time
+
 from code2seq.utils import compute
 
 compute.get_torch()
@@ -150,9 +152,10 @@ if __name__ == '__main__':
     torch.set_num_threads(cfg.num_threads)
     cfg.device = str(compute.get_device())
     # Repeat for multiple experiment runs
+    start_time = time.time()
     for run_id, seed, split_index in zip(*run_loop_settings()):
         # Set configurations for each run
-        custom_set_run_dir(cfg, run_id)
+        custom_set_run_dir(cfg, f'{start_time}_{run_id}')
         set_printing()
         cfg.dataset.split_index = split_index
         cfg.seed = seed
