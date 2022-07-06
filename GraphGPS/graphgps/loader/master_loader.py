@@ -1,5 +1,7 @@
 import logging
+import os
 import os.path as osp
+import shutil
 import time
 from functools import partial
 
@@ -23,6 +25,7 @@ from graphgps.transform.posenc_stats import compute_posenc_stats
 from graphgps.transform.transforms import (pre_transform_in_memory,
                                            typecast_x, concat_x_and_pos,
                                            clip_graphs_to_size)
+from ogb.utils.url import decide_download, download_url, extract_zip
 
 
 def log_loaded_dataset(dataset, format, name):
@@ -319,7 +322,21 @@ def preformat_OGB_Graph(dataset_dir, name):
     Returns:
         PyG dataset object
     """
-    dataset = PygGraphPropPredDataset(name=name, root=dataset_dir)
+
+    # override download dialog because it asks for user input which gets stuck on slurm
+    class DownloadPygGraphPropPredDataset(PygGraphPropPredDataset):
+        def __init__(self, name, root='dataset', transform=None, pre_transform=None, meta_dict=None):
+            super().__init__(name, root, transform, pre_transform, meta_dict)
+
+        def download(self):
+            url = self.meta_info['url']
+            path = download_url(url, self.original_root)
+            extract_zip(path, self.original_root)
+            os.unlink(path)
+            shutil.rmtree(self.root)
+            shutil.move(osp.join(self.original_root, self.download_name), self.root)
+
+    dataset = DownloadPygGraphPropPredDataset(name=name, root=dataset_dir)
     s_dict = dataset.get_idx_split()
     dataset.split_idxs = [s_dict[s] for s in ['train', 'valid', 'test']]
 
