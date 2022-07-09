@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Dict, List
+from typing import Dict, List, Union
 from itertools import product
 
 
@@ -9,7 +9,11 @@ class ListArgument:
     argument: list
 
 
-def gridsearch(default_params: Dict, params_to_grid_search: Dict[object, List]) -> List[Dict]:
+def gridsearch(default_params: Dict, params_to_grid_search: Union[Dict[object, List], List[Dict[object, List]]]) -> \
+        List[Dict]:
+    if isinstance(params_to_grid_search, List):
+        return sum([gridsearch(default_params, d) for d in params_to_grid_search], [])
+
     def prod(params_to_grid_search):
         values = []
         for v in params_to_grid_search.values():
