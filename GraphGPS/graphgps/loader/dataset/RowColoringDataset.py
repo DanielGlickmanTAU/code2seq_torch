@@ -16,12 +16,16 @@ class RowColoringDataset(InMemoryDataset):
         atom_set = 6
         if 'atom_set' in cfg and cfg['atom_set']:
             atom_set = cfg['atom_set']
+
+        only_color = cfg.dataset.only_color
         ds = WordsCombinationGraphDataset(color_mode='rows',
                                           word_graphs=graph_words.word_graphs.get_atom_set(atom_set),
                                           num_samples=num_samples,
                                           num_colors=cfg.dataset.node_encoder_num_types,
-                                          only_color=True,
+                                          only_color=only_color,
                                           unique_colors_per_example=True,
+                                          #if tagging by shape, draw unique shape per instace, to get reasonable probability.
+                                          unique_atoms_per_example=not only_color,
                                           words_per_row=4
                                           )
         self.data, self.slices = self.collate(ds.dataset)
