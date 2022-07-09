@@ -5,17 +5,27 @@ from code2seq.utils.slurm import run_on_slurm
 import os
 
 params_for_grid_search = {
-    'optim.base_lr': [0.0005],
-    # 'gnn.layer_type': ['gcnconv', 'GINE']
-    'gt.layers': [6],
-    'gt.n_layers_gnn_only': [2, 4],
+    'optim.base_lr': [0.0001],
+    # # 'gnn.layer_type': ['gcnconv', 'GINE']
+    'gt.layers': [6, 20],
+    # 'gt.n_layers_gnn_only': [2, 4],
+    'gt.n_layers_gnn_only': [0, 4],
     'posenc_LapPE.model': ['Transformer'],
-    'posenc_LapPE.layers': [1, 3],
+    'posenc_LapPE.layers': [3, 6],
 
     # 'posenc_LapPE.enable': [False]
 
     # 'gnn.layer_type': ['ginconv']
-    # 'wandb.project': 'molpcba'
+    'wandb.project': 'molpcba',
+    # 'gt.layers': [10],
+    # 'gt.n_layers_gnn_only': [5,1],
+    # 'wandb.project': 'gps_vs_graphtrans_molpcba',
+    # 'optim.base_lr': [0.0005, 0.0002]
+    # 'gt.layers': [3],
+    # 'gt.n_layers_gnn_only': [3, 1],
+    # 'wandb.project': 'gps_vs_graphtrans_ppa',
+    # 'optim.base_lr': [0.0003, 0.0002]
+    # 'optim.base_lr': [0.0003]
 
 }
 
@@ -23,6 +33,8 @@ params = {
     # '--cfg': 'tests/configs/graph/row-coloring.yaml'
     '--cfg': 'tests/configs/graph/row-coloring-laplace.yaml'
     # '--cfg': 'tests/configs/graph/row-coloring-restore.yaml'
+    # '--cfg': 'configs/GPS/ogbg-ppa-GPS.yaml'
+    # '--cfg': 'configs/GPS/ogbg-molpcba-GPS+RWSE.yaml'
 }
 
 os.chdir('..')
