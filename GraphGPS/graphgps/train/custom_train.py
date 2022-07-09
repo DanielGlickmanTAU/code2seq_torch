@@ -25,6 +25,7 @@ def train_epoch(logger, loader, model, optimizer, scheduler, batch_accumulation)
         batch.split = 'train'
         batch.to(torch.device(cfg.device))
         # before model call because it changes it in place-_-
+        # from examples.graphproppred.mol import visualization
         # visualization.draw_pyramid(batch[1],'x')
         pred, true = model(batch)
         if cfg.dataset.name == 'ogbg-code2':
