@@ -28,4 +28,5 @@ def get_signnet_transformer_config():
         'posenc_SignNet.model': 'DeepSet',
         'posenc_SignNet.dim_pe': 16,
         'posenc_SignNet.layers': 3,
+        'posenc_SignNet.post_layers': 2,
     }
