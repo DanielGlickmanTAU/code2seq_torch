@@ -5,7 +5,11 @@ import networkx as nx
 import torch
 import torch_geometric
 
-from exp_utils import get_global_exp
+try:
+    from exp_utils import get_global_exp
+except Exception:
+    print('failed importing get_global_exp')
+    get_global_exp = lambda: None
 
 
 def draw_pyg_graph(graph: Union[torch_geometric.data.Data, nx.Graph], to_undirected=True, with_labels=True, text=None):
@@ -13,17 +17,12 @@ def draw_pyg_graph(graph: Union[torch_geometric.data.Data, nx.Graph], to_undirec
         graph = torch_geometric.utils.from_networkx(graph)
 
     nx_graph = torch_geometric.utils.to_networkx(data=graph, to_undirected=to_undirected)
-    nx.draw(nx_graph,
-            with_labels=with_labels,
-            # labels={key: (value['type'] if 'type' in value else value['value']) for key, value in
-            #         ast.items()},
-            # with_labels=True
-            )
+    nx.draw(nx_graph, with_labels=with_labels)
     plt.show()
 
 
 def draw(graph: Union[torch_geometric.data.Data, nx.Graph], color_tensor, color_map=None, to_undirected=True,
-         positions=None, with_labels=False, alpha=None, label=None, fig_name=None, force_show=False,step=None):
+         positions=None, with_labels=False, alpha=None, label=None, fig_name=None, force_show=False, step=None):
     if isinstance(graph, torch_geometric.data.Data):
         graph = torch_geometric.utils.to_networkx(graph, to_undirected=to_undirected)
     # if got network predictions,take the argmax
@@ -51,7 +50,7 @@ def draw(graph: Union[torch_geometric.data.Data, nx.Graph], color_tensor, color_
             )
     exp = get_global_exp()
     if exp:
-        exp.log_figure(figure=fig, figure_name=fig_name,step=step,overwrite=False)
+        exp.log_figure(figure=fig, figure_name=fig_name, step=step, overwrite=False)
         if force_show:
             plt.show()
         plt.close('all')
@@ -63,13 +62,13 @@ basic_color_map = ['red', 'green', 'blue', 'pink', 'yellow', 'orange', 'purple',
                    'antiquewhite',
                    'bisque', 'burlywood', 'cadetblue', 'chartreuse', 'chocolate', 'coral', 'cornflowerblue', 'cornsilk',
                    'darkolivegreen', 'darksalmon', 'firebrick', 'deepskyblue']
-#just so we dont get out of index error..
+# just so we dont get out of index error..
 basic_color_map = basic_color_map * 10
 
 
 # force_show is for debugging. will show plt locally and not only on  comet
 def draw_pyramid(data: torch_geometric.data.Data, color_with: Union[str, torch.Tensor], label=None, fig_name=None,
-                 force_show=False,step=None):
+                 force_show=False, step=None):
     """gets PyramidNodeColorDataset and colors it..
     uses positions from graph. color_with is either x, y or a tensor of predictions"""
     positions = data.graph.positions
@@ -88,7 +87,7 @@ def draw_pyramid(data: torch_geometric.data.Data, color_with: Union[str, torch.T
         color_map = basic_color_map
         alpha = color_with.softmax(dim=-1).max(dim=-1)[0].tolist()
     draw(data.graph, color_tensor=colors, color_map=color_map, positions=positions, alpha=alpha, label=label,
-         with_labels=True, fig_name=fig_name, force_show=force_show,step=step)
+         with_labels=True, fig_name=fig_name, force_show=force_show, step=step)
 
 
 def show_matrix(stacks, cmap=None, text=None):
