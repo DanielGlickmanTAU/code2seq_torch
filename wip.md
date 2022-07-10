@@ -1196,3 +1196,25 @@ num params 6 gt.layers 0 gt.n_layers_gnn_only: Num parameters: 7157862
 num params 12 gt.layers 6 gt.n_layers_gnn_only:Num parameters: 7165062
 good!
 6 x (gnn + attention + ffn) == 6 * (gnn) + 6 * (attention + ffn)
+
+
+
+### 9.7
+shapes datasets looks ok.
+close to 1/32 = (1/4)^3 get label one(matching row/col) 
+
+idea for future:
+increase number of rows, but not cols.. will break symmetris.
+
+
+### 10.7
+comparining 1e-5 and 5e-5 learning rates for signet.
+seems like higher learning rate starts off better.
+and maybe it gets better results because it is more jiggly(more vairnance in f1)..
+acordding to deep learning book, it is ok
+both early stopped
+
+
+gnn on starts:
+looks like it helps avoid overfitting(test results close to train)
+looks like it speeds up training
