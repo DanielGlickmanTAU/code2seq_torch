@@ -33,7 +33,7 @@ class KernelPENodeEncoder(torch.nn.Module):
                              f"preconfigured by setting 'kernel_type' class"
                              f"variable before calling the constructor.")
 
-        dim_in = cfg.share.dim_in  # Expected original input node features dim
+        dim_in = dim_emb if expand_x == 'contract' else cfg.share.dim_in  # Expected original input node features dim
 
         pecfg = getattr(cfg, f"posenc_{self.kernel_type}")
         dim_pe = pecfg.dim_pe  # Size of the kernel-based PE embedding
@@ -108,6 +108,7 @@ class RWSENodeEncoder(KernelPENodeEncoder):
     """
     kernel_type = 'RWSE'
 
+
 register_node_encoder('RWSE', RWSENodeEncoder)
 
 
@@ -116,6 +117,7 @@ class HKdiagSENodeEncoder(KernelPENodeEncoder):
     """
     kernel_type = 'HKdiagSE'
 
+
 register_node_encoder('HKdiagSE', HKdiagSENodeEncoder)
 
 
@@ -123,5 +125,6 @@ class ElstaticSENodeEncoder(KernelPENodeEncoder):
     """Electrostatic interactions Structural Encoding node encoder.
     """
     kernel_type = 'ElstaticSE'
+
 
 register_node_encoder('ElstaticSE', ElstaticSENodeEncoder)

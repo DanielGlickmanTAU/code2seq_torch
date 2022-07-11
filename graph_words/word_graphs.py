@@ -145,6 +145,9 @@ def get_atom_set(number):
     if number == 8:
         return [lambda: Dot()]
 
+    if number == 9:
+        return [lambda: Cycle(3), lambda: Cycle(4), lambda: Tree_small(), lambda: ChordCycle()]
+
     raise Exception(f'unknown atom set option {number}')
 
 

@@ -16,5 +16,7 @@ def dataset_cfg(cfg):
 
     cfg.dataset.only_color = True
 
+    cfg.dataset.transformer_node_encoder_name = None
+
 
 register_config('dataset_cfg', dataset_cfg)

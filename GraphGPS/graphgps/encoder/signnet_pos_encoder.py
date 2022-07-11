@@ -124,7 +124,7 @@ class GINDeepSigns(nn.Module):
 
     def forward(self, x, edge_index, batch_index):
         N = x.shape[0]  # Total number of nodes in the batch.
-        x = x.transpose(0, 1) # N x K x In -> K x N x In
+        x = x.transpose(0, 1)  # N x K x In -> K x N x In
         x = self.enc(x, edge_index) + self.enc(-x, edge_index)
         x = x.transpose(0, 1).reshape(N, -1)  # K x N x Out -> N x (K * Out)
         x = self.rho(x)  # N x dim_pe (Note: in the original codebase dim_pe is always K)
@@ -195,7 +195,7 @@ class SignNetNodeEncoder(torch.nn.Module):
 
     def __init__(self, dim_emb, expand_x=True):
         super().__init__()
-        dim_in = cfg.share.dim_in  # Expected original input node features dim
+        dim_in = dim_emb if expand_x == 'contract' else cfg.share.dim_in  # Expected original input node features dim
 
         pecfg = cfg.posenc_SignNet
         dim_pe = pecfg.dim_pe  # Size of PE embedding

@@ -1218,3 +1218,16 @@ both early stopped
 gnn on starts:
 looks like it helps avoid overfitting(test results close to train)
 looks like it speeds up training
+
+
+computing rwse:
+when loading dataset, compute it in posenc_stats#compute_posenc_stats
+keeps it in pestat_RWSE
+then on model forward, calls kernel_pos_encoder, which uses that attribute.
+
+
+if expand_x is False(it is always from what i have seen for not first encoder),
+will concat values of different encoders
+
+if layers_pre_mp > 0 (sometimes it is 0 sometimes it is 1), will do linear projection d->d
+that mixes embeddings

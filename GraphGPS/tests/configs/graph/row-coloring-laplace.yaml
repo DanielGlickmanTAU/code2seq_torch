@@ -11,6 +11,7 @@ dataset:
   #  this num_types == num_colors
   node_encoder_num_types: 20
   node_encoder_name: TypeDictNode+LapPE
+  transformer_node_encoder_name: None
   node_encoder_bn: False
   task: graph
   task_type: classification

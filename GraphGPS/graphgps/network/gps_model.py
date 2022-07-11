@@ -17,14 +17,16 @@ class FeatureEncoder(torch.nn.Module):
         dim_in (int): Input feature dimension
     """
 
-    def __init__(self, dim_in):
+    def __init__(self, dim_in, node_encoder_name=cfg.dataset.node_encoder_name,
+                 edge_encoder_name=cfg.dataset.edge_encoder_name, contract=False):
         super(FeatureEncoder, self).__init__()
         self.dim_in = dim_in
         if cfg.dataset.node_encoder:
             # Encode integer node features via nn.Embeddings
             NodeEncoder = register.node_encoder_dict[
-                cfg.dataset.node_encoder_name]
-            self.node_encoder = NodeEncoder(cfg.gnn.dim_inner)
+                node_encoder_name]
+            self.node_encoder = NodeEncoder(cfg.gnn.dim_inner, expand_x='contract') if contract else NodeEncoder(
+                cfg.gnn.dim_inner)
             if cfg.dataset.node_encoder_bn:
                 self.node_encoder_bn = BatchNorm1dNode(
                     new_layer_config(cfg.gnn.dim_inner, -1, -1, has_act=False,
@@ -36,7 +38,7 @@ class FeatureEncoder(torch.nn.Module):
             cfg.gnn.dim_edge = 16 if 'PNA' in cfg.gt.layer_type else cfg.gnn.dim_inner
             # Encode integer edge features via nn.Embeddings
             EdgeEncoder = register.edge_encoder_dict[
-                cfg.dataset.edge_encoder_name]
+                edge_encoder_name]
             self.edge_encoder = EdgeEncoder(cfg.gnn.dim_edge)
             if cfg.dataset.edge_encoder_bn:
                 self.edge_encoder_bn = BatchNorm1dNode(
@@ -58,6 +60,11 @@ class GPSModel(torch.nn.Module):
         self.encoder = FeatureEncoder(dim_in)
         dim_in = self.encoder.dim_in
 
+        if 'n_layers_gnn_only' in cfg.gt:
+            n_layers_gnn_only = cfg.gt['n_layers_gnn_only']
+        else:
+            n_layers_gnn_only = 0
+
         if cfg.gnn.layers_pre_mp > 0:
             self.pre_mp = GNNPreMP(
                 dim_in, cfg.gnn.dim_inner, cfg.gnn.layers_pre_mp)
@@ -70,21 +77,25 @@ class GPSModel(torch.nn.Module):
             local_gnn_type, global_model_type = cfg.gt.layer_type.split('+')
         except:
             raise ValueError(f"Unexpected layer type: {cfg.gt.layer_type}")
-        if 'n_layers_gnn_only' in cfg.gt:
-            n_layers_gnn_only = cfg.gt['n_layers_gnn_only']
-        else:
-            n_layers_gnn_only = 0
 
         layers = []
         for i, _ in enumerate(range(cfg.gt.layers)):
             layer_gnn_type = local_gnn_type
             layer_global_model = global_model_type
-            if n_layers_gnn_only:
+            if n_layers_gnn_only > 0:
                 # in the first n_layers_gnn_only layers, dont use global model
                 if i < n_layers_gnn_only:
                     layer_global_model = 'None'
-                else: #  i>= n_layers_gnn_only
+                else:  # i>= n_layers_gnn_only
                     layer_gnn_type = 'None'
+                # done with gnns, starting transformers
+                if i == n_layers_gnn_only:
+                    if cfg.dataset.transformer_node_encoder_name:
+                        transformer_position_encoder = FeatureEncoder(dim_in, cfg.dataset.transformer_node_encoder_name,
+                                                                      None, contract=True)
+                        # position_linear_proj = GNNPreMP(transformer_position_encoder.dim_in, cfg.gnn.dim_inner, 1)
+                        layers.append(transformer_position_encoder)
+                        # layers.append(position_linear_proj)
 
             layers.append(GPSLayer(
                 dim_h=cfg.gt.dim_hidden,
@@ -105,6 +116,7 @@ class GPSModel(torch.nn.Module):
         self.post_mp = GNNHead(dim_in=cfg.gnn.dim_inner, dim_out=dim_out)
 
     def forward(self, batch):
+
         for module in self.children():
             batch = module(batch)
         return batch

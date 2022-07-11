@@ -7,22 +7,27 @@ import os
 
 params_for_exp = {
     'dataset.only_color': [False],
-    'wandb.project': 'coloring-rows-shapes-laplace-transformer',
+    # 'wandb.project': 'coloring-rows-shapes-laplace-transformer',
     # 'wandb.project': 'coloring-rows-shapes-gps-signnet-vs-gnn-t-signet',
-    'optim.early_stop_patience': 700,
-    'optim.schedule_patience': 50,
+    'wandb.project': 'coloring-rows-shapes-all',
+    'optim.early_stop_patience': 200,
+    'optim.schedule_patience': 40,
     'optim.base_lr': [0.00004, 0.00008, 0.00016],
 
 }
 params = {
-    '--cfg': 'tests/configs/graph/row-coloring-laplace.yaml'
+    '--cfg': 'tests/configs/graph/row-coloring-laplace.yaml',
+    '--atom_set': 9
 }
 
 params_for_grid_search = [
     # baseline_config.get_gps_laplace_transformer_config(),
     # baseline_config.get_gnn_transformer_laplace_transformer_config(),
-    baseline_config.get_signnet_deepset_config(),
-    baseline_config.get_gnn_transformer_signnet_deepset_config()
+    # baseline_config.get_signnet_deepset_config(),
+    # baseline_config.get_gnn_transformer_signnet_deepset_config(),
+    # baseline_config.get_RSWE_gnn_transformer_signnet_deepset_config(),
+    # baseline_config.get_RWSE_signnet_deepset_config(),
+    baseline_config.get_RSWE_gnn_transformer_signnet_AFTERGNN_deepset_config()
 ]
 
 for p in params_for_grid_search:
