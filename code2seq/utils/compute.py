@@ -46,8 +46,10 @@ def get_index_of_free_gpus(minimum_free_giga=minimum_free_giga):
     # write_gpus_to_file(gpus)
     gpus = {index: mega for index, mega in gpus.items() if mega >= minimum_free_giga * 1000}
     gpus = {k: v for k, v in sorted(gpus.items(), key=lambda x: x[1], reverse=True)}
+
+    if len(gpus) == 0 and not is_university_server():
+        return {0: 9999}
     return gpus
-    # return [str(index) for index, mega in gpus.items() if mega > minimum_free_giga * 1000]
 
 
 os.environ['TOKENIZERS_PARALLELISM'] = 'false'
