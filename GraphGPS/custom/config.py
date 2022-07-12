@@ -20,6 +20,8 @@ def parse_args():
     parser.add_argument('--max_examples', type=int, default=0,
                         help='limit to dataset size, useful for debugging.')
     parser.add_argument('--atom_set', type=int)
+    parser.add_argument('--num_rows', type=int)
+    parser.add_argument('--words_per_row', type=int)
     parser.add_argument('opts', help='See graphgym/config.py for all options',
                         default=None, nargs=argparse.REMAINDER)
     return parser.parse_args()
