@@ -11,8 +11,8 @@ from torch_geometric.graphgym.checkpoint import load_ckpt, save_ckpt, \
 
 from torch_geometric.graphgym.register import register_train
 
+from GraphGPS.custom.info import get_wandb
 from code2seq.utils.StoppingCritertion import StoppingCriterion
-from custom.info import get_wandb
 from graphgps.loss.subtoken_prediction_loss import subtoken_cross_entropy
 from graphgps.utils import cfg_to_dict, flatten_dict, make_wandb_name
 
