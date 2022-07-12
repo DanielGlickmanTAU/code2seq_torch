@@ -20,7 +20,7 @@ params = {
 params_for_grid_search = [
     baseline_config.get_gps_laplace_transformer_config(),
     baseline_config.get_gnn_transformer_laplace_transformer_config(),
-    baseline_config.get_signnet_deepset_config(),
+    baseline_config.get_gps_signnet_deepset_config(),
     baseline_config.get_gnn_transformer_signnet_deepset_config()
 ]
 

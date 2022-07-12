@@ -1201,7 +1201,7 @@ good!
 
 ### 9.7
 shapes datasets looks ok.
-close to 1/32 = (1/4)^3 get label one(matching row/col) 
+close to 1/32 = 2(1/4)^3 get label one(matching row/col) 
 
 idea for future:
 increase number of rows, but not cols.. will break symmetris.
@@ -1231,3 +1231,22 @@ will concat values of different encoders
 
 if layers_pre_mp > 0 (sometimes it is 0 sometimes it is 1), will do linear projection d->d
 that mixes embeddings
+
+
+number of options for row:
+if there are b options pet atom(e.g num_color * num_shapes = b)
+then for row of size 2, there are (2 choose b) + b options #choose 2 atoms, a and b and assume a>b, this gives (2 C b).. then chooce 2 numbers where a==b, for that there are b options.
+for row of size 3: you can imagine inserting any of the b options inbetween the 2 atoms of the previous step, so there are ( (2 C b) + b ) * B
+for even size rows, I think(didnt vverify) there are (2 C (b^(n/2)) + b^(n^2)).. why? we care to not count symetris. can think of row of size 2n as made simply 2 nodes each with (b^n) options.. choosing 2 guranntes not double counting the symetris
+
+there are 20 colors and 4 shapes.
+20*4= 80 row patterns that get positive labels.
+
+there are (20 C 2)(4 C 2) = 1140 ways to select the 2 shapes and 2 colors per instance
+once 2 shapes and 2 colors are choosen, there are (2*2)^row_size = 4^3 = 64 ways to arrange them in a row.
+so overall there is 64*1140=72960 possible unique rows that can be made.
+
+train set is 8k samples of 5 rows each. so 40k rows
+and we cover about 1 -(72959 / 72960) ^ 40000 = 0.42 of examples..
+
+and we are not taking into account in this analysis the fact that each grid is made of multiple rows
