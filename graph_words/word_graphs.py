@@ -255,7 +255,7 @@ class WordsCombinationGraphDataset(Dataset):
                             word_instance.nodes[node]['x'] = chosen_color
 
                 # now go by rows and see if any contain all with same shape + color
-                for i in range(len(words_in_grid)):
+                for i in range(len(words_in_grid[0])):
                     atoms_in_row = words_in_grid[i]
                     self.set_color_if_all_nodes_have_same_shape(atoms_in_row, only_color)
                     atoms_in_col = [words_in_grid[j][i] for j in range(len(words_in_grid))]
