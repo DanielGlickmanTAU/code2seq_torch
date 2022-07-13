@@ -11,7 +11,6 @@ params_for_exp = {
     # 'wandb.project': 'coloring-rows-shapes-gps-signnet-vs-gnn-t-signet',
     'wandb.project': 'coloring-rows-shapes-new-overfit-full',
     'optim.early_stop_patience': 999,
-    'optim.schedule_patience': 20,
     'optim.base_lr': [0.00005, 0.00010],
     'train.eval_period': 99
 
