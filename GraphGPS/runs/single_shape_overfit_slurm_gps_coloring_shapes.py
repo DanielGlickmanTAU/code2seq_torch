@@ -9,10 +9,10 @@ params_for_exp = {
     'dataset.only_color': [False],
     # 'wandb.project': 'coloring-rows-shapes-laplace-transformer',
     # 'wandb.project': 'coloring-rows-shapes-gps-signnet-vs-gnn-t-signet',
-    'wandb.project': 'single-shape-coloring-rows-shapes-new',
-    'optim.early_stop_patience': 200,
-    'optim.schedule_patience': 20,
-    'optim.base_lr': [0.00005, 0.00010, 0.00015],
+    'wandb.project': 'single-shape-coloring-rows-shapes-FIXED',
+    'optim.early_stop_patience': 9999,
+    'optim.base_lr': [0.00010, 0.0002, 0.0004],
+    'train.eval_period': 50
 
 }
 params = {
@@ -26,11 +26,11 @@ params = {
 
 params_for_grid_search = [
     # baseline_config.get_gps_laplace_transformer_config(),
-    baseline_config.get_RWSE_GNN_config(),
+    baseline_config.get_RWSE_GNN_config(layers=15),
     # baseline_config.get_gps_signnet_deepset_config(),
     # baseline_config.get_gnn_transformer_laplace_transformer_config(),
     # baseline_config.get_gnn_transformer_signnet_deepset_config(),
-    baseline_config.get_RSWE_gnn_transformer_signnet_deepset_config(),
+    # baseline_config.get_RSWE_gnn_transformer_signnet_deepset_config(),
     baseline_config.get_RSWE_gnn_transformer_signnet_AFTERGNN_deepset_config(),
 
 ]

@@ -56,10 +56,10 @@ def get_RWSE_gps_signnet_deepset_config():
     }
 
 
-def get_RWSE_GNN_config():
+def get_RWSE_GNN_config(layers=10):
     return {
         'optim.base_lr': [0.00003, 0.00005],
-        'gt.layers': [10],
+        'gt.layers': [layers],
         'gt.n_layers_gnn_only': [100],
         'posenc_LapPE.enable': [False],
         'posenc_LapPE.layers': [0],
@@ -120,7 +120,8 @@ def get_RSWE_gnn_transformer_signnet_AFTERGNN_deepset_config():
     return {
         'optim.base_lr': [0.00003, 0.00005],
         'gt.layers': [12],
-        'gt.n_layers_gnn_only': [6, 10],
+        # 'gt.n_layers_gnn_only': [6, 10],
+        'gt.n_layers_gnn_only': [10],
         'posenc_LapPE.enable': [False],
         'posenc_LapPE.layers': [0],
         'dataset.node_encoder_name': 'TypeDictNode+RWSE',
@@ -144,13 +145,14 @@ def get_STRONG_RSWE_gnn_transformer_signnet_AFTERGNN_deepset_config():
     return {
         'optim.base_lr': [0.00003, 0.00005],
         'gt.layers': [12],
-        'gt.n_layers_gnn_only': [6, 10],
+        # 'gt.n_layers_gnn_only': [6, 10],
+        'gt.n_layers_gnn_only': [10],
         'posenc_LapPE.enable': [False],
         'posenc_LapPE.layers': [0],
         'dataset.node_encoder_name': 'TypeDictNode+RWSE',
         'posenc_SignNet.enable': True,
         'posenc_SignNet.model': 'DeepSet',
-        'posenc_SignNet.dim_pe': [32, 64],
+        'posenc_SignNet.dim_pe': [32, 64, 128],
         'posenc_SignNet.layers': [3, 6],
         'posenc_SignNet.post_layers': 2,
 
