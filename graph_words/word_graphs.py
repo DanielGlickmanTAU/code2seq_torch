@@ -184,7 +184,13 @@ class WordsCombinationGraphDataset(Dataset):
                     atom.nodes[node]['y'] = 1
 
     def __init__(self, color_mode, word_graphs, num_samples, words_per_row, num_rows=None, num_colors=2, edge_p=1.,
-                 only_color=False, unique_atoms_per_example=False, unique_colors_per_example=False):
+                 only_color=False, unique_atoms_per_example=False, unique_colors_per_example=False,
+                 num_unique_atoms=2, num_unique_colors=2
+                 ):
+        """
+        num_unique_colors, and num unique_atoms only relevant when unique_atom_per_example and unique_color_per_example are true.. just for debugging something.
+
+        """
         if not num_rows:
             num_rows = words_per_row
         self.word_graphs = word_graphs
@@ -209,14 +215,13 @@ class WordsCombinationGraphDataset(Dataset):
 
         for i in range(num_samples):
             if unique_atoms_per_example:
-                num_unique_atoms = 2
                 unique_atoms = numpy.random.choice(word_graphs, num_unique_atoms, replace=False)
                 selected_words_ctors = numpy.random.choice(unique_atoms, words_per_row * num_rows)
             else:
                 selected_words_ctors = numpy.random.choice(word_graphs, words_per_row * num_rows)
 
             if unique_colors_per_example:
-                unique_colors = numpy.random.choice(list(range(1, num_colors + 1)), 2, replace=False)
+                unique_colors = numpy.random.choice(list(range(1, num_colors + 1)), num_unique_colors, replace=False)
                 selected_colors = numpy.random.choice(unique_colors, words_per_row * num_rows)
             else:
                 selected_colors = numpy.random.choice(list(range(1, num_colors + 1)), words_per_row * num_rows)
