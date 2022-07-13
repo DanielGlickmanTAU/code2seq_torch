@@ -33,7 +33,9 @@ class RowColoringDataset(InMemoryDataset):
                                           # if tagging by shape, draw unique shape per instace, to get reasonable probability.
                                           unique_atoms_per_example=not only_color,
                                           words_per_row=words_per_row,
-                                          num_rows=num_rows
+                                          num_rows=num_rows,
+                                          num_unique_atoms=cfg['num_unique_atoms'],
+                                          num_unique_colors=cfg['num_unique_colors']
                                           )
         self.data, self.slices = self.collate(ds.dataset)
         # in WOrdCombinationGraphDataset x gets values from 1 to num_colors(because of some issue with drawing the graph colors).. but here we want it to get values from 0 to num_colors-1
