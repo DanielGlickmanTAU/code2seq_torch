@@ -10,8 +10,6 @@ params_for_exp = {
     # 'wandb.project': 'coloring-rows-shapes-laplace-transformer',
     # 'wandb.project': 'coloring-rows-shapes-gps-signnet-vs-gnn-t-signet',
     'wandb.project': 'coloring-rows-shapes-new-signet-strong',
-    'optim.early_stop_patience': 200,
-    'optim.schedule_patience': 20,
     'optim.base_lr': [0.00005, 0.00010, 0.00015],
 
 }
