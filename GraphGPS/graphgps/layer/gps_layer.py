@@ -60,7 +60,7 @@ class GPSLayer(nn.Module):
                                              aggregators=aggregators,
                                              scalers=scalers,
                                              deg=deg,
-                                             edge_dim=16, # dim_h,
+                                             edge_dim=16,  # dim_h,
                                              towers=1,
                                              pre_layers=1,
                                              post_layers=1,
@@ -197,18 +197,16 @@ class GPSLayer(nn.Module):
             assert len(h_out_list) == 1
             h = h_out_list[0]
 
-
-
         batch.x = h
         return batch
 
     def _sa_block(self, x, attn_mask, key_padding_mask):
         """Self-attention block.
         """
-        x = self.self_attn(x, x, x,
-                           attn_mask=attn_mask,
-                           key_padding_mask=key_padding_mask,
-                           need_weights=False)[0]
+        x, att_weights = self.self_attn(x, x, x,
+                                        attn_mask=attn_mask,
+                                        key_padding_mask=key_padding_mask,
+                                        need_weights=True)
         return x
 
     def _ff_block(self, x):

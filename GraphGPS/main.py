@@ -124,6 +124,14 @@ def cfg_assertions(cfg):
         cfg.dataset['node_encoder_name'] = cfg.dataset['node_encoder_name'].replace('+LapPE', '')
 
 
+def load_save_model(checkpoint_dir='runs'):
+    from torch_geometric.graphgym.checkpoint import load_ckpt
+    p = cfg.run_dir
+    cfg.run_dir = checkpoint_dir
+    print(f'epoch {load_ckpt(model, optimizer, scheduler)}')
+    cfg.run_dir = p
+
+
 if __name__ == '__main__':
     # Load cmd line args
     args = parse_args()
@@ -177,10 +185,8 @@ if __name__ == '__main__':
         optimizer = create_optimizer(model.parameters(),
                                      new_optimizer_config(cfg))
         scheduler = create_scheduler(optimizer, new_scheduler_config(cfg))
-        # from torch_geometric.graphgym.checkpoint import load_ckpt, save_ckpt, \
-        #     clean_ckpt
-        #
-        # print(f'epoch {load_ckpt(model, optimizer, scheduler)}')
+
+        # load_save_model()
 
         # Print model info
         logging.info(model)
