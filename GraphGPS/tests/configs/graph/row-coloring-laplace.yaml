@@ -67,4 +67,5 @@ gnn:
 optim:
   optimizer: adam
   base_lr: 0.01
-  max_epoch: 1000
+  max_epoch: 1500
+  schedule_patience:9999
