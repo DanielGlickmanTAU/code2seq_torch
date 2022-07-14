@@ -79,7 +79,8 @@ class GPSModel(torch.nn.Module):
             raise ValueError(f"Unexpected layer type: {cfg.gt.layer_type}")
 
         layers = []
-        for i, _ in enumerate(range(cfg.gt.layers)):
+        n_gt_layers = cfg.gt.layers
+        for i, _ in enumerate(range(n_gt_layers)):
             layer_gnn_type = local_gnn_type
             layer_global_model = global_model_type
             if n_layers_gnn_only > 0:
@@ -93,23 +94,15 @@ class GPSModel(torch.nn.Module):
                     if cfg.dataset.transformer_node_encoder_name:
                         transformer_position_encoder = FeatureEncoder(dim_in, cfg.dataset.transformer_node_encoder_name,
                                                                       None, contract=True)
-                        # position_linear_proj = GNNPreMP(transformer_position_encoder.dim_in, cfg.gnn.dim_inner, 1)
                         layers.append(transformer_position_encoder)
-                        # layers.append(position_linear_proj)
 
-            layers.append(GPSLayer(
-                dim_h=cfg.gt.dim_hidden,
-                local_gnn_type=layer_gnn_type,
-                global_model_type=layer_global_model,
-                num_heads=cfg.gt.n_heads,
-                pna_degrees=cfg.gt.pna_degrees,
-                equivstable_pe=cfg.posenc_EquivStableLapPE.enable,
-                dropout=cfg.gt.dropout,
-                attn_dropout=cfg.gt.attn_dropout,
-                layer_norm=cfg.gt.layer_norm,
-                batch_norm=cfg.gt.batch_norm,
-                bigbird_cfg=cfg.gt.bigbird,
-            ))
+            gps_layer = GPSLayer(dim_h=cfg.gt.dim_hidden, local_gnn_type=layer_gnn_type,
+                                 global_model_type=layer_global_model, num_heads=cfg.gt.n_heads,
+                                 pna_degrees=cfg.gt.pna_degrees, equivstable_pe=cfg.posenc_EquivStableLapPE.enable,
+                                 dropout=cfg.gt.dropout, attn_dropout=cfg.gt.attn_dropout, layer_norm=cfg.gt.layer_norm,
+                                 batch_norm=cfg.gt.batch_norm, bigbird_cfg=cfg.gt.bigbird)
+            gps_layer.layer_index = (i, n_gt_layers)
+            layers.append(gps_layer)
         self.layers = torch.nn.Sequential(*layers)
 
         GNNHead = register.head_dict[cfg.gnn.head]
