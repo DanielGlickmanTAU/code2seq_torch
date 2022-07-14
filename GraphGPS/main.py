@@ -124,11 +124,11 @@ def cfg_assertions(cfg):
         cfg.dataset['node_encoder_name'] = cfg.dataset['node_encoder_name'].replace('+LapPE', '')
 
 
-def load_save_model(checkpoint_dir='runs'):
+def load_save_model(model, checkpoint_dir='runs'):
     from torch_geometric.graphgym.checkpoint import load_ckpt
     p = cfg.run_dir
     cfg.run_dir = checkpoint_dir
-    print(f'epoch {load_ckpt(model, optimizer, scheduler)}')
+    print(f'loaded save model from dir {checkpoint_dir} epoch {load_ckpt(model, optimizer, scheduler)}')
     cfg.run_dir = p
 
 
@@ -178,6 +178,12 @@ if __name__ == '__main__':
         # Set machine learning pipeline
         loaders = create_loader()
         loggers = create_logger()
+        import random
+
+        pp = random.randint(0, 9999)
+        import time
+
+        t = time.time()
         model = create_model()
         if cfg.train.finetune:
             model = init_model_from_pretrained(model, cfg.train.finetune,
@@ -186,8 +192,8 @@ if __name__ == '__main__':
                                      new_optimizer_config(cfg))
         scheduler = create_scheduler(optimizer, new_scheduler_config(cfg))
 
-        # load_save_model()
-
+        if cfg.load_checkpoint_from_dir:
+            load_save_model(model, checkpoint_dir=cfg.load_checkpoint_from_dir)
         # Print model info
         logging.info(model)
         logging.info(cfg)

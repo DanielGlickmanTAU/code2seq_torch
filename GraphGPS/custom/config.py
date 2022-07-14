@@ -17,6 +17,8 @@ def parse_args():
         help='mark yaml as yaml_done after a job has finished',
     )
 
+    parser.add_argument('--load_checkpoint_from_dir', type=str, default=None,
+                        help='for debugging, can specify checkpoint for model to load. e.g "--load_checkpoint_from_dir runs"')
     parser.add_argument('--max_examples', type=int, default=0,
                         help='limit to dataset size, useful for debugging.')
     parser.add_argument('--atom_set', type=int)
