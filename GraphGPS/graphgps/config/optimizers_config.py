@@ -27,5 +27,7 @@ def extended_optim_cfg(cfg):
 
     cfg.optim.early_stop_patience = 80
 
+    cfg.optim.scheduler = 'none'
+
 
 register_config('extended_optim', extended_optim_cfg)
