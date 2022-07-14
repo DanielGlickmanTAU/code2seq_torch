@@ -1250,3 +1250,14 @@ train set is 8k samples of 5 rows each. so 40k rows
 and we cover about 1 -(72959 / 72960) ^ 40000 = 0.42 of examples..
 
 and we are not taking into account in this analysis the fact that each grid is made of multiple rows
+
+
+### 14/7
+row dataset is the same everytime. no randomness
+
+
+** guide how to load saved weights **:
+1) download ckpt file e.g https://wandb.ai/daniel-ai/single-shape-coloring-rows-shapes-visualization/runs/dmtrvo2u/files/tests/results/1657732829.8918536_0/ckpt
+2) put it under dir named ckpt. e.g runs/ckpt/1499.ckpt  
+3) run main with flag --load_checkpoint_from_dir runs (where runs is the dir containins ckpt), it will load .ckpt file with highest number
+notice to use the right parameters to load model, can take that from wandb overview
