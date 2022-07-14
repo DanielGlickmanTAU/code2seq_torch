@@ -1261,3 +1261,9 @@ row dataset is the same everytime. no randomness
 2) put it under dir named ckpt. e.g runs/ckpt/1499.ckpt  
 3) run main with flag --load_checkpoint_from_dir runs (where runs is the dir containins ckpt), it will load .ckpt file with highest number
 notice to use the right parameters to load model, can take that from wandb overview
+
+
+
+eigenvalue:
+eigenvector entries assosiated with eigenvalues get differnet color:
+![](myplot_eigval0.png) ![](myplot_eigval1.png) ![](myplot_eigval2.png)
