@@ -105,13 +105,17 @@ class GPSLayer(nn.Module):
         if self.layer_norm:
             # self.norm1_local = pygnn.norm.LayerNorm(dim_h)
             # self.norm1_attn = pygnn.norm.LayerNorm(dim_h)
-            self.norm1_local = pygnn.norm.GraphNorm(dim_h)
-            self.norm1_attn = pygnn.norm.GraphNorm(dim_h)
+            if self.local_model:
+                self.norm1_local = pygnn.norm.GraphNorm(dim_h)
+            if self.self_attn:
+                self.norm1_attn = pygnn.norm.GraphNorm(dim_h)
             # self.norm1_local = pygnn.norm.InstanceNorm(dim_h)
             # self.norm1_attn = pygnn.norm.InstanceNorm(dim_h)
         if self.batch_norm:
-            self.norm1_local = nn.BatchNorm1d(dim_h)
-            self.norm1_attn = nn.BatchNorm1d(dim_h)
+            if self.local_model:
+                self.norm1_local = nn.BatchNorm1d(dim_h)
+            if self.self_attn:
+                self.norm1_attn = nn.BatchNorm1d(dim_h)
         self.dropout_local = nn.Dropout(dropout)
         self.dropout_attn = nn.Dropout(dropout)
 
