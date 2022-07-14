@@ -1,8 +1,11 @@
 import collections
 
-import visualization
-from exp_utils import get_global_exp
+# import visualization
+from examples.graphproppred.mol import visualization
+# from exp_utils import get_global_exp
 import torch
+
+from examples.graphproppred.mol.exp_utils import get_global_exp
 from ogb.graphproppred.evaluate import accuracy_coloring
 
 
