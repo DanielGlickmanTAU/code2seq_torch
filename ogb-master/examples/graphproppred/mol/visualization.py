@@ -101,6 +101,24 @@ def show_matrix(stacks, cmap=None, text=None):
     plt.show()
 
 
+def draw_attention(graph, source_node, attention_matrix):
+    nx_id_to_tensor_index = {x: i for i, x in enumerate(graph.nodes())}
+    tensor_id_to_nx_index = {i: x for i, x in enumerate(graph.nodes())}
+    assert attention_matrix.dim() == 2 and attention_matrix.shape[0] == attention_matrix.shape[1]
+
+    source_node_tensor_index = nx_id_to_tensor_index[source_node]
+    source_node_attention_scores = attention_matrix[source_node_tensor_index]
+    source_node_attention_scores_nx_indexed = {tensor_id_to_nx_index[i]: score.item() for i, score in
+                                               enumerate(source_node_attention_scores)
+                                               #this if ignores padding nodes
+                                               if i in tensor_id_to_nx_index}
+    heatmap = [source_node_attention_scores_nx_indexed[n] for n in graph.nodes]
+    nx.draw(graph, graph.positions, node_color=heatmap, with_labels=True,cmap=plt.cm.Reds)
+    nx.draw(graph.subgraph(source_node), graph.positions, node_color=[heatmap[source_node_tensor_index]],
+            with_labels=True, font_color='red',cmap=plt.cm.Reds)
+    plt.show()
+
+
 def get_edges(graph: torch_geometric.data.Data):
     labels_to_edges = {}
     for label in graph.y.unique():
