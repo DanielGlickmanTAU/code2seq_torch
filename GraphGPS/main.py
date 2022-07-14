@@ -128,7 +128,8 @@ def load_save_model(model, checkpoint_dir='runs'):
     from torch_geometric.graphgym.checkpoint import load_ckpt
     p = cfg.run_dir
     cfg.run_dir = checkpoint_dir
-    print(f'loaded save model from dir {checkpoint_dir} epoch {load_ckpt(model, optimizer, scheduler)}')
+    ckpt = load_ckpt(model, optimizer, scheduler)
+    print(f'loaded save model from dir {checkpoint_dir} epoch {ckpt}')
     cfg.run_dir = p
 
 
