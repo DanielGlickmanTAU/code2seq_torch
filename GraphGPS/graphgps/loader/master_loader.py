@@ -57,7 +57,7 @@ def log_loaded_dataset(dataset, format, name):
             logging.info(f"  num classes: {dataset.num_classes}")
             try:
                 logging.info(
-                    f'class distribution: {torch.stack([x[0] for x in zip(dataset.data.y.unique(return_counts=True))])}')
+                    f'class distribution(first 5k only): {torch.stack([x[0] for x in zip(dataset.data.y[:5000].unique(return_counts=True))])}')
             except Exception:
                 pass
     elif hasattr(dataset.data, 'train_edge_label') or hasattr(dataset.data, 'edge_label'):
