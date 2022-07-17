@@ -67,6 +67,8 @@ gnn:
 optim:
   optimizer: adam
   base_lr: 0.01
+  #  weight_decay: 1e-5
+  weight_decay: 0.
   max_epoch: 1500
   schedule_patience: 9999
   early_stop_patience: 50
