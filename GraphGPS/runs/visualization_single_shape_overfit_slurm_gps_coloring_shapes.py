@@ -9,26 +9,33 @@ params_for_exp = {
     'dataset.only_color': [False],
     # 'wandb.project': 'coloring-rows-shapes-laplace-transformer',
     # 'wandb.project': 'coloring-rows-shapes-gps-signnet-vs-gnn-t-signet',
-    'wandb.project': 'coloring-rows-shapes-new-signet-strong-overfit',
-    'optim.base_lr': [0.0001, 0.0002, 0.0004],
+    'wandb.project': 'single-shape-coloring-rows-shapes-visualization-no-decay',
+    'optim.early_stop_patience': 9999,
+    'optim.base_lr': [0.00010, 0.0002, 0.0004],
+    'train.eval_period': 50,
+    'gt.attn_dropout': 0.,
+    'gt.layers': [11],
+    'gt.n_heads': 1
 
 }
 params = {
     '--cfg': 'tests/configs/graph/row-coloring-laplace.yaml',
     '--atom_set': 9,
     '--words_per_row': 3,
-    '--num_rows': 5
+    '--num_rows': 5,
+    '--num_unique_atoms': 1,
+    '--num_unique_colors': 4
 }
 
 params_for_grid_search = [
     # baseline_config.get_gps_laplace_transformer_config(),
-    # baseline_config.get_RWSE_GNN_config(),
+    baseline_config.get_RWSE_GNN_config(layers=15),
     # baseline_config.get_gps_signnet_deepset_config(),
-    # # baseline_config.get_gnn_transformer_laplace_transformer_config(),
+    # baseline_config.get_gnn_transformer_laplace_transformer_config(),
     # baseline_config.get_gnn_transformer_signnet_deepset_config(),
     # baseline_config.get_RSWE_gnn_transformer_signnet_deepset_config(),
-    # baseline_config.get_RSWE_gnn_transformer_signnet_AFTERGNN_deepset_config(),
     baseline_config.get_STRONG_RSWE_gnn_transformer_signnet_AFTERGNN_deepset_config(),
+
 ]
 
 for p in params_for_grid_search:

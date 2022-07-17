@@ -1,34 +1,30 @@
 import time
 
 import GraphGPS.runs.gps_baselines_config as baseline_config
+from GraphGPS.runs.gps_molpcba_config import get_hiroshima_config_molpcba
 from code2seq.utils.gridsearch import gridsearch, ListArgument
 from code2seq.utils.slurm import run_on_slurm
 import os
 
 params_for_exp = {
-    'dataset.only_color': [False],
-    # 'wandb.project': 'coloring-rows-shapes-laplace-transformer',
-    # 'wandb.project': 'coloring-rows-shapes-gps-signnet-vs-gnn-t-signet',
-    'wandb.project': 'coloring-rows-shapes-new-signet-strong-overfit',
-    'optim.base_lr': [0.0001, 0.0002, 0.0004],
-
+    'wandb.project': 'molpcba-real',
+    'optim.base_lr': [0.00035, 0.00055, 0.00065],
+    'train.batch_size': 128,
+    'optim.batch_accumulation': 4
 }
 params = {
-    '--cfg': 'tests/configs/graph/row-coloring-laplace.yaml',
-    '--atom_set': 9,
-    '--words_per_row': 3,
-    '--num_rows': 5
+    '--cfg': 'configs/GPS/ogbg-molpcba-GPS+RWSE.yaml',
 }
 
 params_for_grid_search = [
     # baseline_config.get_gps_laplace_transformer_config(),
-    # baseline_config.get_RWSE_GNN_config(),
+    # baseline_config.get_RWSE_GNN_config(layers=15),
     # baseline_config.get_gps_signnet_deepset_config(),
-    # # baseline_config.get_gnn_transformer_laplace_transformer_config(),
+    # baseline_config.get_gnn_transformer_laplace_transformer_config(),
     # baseline_config.get_gnn_transformer_signnet_deepset_config(),
     # baseline_config.get_RSWE_gnn_transformer_signnet_deepset_config(),
-    # baseline_config.get_RSWE_gnn_transformer_signnet_AFTERGNN_deepset_config(),
-    baseline_config.get_STRONG_RSWE_gnn_transformer_signnet_AFTERGNN_deepset_config(),
+    # baseline_config.get_STRONG_RSWE_gnn_transformer_signnet_AFTERGNN_deepset_config(),
+    get_hiroshima_config_molpcba()
 ]
 
 for p in params_for_grid_search:
