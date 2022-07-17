@@ -264,6 +264,12 @@ class SignNetNodeEncoder(torch.nn.Module):
         # SignNet
         pos_enc = self.sign_inv_net(pos_enc, batch.edge_index, batch.batch)  # (Num nodes) x (pos_enc_dim)
 
+        #visualization.draw_pyramid(batch[0],batch[0].eigvecs_sn)
+        # visualization.draw(batch[2].graph,color_tensor = batch[2].eigvecs_sn.sum(dim=-1),positions=batch[2].graph.positions)
+
+        #draw with respect to first eigenvalue
+        #visualization.draw(batch[2].graph,color_tensor = batch[2].eigvecs_sn[:,0],positions=batch[2].graph.positions)
+
         # Expand node features if needed
         if self.expand_x:
             h = self.linear_x(batch.x)
