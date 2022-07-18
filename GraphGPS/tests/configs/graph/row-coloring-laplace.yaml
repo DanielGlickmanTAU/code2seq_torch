@@ -47,7 +47,7 @@ gt:
   n_heads: 4
   dim_hidden: 300  # `gt.dim_hidden` must match `gnn.dim_inner`
   dropout: 0.2
-  attn_dropout: 0.5
+  attn_dropout: 0.2
   layer_norm: False
   batch_norm: True
 
@@ -66,9 +66,10 @@ gnn:
   normalize_adj: False
 optim:
   optimizer: adam
-  base_lr: 0.01
+  base_lr: 0.0003
   #  weight_decay: 1e-5
   weight_decay: 0.
+  num_warmup_epochs: 0
   max_epoch: 1500
   schedule_patience: 9999
   early_stop_patience: 50
