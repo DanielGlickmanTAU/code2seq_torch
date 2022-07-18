@@ -1264,6 +1264,34 @@ notice to use the right parameters to load model, can take that from wandb overv
 
 
 
-eigenvalue:
+eigenvalues are same for all nodes in the graph.
 eigenvector entries assosiated with eigenvalues get differnet color:
 ![](myplot_eigval0.png) ![](myplot_eigval1.png) ![](myplot_eigval2.png)
+
+
+with (exact) grid graph.
+second eigenenvalue corrospondes to center
+visualization.draw(batch[2].graph,color_tensor = batch[2].eigvecs_sn[:,0],positions=batch[2].graph.positions)
+![](first_eigenvalue.png)
+
+second corrposponed to row
+![](second_eigenvalue.png)
+3ed corrosponded to cols(kind of):
+![](third_eigenvec.png)
+
+### 15/7
+analysing hisrohima attention patterns:![](myplot123.png) ![](myplot1233.png)
+nodes seem to give attention to some random node around the middle..
+some are more spread out to different nodes along the graph, but no idea why.
+--cfg tests/configs/graph/row-coloring-laplace.yaml --load_checkpoint_from_dir runs --max_examples 30 --atom_set 9 --words_per_row 3 --num_rows 5 --num_unique_atoms 1 --num_unique_colors 4 optim.base_lr 0.0001 gt.layers 11 gt.n_layers_gnn_only 10 posenc_LapPE.enable False posenc_LapPE.layers 0 dataset.node_encoder_name TypeDictNode+RWSE posenc_SignNet.enable True posenc_SignNet.model DeepSet posenc_SignNet.dim_pe 64 posenc_SignNet.layers 6 posenc_SignNet.post_layers 2 posenc_RWSE.enable True posenc_RWSE.kernel.times_func "range(1, 21)" posenc_RWSE.model Linear posenc_RWSE.dim_pe 24 posenc_RWSE.raw_norm_type BatchNorm dataset.transformer_node_encoder_name SignNet dataset.only_color False wandb.project single-shape-coloring-rows-shapes-visualization-no-decay optim.early_stop_patience 9999 train.eval_period 50 gt.attn_dropout 0.0 gt.n_heads 1 wandb.use False
+use weights from https://wandb.ai/daniel-ai/single-shape-coloring-rows-shapes-visualization-no-decay/runs/303brljw?workspace=user-danielglickman
+
+
+
+### 18/7
+
+Epoch 73: took 8.2s (avg 27.2s) | Best so far: epoch 34	train_loss: 0.2159 train_f1: 0.8056	val_loss: 0.2096 val_f1: 0.8215	test_loss: 0.2176 test_f1: 0.8079
+train: {'epoch': 74, 'time_epoch': 7.04847, 'eta': 21762.31868, 'eta_hours': 6.04509, 'loss': 0.21906425, 'lr': 0.01, 'params': 1425242, 'time_iter': 0.05639, 'accuracy': 0.7833, 'precision': 0.73167, 'recall': 0.89699, 'f1': 0.80594, 'auc': 0.85105}
+
+
+verfiyed attention drawing, looks good.
