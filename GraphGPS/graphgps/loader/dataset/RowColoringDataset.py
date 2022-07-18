@@ -35,7 +35,8 @@ class RowColoringDataset(InMemoryDataset):
                                           words_per_row=words_per_row,
                                           num_rows=num_rows,
                                           num_unique_atoms=cfg['num_unique_atoms'],
-                                          num_unique_colors=cfg['num_unique_colors']
+                                          num_unique_colors=cfg['num_unique_colors'],
+                                          make_prob_of_row_half=cfg.make_prob_of_row_half
                                           )
         self.data, self.slices = self.collate(ds.dataset)
         # in WOrdCombinationGraphDataset x gets values from 1 to num_colors(because of some issue with drawing the graph colors).. but here we want it to get values from 0 to num_colors-1
