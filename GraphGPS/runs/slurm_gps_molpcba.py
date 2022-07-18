@@ -6,11 +6,14 @@ from code2seq.utils.gridsearch import gridsearch, ListArgument
 from code2seq.utils.slurm import run_on_slurm
 import os
 
+batch_acc = 8
 params_for_exp = {
     'wandb.project': 'molpcba-real',
-    'optim.base_lr': [0.00035, 0.00055, 0.00065],
-    'train.batch_size': 128,
-    'optim.batch_accumulation': 4
+    'optim.base_lr': [0.0003, 0.0005, 0.0006],
+    'train.batch_size': int(512 / batch_acc),
+    'optim.batch_accumulation': batch_acc,
+    'optim.early_stop_patience': 15,
+    'optim.max_epoch': 150
 }
 params = {
     '--cfg': 'configs/GPS/ogbg-molpcba-GPS+RWSE.yaml',
