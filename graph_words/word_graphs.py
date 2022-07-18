@@ -185,7 +185,7 @@ class WordsCombinationGraphDataset(Dataset):
 
     def __init__(self, color_mode, word_graphs, num_samples, words_per_row, num_rows=None, num_colors=2, edge_p=1.,
                  only_color=False, unique_atoms_per_example=False, unique_colors_per_example=False,
-                 num_unique_atoms=2, num_unique_colors=2
+                 num_unique_atoms=2, num_unique_colors=2, make_prob_of_row_half=False
                  ):
         """
         num_unique_colors, and num unique_atoms only relevant when unique_atom_per_example and unique_color_per_example are true.. just for debugging something.
@@ -225,13 +225,23 @@ class WordsCombinationGraphDataset(Dataset):
                 selected_colors = numpy.random.choice(unique_colors, words_per_row * num_rows)
             else:
                 selected_colors = numpy.random.choice(list(range(1, num_colors + 1)), words_per_row * num_rows)
-            selected_words = [g() for g in selected_words_ctors]
+            selected_words = [g for g in selected_words_ctors]
 
+            words_in_grid = []
+            colors_in_grid = []
             # spit to rows
-            words_in_grid = [selected_words[i:i + words_per_row] for i in
-                             range(0, len(selected_words), words_per_row)]
-            colors_in_grid = [selected_colors[i:i + words_per_row] for i in
-                              range(0, len(selected_words), words_per_row)]
+            p_row_same_color = 1 / (words_per_row - 1) ** (
+                    len(set(selected_colors)) * len(set(selected_words_ctors)))
+
+            for i in range(0, len(selected_words), words_per_row):
+                force_color_all_row_same = make_prob_of_row_half and random.uniform(0, 1) <= (
+                        0.5 - p_row_same_color) / (1 - p_row_same_color)
+                graphs_chunk = selected_words[i:i + words_per_row]
+                colors_chunk = selected_colors[i:i + words_per_row]
+
+                words_in_grid.append([graphs_chunk[0]() if force_color_all_row_same else g() for g in graphs_chunk])
+                colors_in_grid.append([colors_chunk[0] if force_color_all_row_same else c for c in colors_chunk])
+
             if color_mode == 'instance' or color_mode == 'both':
                 for row, color_row in zip(words_in_grid, colors_in_grid):
                     for word_instance, chosen_color in zip(row, color_row):
@@ -251,19 +261,22 @@ class WordsCombinationGraphDataset(Dataset):
                                 word_instance.nodes[node]['x'] = 0
 
             if color_mode == 'rows':
+
                 # first color all nodes(x)
                 for row, color_row in zip(words_in_grid, colors_in_grid):
-                    for word_instance, chosen_color in zip(row, color_row):
-                        for i, node in enumerate(word_instance.nodes):
+
+                    for i, (word_instance, chosen_color) in enumerate(zip(row, color_row)):
+                        for node in word_instance.nodes:
                             word_instance.nodes[node]['shape'] = word_instance.name
                             word_instance.nodes[node]['y'] = 0
                             word_instance.nodes[node]['x'] = chosen_color
 
                 # now go by rows and see if any contain all with same shape + color
-                for i in range(len(words_in_grid[0])):
+                for i in range(num_rows):
                     atoms_in_row = words_in_grid[i]
                     self.set_color_if_all_nodes_have_same_shape(atoms_in_row, only_color)
-                    atoms_in_col = [words_in_grid[j][i] for j in range(len(words_in_grid))]
+                for j in range(words_per_row):
+                    atoms_in_col = [words_in_grid[i][j] for i in range(num_rows)]
                     self.set_color_if_all_nodes_have_same_shape(atoms_in_col, only_color)
 
             if color_mode == 'global':
