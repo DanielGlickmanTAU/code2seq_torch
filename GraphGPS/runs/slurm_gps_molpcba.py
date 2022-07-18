@@ -13,7 +13,10 @@ params_for_exp = {
     'train.batch_size': int(512 / batch_acc),
     'optim.batch_accumulation': batch_acc,
     'optim.early_stop_patience': 15,
-    'optim.max_epoch': 150
+    'optim.max_epoch': 150,
+    'seed': [1, 2, 3],
+    'dataset.transformer_node_encoder_name': ['SignNet', None]
+
 }
 params = {
     '--cfg': 'configs/GPS/ogbg-molpcba-GPS+RWSE.yaml',
