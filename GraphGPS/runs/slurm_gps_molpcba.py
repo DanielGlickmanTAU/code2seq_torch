@@ -9,7 +9,7 @@ import os
 batch_acc = 8
 params_for_exp = {
     'wandb.project': 'molpcba-real',
-    'optim.base_lr': [0.0003, 0.0005, 0.0006],
+    'optim.base_lr': [0.0003, 0.0005],
     'train.batch_size': int(512 / batch_acc),
     'optim.batch_accumulation': batch_acc,
     'optim.early_stop_patience': 15,

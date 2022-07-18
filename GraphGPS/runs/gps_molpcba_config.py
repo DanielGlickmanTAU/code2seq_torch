@@ -5,8 +5,8 @@ def get_hiroshima_config_molpcba():
 
         'posenc_SignNet.enable': True,
         'posenc_SignNet.model': 'DeepSet',
-        'posenc_SignNet.dim_pe': [16, 32, 64, 128],
-        'posenc_SignNet.layers': [3, 6],
+        'posenc_SignNet.dim_pe': [32],
+        'posenc_SignNet.layers': [3],
         'posenc_SignNet.post_layers': 2,
 
         'dataset.transformer_node_encoder_name': 'SignNet'
