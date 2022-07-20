@@ -1295,3 +1295,7 @@ train: {'epoch': 74, 'time_epoch': 7.04847, 'eta': 21762.31868, 'eta_hours': 6.0
 
 
 verfiyed attention drawing, looks good.
+
+
+moved to using only max_freq=3(was 10), in eigenvalues. looks better!!
+![](eigns1.png) ![](eigns11.png) ![](eigns111.png)

@@ -152,7 +152,7 @@ def get_STRONG_RSWE_gnn_transformer_signnet_AFTERGNN_deepset_config():
         'dataset.node_encoder_name': 'TypeDictNode+RWSE',
         'posenc_SignNet.enable': True,
         'posenc_SignNet.model': 'DeepSet',
-        'posenc_SignNet.dim_pe': [32, 64, 128],
+        'posenc_SignNet.dim_pe': [32, 64],
         'posenc_SignNet.layers': [3, 6],
         'posenc_SignNet.post_layers': 2,
 
