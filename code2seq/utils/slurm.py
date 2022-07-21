@@ -28,6 +28,7 @@ def run_on_slurm(job_name, params, no_flag_param='', slurm=True, gpu=True, sleep
     # need to for gps main stuff
     if isinstance(no_flag_param, dict):
         no_flag_param = ' '.join([f'{key} {value}' for key, value in no_flag_param.items()])
+    command = f'{python} {python_file}.py ' + ' '.join([f'--{key} {value}' for key, value in params.items()]) + ' ' + no_flag_param
     if slurm:
         slurm_script = f'''#! /bin/sh
 #SBATCH --job-name={job_name}
@@ -38,7 +39,7 @@ def run_on_slurm(job_name, params, no_flag_param='', slurm=True, gpu=True, sleep
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 #SBATCH --gpus={'1' if gpu else '0'}
-{python} {python_file}.py ''' + ' '.join([f'--{key} {value}' for key, value in params.items()]) + ' ' + no_flag_param
+{command}'''
         with open(slurm_file, 'w') as f:
             f.write(slurm_script)
 
@@ -46,8 +47,8 @@ def run_on_slurm(job_name, params, no_flag_param='', slurm=True, gpu=True, sleep
         print(f'executing {job_name} with job id {job_id}')
         open(f'./slurm_id_{job_id}_outfile_{job_name}', 'w').write(slurm_script)
     else:
-        f = f'{python} {python_file}.py ' + ' '.join([f'--{key} {value}' for key, value in params.items()])
-        os.system(f"nohup sh -c ' {f} > res.txt '&")
+
+        os.system(f"nohup sh -c ' {command} > res.txt '&")
     # os.system('chmod 700 slurm.py')
 
     if sleep:
