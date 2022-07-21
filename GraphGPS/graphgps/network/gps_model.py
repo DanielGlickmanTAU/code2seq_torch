@@ -17,9 +17,13 @@ class FeatureEncoder(torch.nn.Module):
         dim_in (int): Input feature dimension
     """
 
-    def __init__(self, dim_in, node_encoder_name=cfg.dataset.node_encoder_name,
-                 edge_encoder_name=cfg.dataset.edge_encoder_name, contract=False):
+    def __init__(self, dim_in, node_encoder_name=None,
+                 edge_encoder_name=None, contract=False):
         super(FeatureEncoder, self).__init__()
+        if node_encoder_name is None:
+            node_encoder_name = cfg.dataset.node_encoder_name
+        if edge_encoder_name is None:
+            edge_encoder_name = cfg.dataset.edge_encoder_name
         self.dim_in = dim_in
         if cfg.dataset.node_encoder:
             # Encode integer node features via nn.Embeddings
