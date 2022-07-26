@@ -3,15 +3,14 @@ from typing import Optional, Tuple
 import torch
 from torch import Tensor
 from torch.nn import Module, Parameter
-from torch.nn.functional import linear, dropout
+from torch.nn.functional import linear
 from torch.nn.init import xavier_uniform_, constant_, xavier_normal_
 from torch.nn.modules.linear import NonDynamicallyQuantizableLinear
 
-from model.positional.AttentionWeightNormalizer import AttentionWeightNormalizer
-from model.positional.positional_attention_weight import AdjStackAttentionWeights
-
-from GraphGPS.graphgps.layer.graph_attention.positional.attention import multi_head_positional_attention
+from graphgps.layer.graph_attention.positional.attention import multi_head_positional_attention
 from examples.graphproppred.mol import pygraph_utils
+from graphgps.layer.graph_attention.positional.AttentionWeightNormalizer import AttentionWeightNormalizer
+from graphgps.layer.graph_attention.positional.positional_attention_weight import AdjStackAttentionWeights
 
 
 class PositionMultiHeadAttention(Module):
@@ -19,9 +18,8 @@ class PositionMultiHeadAttention(Module):
     bias_k: Optional[torch.Tensor]
     bias_v: Optional[torch.Tensor]
 
-    def __init__(self, args, embed_dim, num_heads, num_adj_stacks, dropout=0., bias=True, add_bias_kv=False,
+    def __init__(self, embed_dim, num_heads, num_adj_stacks, dropout=0., bias=True, add_bias_kv=False,
                  kdim=None, vdim=None, batch_first=False, device=None, dtype=None) -> None:
-        self.args = args
         factory_kwargs = {'device': device, 'dtype': dtype}
         super(PositionMultiHeadAttention, self).__init__()
         self.embed_dim = embed_dim
@@ -30,7 +28,8 @@ class PositionMultiHeadAttention(Module):
         self._qkv_same_embed_dim = self.kdim == embed_dim and self.vdim == embed_dim
         assert self._qkv_same_embed_dim
 
-        self.gating: bool = args.gating
+        self.gating: bool = False
+        self.scale_positional_attention = False
         self.num_heads = num_heads
         self.dropout = dropout
         self.batch_first = batch_first
@@ -52,7 +51,7 @@ class PositionMultiHeadAttention(Module):
         else:
             self.bias_k = self.bias_v = None
 
-        self.positional_bias = AdjStackAttentionWeights(args, num_adj_stacks, num_heads)
+        self.positional_bias = AdjStackAttentionWeights(num_adj_stacks, num_heads)
         self.normalizer = AttentionWeightNormalizer(gating=self.gating)
 
         self._reset_parameters()
@@ -72,7 +71,6 @@ class PositionMultiHeadAttention(Module):
                 need_weights: bool = True, attn_mask: Optional[Tensor] = None) -> Tuple[Tensor, Optional[Tensor]]:
         if self.batch_first:
             value = value.transpose(1, 0)
-        assert self._qkv_same_embed_dim
 
         attention_weights = self.positional_bias(stacks=adj_stack, mask=attn_mask)
         b, heads, n1, n2 = attention_weights.shape
@@ -89,11 +87,9 @@ class PositionMultiHeadAttention(Module):
 
             training=self.training,
             key_padding_mask=key_padding_mask, need_weights=need_weights,
-            attn_mask=attn_mask, scale_by_sqrt_n=self.args.scale_positional_attention, normalizer=self.normalizer)
+            attn_mask=attn_mask, scale_by_sqrt_n=self.scale_positional_attention, normalizer=self.normalizer)
 
         if self.batch_first:
             return attn_output.transpose(1, 0), attn_output_weights
         else:
             return attn_output, attn_output_weights
-
-

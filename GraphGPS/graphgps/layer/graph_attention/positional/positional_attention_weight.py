@@ -5,50 +5,49 @@ from torch_geometric.data import Data
 
 # import global_config
 # from arg_parse_utils import bool_
+from torch_geometric.utils import to_dense_adj
 
 
 class AdjStackAttentionWeights(torch.nn.Module):
     _stack_dim = 1
 
-    def __init__(self, args, num_adj_stacks, num_heads, bias=True):
+    def __init__(self, num_adj_stacks, num_heads, ffn=True, ffn_hidden_multiplier=2):
         super(AdjStackAttentionWeights, self).__init__()
-        self.args = args
         self.num_adj_stacks = num_adj_stacks
         self.num_heads = num_heads
-        if self.args.use_ffn_for_attention_weights:
-            hidden_dim = num_adj_stacks * self.args.attention_weights_ffn_hidden_multiplier
+        if ffn:
+            hidden_dim = num_adj_stacks * ffn_hidden_multiplier
             self.weight = torch.nn.Sequential(
                 torch.nn.Linear(num_adj_stacks, hidden_dim),
-                torch.nn.BatchNorm1d(hidden_dim),
+                # torch_g.instance_norm.py
+                # torch.nn.BatchNorm1d(hidden_dim),
                 torch.nn.ReLU(),
-                torch.nn.Linear(hidden_dim, num_heads, bias=bias),
+                torch.nn.Linear(hidden_dim, num_heads),
             )
         else:
-            self.weight = nn.Linear(in_features=num_adj_stacks, out_features=num_heads, bias=bias)
+            self.weight = nn.Linear(in_features=num_adj_stacks, out_features=num_heads)
 
-    # stacks shape is (batch,num_adj_stacks,n,n)
+    # stacks shape is (batch,n,n,num_adj_stacks)
     # mask shape is (batch,n,n). True where should hide
     # returns (batch,num_heads,n,n)
     def forward(self, stacks: torch.Tensor, mask=None):
-        # if global_config.print_position_weights:
-        #     print(self.weight.weight, self.weight.bias)
-        b, num_stacks, n, n1, = stacks.shape
+        b, n, n1, num_stacks = stacks.shape
         assert num_stacks == self.num_adj_stacks
 
         # shape as (batch*n*n, num_stacks)
-        stacks = stacks.permute(0, 2, 3, 1).reshape(-1, self.num_adj_stacks)
+        # stacks = stacks.permute(0, 2, 3, 1).reshape(-1, self.num_adj_stacks)
+        # real_nodes_edge_mask = self._create_real_edges_mask(b, mask, n, stacks)
+        # adj_weights = self.weight(stacks[real_nodes_edge_mask])
 
-        real_nodes_edge_mask = self._create_real_edges_mask(b, mask, n, stacks)
+        adj_weights = self.weight(stacks)
+        # assert adj_weights.shape[-1] == self.num_heads
 
-        adj_weights = self.weight(stacks[real_nodes_edge_mask])
-        assert adj_weights.shape[-1] == self.num_heads
-
-        new_adj = torch.zeros((b * n * n, self.num_heads), device=stacks.device)
-
-        new_adj[real_nodes_edge_mask] = adj_weights
-        # back to (batch,num_heads,n,n)
-        new_adj = new_adj.view(b, n, n, self.num_heads).permute(0, 3, 1, 2)
-        return new_adj
+        return adj_weights
+        # new_adj = torch.zeros((b * n * n, self.num_heads), device=stacks.device)
+        # new_adj[real_nodes_edge_mask] = adj_weights
+        # # back to (batch,num_heads,n,n)
+        # new_adj = new_adj.view(b, n, n, self.num_heads).permute(0, 3, 1, 2)
+        # return new_adj
 
     def _create_real_edges_mask(self, b, mask, n, stacks):
         # if not global_config.mask_far_away_nodes:
@@ -66,82 +65,43 @@ def compute_diag(A: torch.Tensor):
     return torch.diag_embed(degrees)
 
 
-def to_P_matrix(A: torch.Tensor):
-    D = A.sum(dim=-1, keepdim=True)
-    # if all entries are zero, we want to avoid dividing by zero.
-    # set it to any number, as the entries in A are 0 anyway so A/D will be 0
-    D[D == 0] = 1
-    return A / D
+class AdjStack(torch.nn.Module):
 
+    def __init__(self, steps: list):
+        super().__init__()
+        self.steps = steps
+        assert len(self.steps) == len(set(self.steps)), f'duplicate power in {self.steps}'
 
-class AdjStack(torch_geometric.transforms.BaseTransform):
-    @staticmethod
-    def add_args(parser):
-        parser.add_argument('--adj_stacks', nargs='+', type=int, default=[0, 1, 2, 3, 4],
-                            help='list of powers to raise and stack the adj matrix.')
-        parser.add_argument('--use_distance_bias', type=str, default=False)
-        parser.add_argument('--normalize', type=bool_, default=True, help='for debugging')
+    def forward(self, batch, mask):
+        # to_dense_adj(batch.edge_index,batch.batch,batch.edge_attr)
+        adj = to_dense_adj(batch.edge_index, batch.batch)
+        adj = self.to_P_matrix(adj)
 
-    def __init__(self, args):
-        self.adj_stacks = args.adj_stacks
-        self.use_distance_bias = args.use_distance_bias
-        self.normalize = args.normalize
-        assert len(self.adj_stacks) == len(set(self.adj_stacks)), f'duplicate power in {self.adj_stacks}'
+        powers = self._calc_power(adj, self.steps)
 
-    def __call__(self, data: Data):
-        edge_index = data.edge_index
-        # N = data.x.size(0)
-        N = data.num_nodes
-        # (row, col) = data.edge_index
-        adj = torch.full([N, N], 0)
-        adj[edge_index[0, :], edge_index[1, :]] = 1
-        adj.fill_diagonal_(0)
+        self_adj = torch.diag_embed((mask).float())
+        powers.insert(0, self_adj)
+        stacks = torch.stack(powers, dim=-1)
+        return stacks
 
-        if self.normalize:
-            adj = to_P_matrix(adj)
-        adj_stack = torch.stack([torch.matrix_power(adj, exp) for exp in self.adj_stacks])
-        if self.use_distance_bias:
-            adj_stack = self._turn_shortest_distance_one_hot(adj_stack, N)
+    def to_P_matrix(self, A: torch.Tensor):
+        D = A.sum(dim=-1, keepdim=True)
+        # if all entries are zero, we want to avoid dividing by zero.
+        # set it to any number, as the entries in A are 0 anyway so A/D will be 0
+        D[D == 0] = 1
+        return A / D
 
-        # need this for now
-        adj_stack = adj_stack.numpy()
-
-        data.adj_stack = adj_stack
-
-        return data
-
-    def _turn_shortest_distance_one_hot(self, adj_stack, N):
-        # first dim is distance
-        # second dim is source node
-        # 3ed dim is target node
-        # we want the same output format: (distance,source,target)
-        # but rather than first dim being a vector of probabilities
-        # i.e adj_stack[d,a,b] is prob of getting from a to b in d steps,
-        # we want it to be 1 iff d is shortest distance between a and b
-        num_stacks = len(self.adj_stacks)
-        flatten_adjstack_with_distance_dim_last = adj_stack.permute(1, 2, 0).view(-1, num_stacks)
-        for distance_tensor in flatten_adjstack_with_distance_dim_last:
-            # mutate with for loop
-            non_zero_entry_visited = False
-            for i in range(len(distance_tensor)):
-                if non_zero_entry_visited:
-                    distance_tensor[i] = 0.
-                elif distance_tensor[i] > 0.:
-                    non_zero_entry_visited = True
-                    distance_tensor[i] = 1.
-        # back to original shape
-        return flatten_adjstack_with_distance_dim_last.view(N, N, num_stacks).permute(2, 0, 1)
-
-
-def count_paths_cycles(A: torch.Tensor, p):
-    D = torch.zeros_like(A)
-    C1 = A.clone()
-    Cq = C1
-    for q in range(p):
-        C1Cq, CqC1 = C1 @ Cq, Cq @ C1
-
-        D = torch.diag_embed(C1Cq.diagonal())
-        # I think should be here something like  Cq = C1cQ and reduce previous cq
-        Cq = C1Cq + CqC1
-        Cq.fill_diagonal_(0)
-    return Cq, D
+    def _calc_power(self, adj, steps):
+        powers = []
+        if steps == list(range(min(steps), max(steps) + 1)):
+            # Efficient way if ksteps are a consecutive sequence (most of the time the case)
+            Pk = adj.clone().detach().matrix_power(min(steps))
+            powers.append(Pk)
+            for k in range(min(steps), max(steps)):
+                Pk = Pk @ adj
+                powers.append(Pk)
+        else:
+            for k in steps:
+                Pk = torch.diagonal(adj.matrix_power(k), dim1=-2, dim2=-1)
+                powers.append(Pk)
+        return powers

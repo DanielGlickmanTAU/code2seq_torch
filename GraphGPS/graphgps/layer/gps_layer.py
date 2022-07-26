@@ -13,6 +13,8 @@ from graphgps.layer.gine_conv_layer import GINEConvESLapPE
 from graphgps.layer.bigbird_layer import SingleBigBirdLayer
 
 from graphgps.layer.graph_attention.ContentMultiHeadAttention import ContentMultiheadAttention
+from graphgps.layer.graph_attention.positional import nagasaki
+from graphgps.layer.graph_attention.positional.nagasaki import Nagasaki
 
 
 class GPSLayer(nn.Module):
@@ -80,14 +82,16 @@ class GPSLayer(nn.Module):
         if global_model_type == 'None' or global_model_type is None:
             self.self_attn = None
         elif global_model_type == 'Transformer':
-            self.self_attn = torch.nn.MultiheadAttention(
-                dim_h, num_heads, dropout=self.attn_dropout, batch_first=True)
+            # self.self_attn = torch.nn.MultiheadAttention(
+            #     dim_h, num_heads, dropout=self.attn_dropout, batch_first=True)
             # self.global_model = torch.nn.TransformerEncoderLayer(
             #     d_model=dim_h, nhead=num_heads,
             #     dim_feedforward=2048, dropout=0.1, activation=F.relu,
             #     layer_norm_eps=1e-5, batch_first=True)
             # here put num_adj_stacks etc
-            self.off_attn = ContentMultiheadAttention(dim_h, num_heads, dropout, batch_first=True)
+            self.self_attn = ContentMultiheadAttention(dim_h, num_heads, dropout, batch_first=True)
+        elif global_model_type == 'Nagasaki':
+            self.self_attn = Nagasaki(dim_h, num_heads, dropout)
         elif global_model_type == 'Performer':
             self.self_attn = SelfAttention(
                 dim=dim_h, heads=num_heads,
@@ -177,10 +181,12 @@ class GPSLayer(nn.Module):
             h_dense, mask = to_dense_batch(h, batch.batch)
             if self.global_model_type == 'Transformer':
                 # h_attn, att_weights = self._sa_block(h_dense, None, ~mask)
-                h_attn, att_weights = self.off_attn(h_dense, h_dense, h_dense, attn_mask=~mask, key_padding_mask=None)
+                h_attn, att_weights = self.self_attn(h_dense, h_dense, h_dense, attn_mask=~mask, key_padding_mask=None)
+                h_attn = h_attn[mask]
+            elif self.global_model_type == 'Nagasaki':
+                h_attn, att_weights = self.self_attn(batch, h_dense, mask)
                 h_attn = h_attn[mask]
 
-                # pygraph_utils.reshape_attention_mask_to_multihead(attn_mask, self.num_heads)
             elif self.global_model_type == 'Performer':
                 h_attn = self.self_attn(h_dense, mask=mask)[mask]
             elif self.global_model_type == 'BigBird':
