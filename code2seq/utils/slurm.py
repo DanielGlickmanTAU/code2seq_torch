@@ -46,16 +46,19 @@ def run_on_slurm(job_name, params, no_flag_param='', slurm=True, gpu=True, sleep
         job_id = os.popen(f'sbatch {slurm_file}').read()[-6:].strip()
         print(f'executing {job_name} with job id {job_id}')
         open(f'./slurm_id_{job_id}_outfile_{job_name}', 'w').write(slurm_script)
+
+        if sleep:
+            if isinstance(sleep, int):
+                time.sleep(random.randint(0, sleep))
+            else:
+                time.sleep(random.randint(0, 15))
+        else:
+            time.sleep(1)
+        return job_id
+
     else:
 
         os.system(f"nohup sh -c ' {command} > res.txt '&")
     # os.system('chmod 700 slurm.py')
 
-    if sleep:
-        if isinstance(sleep, int):
-            time.sleep(random.randint(0, sleep))
-        else:
-            time.sleep(random.randint(0, 15))
-    else:
-        time.sleep(1)
-    return job_id
+
