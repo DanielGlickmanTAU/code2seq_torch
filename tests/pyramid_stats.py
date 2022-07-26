@@ -4,14 +4,13 @@ import tabulate
 
 import coloring.graph_generation
 from code2seq.utils import compute
+from examples.graphproppred.mol.model.positional.positional_attention_weight import AdjStack
 
 torch = compute.get_torch()
 import argparse
 
 import torch_geometric
 
-from model.positional.positional_attention_weight import AdjStack, AdjStackAttentionWeights
-from tests import examples, test_utils
 import networkx as nx
 import matplotlib.pyplot as plt
 import pandas

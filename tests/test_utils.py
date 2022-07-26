@@ -6,7 +6,7 @@ from torch.nn import Sequential
 from torch_geometric.data import Dataset, Data
 from torch_geometric.loader import DataLoader
 
-from gnn import GNN
+from examples.graphproppred.mol.gnn import GNN
 
 
 def as_pyg_batch(dataset: Union[Dataset, List[Data]], batch_size=32):
