@@ -50,6 +50,8 @@ gt:
   layer_norm: False
   batch_norm: True
 
+nagasaki:
+  steps: range(1,17)
 
 gnn:
   head: inductive_node

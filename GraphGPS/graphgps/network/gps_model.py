@@ -104,7 +104,8 @@ class GPSModel(torch.nn.Module):
                                  global_model_type=layer_global_model, num_heads=cfg.gt.n_heads,
                                  pna_degrees=cfg.gt.pna_degrees, equivstable_pe=cfg.posenc_EquivStableLapPE.enable,
                                  dropout=cfg.gt.dropout, attn_dropout=cfg.gt.attn_dropout, layer_norm=cfg.gt.layer_norm,
-                                 batch_norm=cfg.gt.batch_norm, bigbird_cfg=cfg.gt.bigbird)
+                                 batch_norm=cfg.gt.batch_norm, bigbird_cfg=cfg.gt.bigbird,
+                                 nagasaki_steps=cfg.nagasaki.steps)
             gps_layer.layer_index = (i, n_gt_layers)
             layers.append(gps_layer)
         self.layers = torch.nn.Sequential(*layers)
