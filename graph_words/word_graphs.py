@@ -232,6 +232,9 @@ class WordsCombinationGraphDataset(Dataset):
             # spit to rows
             n_atom_options = len(set(selected_colors)) * len(set(selected_words_ctors))
             p_row_same_color = (1 / n_atom_options) ** (words_per_row - 1)
+            ## (p + (1-p)/n_atom_options) ** (words_per_row -1) == 0.5
+            # p_make_like_previous = 0.5 ** (1 / (words_per_row - 1)) - 1 / n_atom_options
+            p_make_like_previous = ((0.5 ** (1 / (words_per_row - 1))) * n_atom_options - 1) / (n_atom_options -1 )
 
             for i in range(0, len(selected_words), words_per_row):
                 force_color_all_row_same = make_prob_of_row_half and random.uniform(0, 1) <= (
@@ -239,9 +242,16 @@ class WordsCombinationGraphDataset(Dataset):
                 graphs_chunk = selected_words[i:i + words_per_row]
                 colors_chunk = selected_colors[i:i + words_per_row]
 
+                for j in range(1, len(graphs_chunk)):
+                    if random.uniform(0, 1) <= p_make_like_previous:
+                        graphs_chunk[j] = graphs_chunk[j - 1]
+                        colors_chunk[j] = colors_chunk[j - 1]
 
-                words_in_grid.append([graphs_chunk[0]() if force_color_all_row_same else g() for g in graphs_chunk])
-                colors_in_grid.append([colors_chunk[0] if force_color_all_row_same else c for c in colors_chunk])
+                # words_in_grid.append([graphs_chunk[0]() if force_color_all_row_same else g() for g in graphs_chunk])
+                # colors_in_grid.append([colors_chunk[0] if force_color_all_row_same else c for c in colors_chunk])
+
+                words_in_grid.append([g() for g in graphs_chunk])
+                colors_in_grid.append([c for c in colors_chunk])
 
             if color_mode == 'instance' or color_mode == 'both':
                 for row, color_row in zip(words_in_grid, colors_in_grid):
