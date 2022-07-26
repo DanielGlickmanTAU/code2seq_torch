@@ -179,13 +179,9 @@ if __name__ == '__main__':
         # Set machine learning pipeline
         loaders = create_loader()
         loggers = create_logger()
-        import random
 
-        pp = random.randint(0, 9999)
-        import time
-
-        t = time.time()
         model = create_model()
+
         if cfg.train.finetune:
             model = init_model_from_pretrained(model, cfg.train.finetune,
                                                cfg.train.freeze_pretrained)
