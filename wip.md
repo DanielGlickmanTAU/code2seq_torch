@@ -1299,3 +1299,18 @@ verfiyed attention drawing, looks good.
 
 moved to using only max_freq=3(was 10), in eigenvalues. looks better!!
 ![](eigns1.png) ![](eigns11.png) ![](eigns111.png)
+
+
+
+### 24/7
+
+signets: what it does with eigenvalues:
+decomposition: looks like it just breaks it to eigenvalues and eigenvectors.
+there are n eigenvectors, each node is associated with one
+then taking the  max_freq SMALLEST eigenVECTORS(by eigenvalue),
+normalize, and pass through signnet
+
+
+
+### 25/7
+test_grid_edges.py shows distribution of edges on grid
