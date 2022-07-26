@@ -25,7 +25,7 @@ class GPSLayer(nn.Module):
                  local_gnn_type, global_model_type, num_heads,
                  pna_degrees=None, equivstable_pe=False, dropout=0.0,
                  attn_dropout=0.0, layer_norm=False, batch_norm=True,
-                 bigbird_cfg=None, nagasaki_steps=None):
+                 bigbird_cfg=None, nagasaki_config=None):
         super().__init__()
 
         self.dim_h = dim_h
@@ -91,7 +91,7 @@ class GPSLayer(nn.Module):
             # here put num_adj_stacks etc
             self.self_attn = ContentMultiheadAttention(dim_h, num_heads, dropout, batch_first=True)
         elif global_model_type == 'Nagasaki':
-            self.self_attn = Nagasaki(dim_h, num_heads, dropout, nagasaki_steps)
+            self.self_attn = Nagasaki(dim_h, num_heads, dropout, nagasaki_config)
         elif global_model_type == 'Performer':
             self.self_attn = SelfAttention(
                 dim=dim_h, heads=num_heads,
