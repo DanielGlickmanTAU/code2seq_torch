@@ -28,7 +28,8 @@ def run_on_slurm(job_name, params, no_flag_param='', slurm=True, gpu=True, sleep
     # need to for gps main stuff
     if isinstance(no_flag_param, dict):
         no_flag_param = ' '.join([f'{key} {value}' for key, value in no_flag_param.items()])
-    command = f'{python} {python_file}.py ' + ' '.join([f'--{key} {value}' for key, value in params.items()]) + ' ' + no_flag_param
+    command = f'{python} {python_file}.py ' + ' '.join(
+        [f'--{key} {value}' for key, value in params.items()]) + ' ' + no_flag_param
     if slurm:
         slurm_script = f'''#! /bin/sh
 #SBATCH --job-name={job_name}
@@ -58,7 +59,5 @@ def run_on_slurm(job_name, params, no_flag_param='', slurm=True, gpu=True, sleep
 
     else:
 
-        os.system(f"nohup sh -c ' {command} > res.txt '&")
+        os.system(f"nohup sh -c ' {command} > res_{time.time()}.txt '&")
     # os.system('chmod 700 slurm.py')
-
-
