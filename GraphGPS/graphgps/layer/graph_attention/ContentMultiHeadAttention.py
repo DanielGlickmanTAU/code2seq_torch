@@ -104,7 +104,6 @@ class ContentMultiheadAttention(torch.nn.Module):
             q, k, v = _in_projection_packed(query, key, value, self.in_proj_weight, self.in_proj_bias)
             q = q.contiguous().view(tgt_len, bsz * self.num_heads, head_dim).transpose(0, 1)
             k = k.contiguous().view(k.shape[0], bsz * self.num_heads, head_dim).transpose(0, 1)
-            # v = v.contiguous().view(v.shape[0], bsz * self.num_heads, head_dim).transpose(0, 1)
 
             B, Nt, E = q.shape
             if self.gating:
@@ -119,7 +118,6 @@ class ContentMultiheadAttention(torch.nn.Module):
                 attn = attn + self._positional_bias_f(adj_stack)
 
             attn_mask = pygraph_utils.reshape_attention_mask_to_multihead(attn_mask, self.num_heads)
-
             attn_output, attn_output_weights = multi_head_positional_attention(
                 v, attn, self.embed_dim, self.num_heads,
                 self.bias_k, self.bias_v,
