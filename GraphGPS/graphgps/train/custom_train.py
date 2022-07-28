@@ -15,6 +15,20 @@ from GraphGPS.custom.info import get_wandb
 from code2seq.utils.StoppingCritertion import StoppingCriterion
 from graphgps.loss.subtoken_prediction_loss import subtoken_cross_entropy
 from graphgps.utils import cfg_to_dict, flatten_dict, make_wandb_name
+from torch.profiler import profile, record_function, ProfilerActivity
+
+
+def _profile(model, batch):
+    if not cfg.profiler:
+        return model(batch)
+
+    with profile(activities=[
+        ProfilerActivity.CPU, ProfilerActivity.CUDA], record_shapes=True, profile_memory=True, with_stack=True) as prof:
+        with record_function("model_inference"):
+            ret = model(batch)
+    print(prof.key_averages().table(sort_by="cuda_time_total", row_limit=10))
+    # prof.export_chrome_trace("trace.json")
+    return ret
 
 
 def train_epoch(logger, loader, model, optimizer, scheduler, batch_accumulation):
@@ -27,7 +41,7 @@ def train_epoch(logger, loader, model, optimizer, scheduler, batch_accumulation)
         # before model call because it changes it in place-_-
         # from examples.graphproppred.mol import visualization
         # visualization.draw_pyramid(batch[1],'x')
-        pred, true = model(batch)
+        pred, true = _profile(model, batch)
         if cfg.dataset.name == 'ogbg-code2':
             loss, pred_score = subtoken_cross_entropy(pred, true)
             _true = true
