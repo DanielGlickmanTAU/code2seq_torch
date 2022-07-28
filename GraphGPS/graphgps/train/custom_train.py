@@ -199,6 +199,10 @@ def custom_train(loggers, loaders, model, optimizer, scheduler):
                 f"val_loss: {perf[1][best_epoch]['loss']:.4f} {best_val}\t"
                 f"test_loss: {perf[2][best_epoch]['loss']:.4f} {best_test}"
             )
+
+            if (1 + cur_epoch) % 50 == 0 and cfg.wandb.use:
+                upload_model_to_wandb(cur_epoch, run)
+
             if hasattr(model, 'trf_layers'):
                 # Log SAN's gamma parameter values if they are trainable.
                 for li, gtl in enumerate(model.trf_layers):
@@ -208,14 +212,7 @@ def custom_train(loggers, loaders, model, optimizer, scheduler):
                                      f"gamma={gtl.attention.gamma.item()}")
     logging.info(f"Avg time per epoch: {np.mean(full_epoch_times):.2f}s")
     logging.info(f"Total train loop time: {np.sum(full_epoch_times) / 3600:.2f}h")
-    try:
-        res = run.save('{}/{}.ckpt'.format(get_ckpt_dir(), cur_epoch), policy='now')
-        if res:
-            logging.info(f'uploaded last checkpoint to wandb {res}')
-        else:
-            logging.warning('did not find what to upload')
-    except Exception as e:
-        logging.warning(f'fail uploading checkpoint to wandb: {e}')
+    upload_model_to_wandb(cur_epoch, run)
     for logger in loggers:
         logger.close()
     if cfg.train.ckpt_clean:
@@ -226,6 +223,17 @@ def custom_train(loggers, loaders, model, optimizer, scheduler):
         run = None
 
     logging.info('Task done, results saved in {}'.format(cfg.run_dir))
+
+
+def upload_model_to_wandb(cur_epoch, run):
+    try:
+        res = run.save('{}/{}.ckpt'.format(get_ckpt_dir(), cur_epoch), policy='now')
+        if res:
+            logging.info(f'uploaded last checkpoint to wandb {res}')
+        else:
+            logging.warning('did not find what to upload')
+    except Exception as e:
+        logging.warning(f'fail uploading checkpoint to wandb: {e}')
 
 
 register_train('custom', custom_train)
