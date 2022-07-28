@@ -213,7 +213,7 @@ class WordsCombinationGraphDataset(Dataset):
         else:
             raise Exception(f'unsupported color mode {color_mode}')
 
-        for i in range(num_samples):
+        for _ in range(num_samples):
             if unique_atoms_per_example:
                 unique_atoms = numpy.random.choice(word_graphs, num_unique_atoms, replace=False)
                 selected_words_ctors = numpy.random.choice(unique_atoms, words_per_row * num_rows)
@@ -234,7 +234,7 @@ class WordsCombinationGraphDataset(Dataset):
             p_row_same_color = (1 / n_atom_options) ** (words_per_row - 1)
             ## (p + (1-p)/n_atom_options) ** (words_per_row -1) == 0.5
             # p_make_like_previous = 0.5 ** (1 / (words_per_row - 1)) - 1 / n_atom_options
-            p_make_like_previous = ((0.5 ** (1 / (words_per_row - 1))) * n_atom_options - 1) / (n_atom_options -1 )
+            p_make_like_previous = ((0.5 ** (1 / (words_per_row - 1))) * n_atom_options - 1) / (n_atom_options - 1)
 
             for i in range(0, len(selected_words), words_per_row):
                 force_color_all_row_same = make_prob_of_row_half and random.uniform(0, 1) <= (
@@ -243,7 +243,7 @@ class WordsCombinationGraphDataset(Dataset):
                 colors_chunk = selected_colors[i:i + words_per_row]
 
                 for j in range(1, len(graphs_chunk)):
-                    if random.uniform(0, 1) <= p_make_like_previous:
+                    if random.uniform(0, 1) <= p_make_like_previous and make_prob_of_row_half:
                         graphs_chunk[j] = graphs_chunk[j - 1]
                         colors_chunk[j] = colors_chunk[j - 1]
 
