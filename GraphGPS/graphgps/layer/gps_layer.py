@@ -197,7 +197,6 @@ class GPSLayer(nn.Module):
             # index_in_batch = 0
             # node_id = 1
             # visualization.draw_attention(batch[index_in_batch].graph, node_id, att_weights[index_in_batch])
-            # visualization.show_matrix(att_weights[3].cpu())
             h_attn = self.dropout_attn(h_attn)
             h_attn = h_in1 + h_attn  # Residual connection.
             if self.layer_norm:
