@@ -1,9 +1,7 @@
 import torch
-from torch import nn
-from torch_geometric.utils import to_dense_adj, to_dense_batch
 
 from graphgps.layer.graph_attention.positional.PositionMultiHeadAttention import PositionMultiHeadAttention
-from graphgps.layer.graph_attention.positional.positional_attention_weight import AdjStack, AdjStackAttentionWeights
+from graphgps.layer.graph_attention.positional.positional_attention_weight import AdjStack
 
 
 class Nagasaki(torch.nn.Module):
@@ -15,8 +13,9 @@ class Nagasaki(torch.nn.Module):
         self.adj_stacker = AdjStack(steps)
         # edge_reducer = AdjStackAttentionWeights(num_adj_stacks=len(steps), num_heads=n_heads, ffn=True)
         self.att = PositionMultiHeadAttention(dim_h, num_heads, num_adj_stacks=len(steps) + 1, dropout=dropout,
-                                              batch_first=True, ffn=nagasaki_config.ffn,
-                                              ffn_hidden_multiplier=nagasaki_config.ffn_hidden_multiplier)
+                                              batch_first=True, ffn=nagasaki_config.edge_model_type,
+                                              ffn_hidden_multiplier=nagasaki_config.ffn_hidden_multiplier,
+                                              ffn_layers=nagasaki_config.ffn_layers)
 
     def forward(self, batch, h, mask):
         # h_dense, mask = to_dense_batch(h, batch.batch)

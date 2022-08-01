@@ -20,7 +20,7 @@ class PositionMultiHeadAttention(Module):
 
     def __init__(self, embed_dim, num_heads, num_adj_stacks, dropout=0., bias=True, add_bias_kv=False,
                  kdim=None, vdim=None, batch_first=False, device=None, dtype=None, ffn=True,
-                 ffn_hidden_multiplier=2) -> None:
+                 ffn_hidden_multiplier=2, ffn_layers=1) -> None:
         factory_kwargs = {'device': device, 'dtype': dtype}
         super(PositionMultiHeadAttention, self).__init__()
         self.embed_dim = embed_dim
@@ -53,7 +53,8 @@ class PositionMultiHeadAttention(Module):
             self.bias_k = self.bias_v = None
 
         self.positional_bias = AdjStackAttentionWeights(num_adj_stacks, num_heads, ffn=ffn,
-                                                        ffn_hidden_multiplier=ffn_hidden_multiplier)
+                                                        ffn_hidden_multiplier=ffn_hidden_multiplier,
+                                                        ffn_layers=ffn_layers)
         self.normalizer = AttentionWeightNormalizer(gating=self.gating)
 
         self._reset_parameters()
