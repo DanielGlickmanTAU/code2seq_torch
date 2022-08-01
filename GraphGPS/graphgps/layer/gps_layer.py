@@ -89,9 +89,9 @@ class GPSLayer(nn.Module):
             #     dim_feedforward=2048, dropout=0.1, activation=F.relu,
             #     layer_norm_eps=1e-5, batch_first=True)
             # here put num_adj_stacks etc
-            self.self_attn = ContentMultiheadAttention(dim_h, num_heads, dropout, batch_first=True)
+            self.self_attn = ContentMultiheadAttention(dim_h, num_heads, self.attn_dropout, batch_first=True)
         elif global_model_type == 'Nagasaki':
-            self.self_attn = Nagasaki(dim_h, num_heads, dropout, nagasaki_config)
+            self.self_attn = Nagasaki(dim_h, num_heads, self.attn_dropout, nagasaki_config)
         elif global_model_type == 'Performer':
             self.self_attn = SelfAttention(
                 dim=dim_h, heads=num_heads,
