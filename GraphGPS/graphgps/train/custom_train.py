@@ -28,6 +28,8 @@ def _profile(model, batch):
             ret = model(batch)
     print(prof.key_averages().table(sort_by="cuda_time_total", row_limit=10))
     # prof.export_chrome_trace("trace.json")
+    # res = run.save('trace.json, policy='now')
+    # when want to decorate specific functions, do with torch.autograd.profiler.record_function("label-z")
     return ret
 
 
@@ -214,7 +216,7 @@ def custom_train(loggers, loaders, model, optimizer, scheduler):
                 f"test_loss: {perf[2][best_epoch]['loss']:.4f} {best_test}"
             )
 
-            if (1 + cur_epoch) % 50 == 0 and cfg.wandb.use:
+            if (1 + cur_epoch) % 30 == 0 and cfg.wandb.use:
                 upload_model_to_wandb(cur_epoch, run)
 
             if hasattr(model, 'trf_layers'):
