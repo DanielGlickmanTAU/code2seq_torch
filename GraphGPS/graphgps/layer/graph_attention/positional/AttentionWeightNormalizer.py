@@ -21,4 +21,5 @@ class AttentionWeightNormalizer(torch.nn.Module):
             assert attn_mask.max() == 0.
             attention_weights = attention_weights + attn_mask
 
-        return fix_nans(self.func(attention_weights))
+        return self.func(attention_weights)
+        # return fix_nans(self.func(attention_weights))
