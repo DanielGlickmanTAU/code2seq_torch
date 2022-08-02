@@ -66,8 +66,8 @@ class ContentMultiheadAttention(torch.nn.Module):
         self.add_zero_attn = add_zero_attn
 
         self.use_distance_bias = use_distance_bias
-        if use_distance_bias:
-            self.positional_bias = AdjStackAttentionWeights(args, num_adj_stacks, num_heads)
+        # if use_distance_bias:
+        #     self.positional_bias = AdjStackAttentionWeights(args, num_adj_stacks, num_heads)
 
         self.normalizer = AttentionWeightNormalizer(gating=self.gating)
 
@@ -114,8 +114,8 @@ class ContentMultiheadAttention(torch.nn.Module):
             assert not attn.isinf().any(), attn
             assert not attn.isnan().any(), attn
 
-            if self.use_distance_bias:
-                attn = attn + self._positional_bias_f(adj_stack)
+            # if self.use_distance_bias:
+            #     attn = attn + self._positional_bias_f(adj_stack)
 
             attn_mask = pygraph_utils.reshape_attention_mask_to_multihead(attn_mask, self.num_heads)
             attn_output, attn_output_weights = multi_head_positional_attention(
