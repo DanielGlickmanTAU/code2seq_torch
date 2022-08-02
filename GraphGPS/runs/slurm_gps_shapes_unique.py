@@ -30,7 +30,7 @@ params_for_exp = {
     'nagasaki.edge_model_type': ['bn-mlp', 'mlp'],
     # 'nagasaki.edge_model_type': ['mlp'],
     # 'nagasaki.ffn_layers': [1, 2],
-    'nagasaki.ffn_layers': [1],
+    'nagasaki.ffn_layers': [1, 2],
     # 'nagasaki.edge_model_type': ['linear']
     # 'nagasaki.edge_model_type': ['bn-linear']
     'gt.dropout': 0.,
@@ -62,6 +62,7 @@ params_for_grid_search = [
     # baseline_config.get_STRONG_RSWE_gnn_transformer_signnet_AFTERGNN_deepset_config(),
     # baseline_config.get_nagasaki_config(total_layers=6, gnn_layers=5),
     baseline_config.get_nagasaki_config(total_layers=2, gnn_layers=1),
+    baseline_config.get_nagasaki_config(total_layers=3, gnn_layers=1),
 
 ]
 

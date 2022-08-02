@@ -26,14 +26,14 @@ params_for_exp = {
     # 'gt.layers': [10],
     # 'gt.n_layers_gnn_only': [6],
     'optim.early_stop_patience': 10,
-    'nagasaki.edge_model_type': ['bn-mlp', 'mlp'],
+    'nagasaki.edge_model_type': ['bn-mlp'],
     # 'nagasaki.edge_model_type': ['mlp'],
     # 'nagasaki.ffn_layers': [1, 2],
     'nagasaki.ffn_layers': [1],
     # 'nagasaki.edge_model_type': ['linear']
     # 'nagasaki.edge_model_type': ['bn-linear']
-    'gt.dropout': 0.,
-    'gt.attn_dropout': 0.
+    # 'gt.dropout': 0.,
+    # 'gt.attn_dropout': 0.
 
 }
 
@@ -41,18 +41,18 @@ params = {
     '--cfg': 'tests/configs/graph/row-coloring-laplace.yaml',
     # '--words_per_row': 4,
     '--num_rows': 6,
-    '--words_per_row': 4,
+    '--words_per_row': 8,
     # '--atom_set': 9,
     '--atom_set': 8,
     '--num_unique_atoms': 1,
     '--num_unique_colors': 2,
-    # '--make_prob_of_row_half': True
-    '--make_prob_of_row_half': False
+    '--make_prob_of_row_half': True
+    # '--make_prob_of_row_half': False
 }
 
 params_for_grid_search = [
     # baseline_config.get_gps_laplace_transformer_config(),
-    # baseline_config.get_RWSE_GNN_config(layers=12),
+    baseline_config.get_RWSE_GNN_config(layers=12),
     # baseline_config.get_RWSE_GNN_config(layers=6),
     # baseline_config.get_gps_signnet_deepset_config(),
     # baseline_config.get_gnn_transformer_laplace_transformer_config(),
@@ -60,7 +60,7 @@ params_for_grid_search = [
     # baseline_config.get_RSWE_gnn_transformer_signnet_deepset_config(),
     # baseline_config.get_STRONG_RSWE_gnn_transformer_signnet_AFTERGNN_deepset_config(),
     # baseline_config.get_nagasaki_config(total_layers=6, gnn_layers=5),
-    baseline_config.get_nagasaki_config(total_layers=2, gnn_layers=1),
+    # baseline_config.get_nagasaki_config(total_layers=2, gnn_layers=1),
 
 ]
 

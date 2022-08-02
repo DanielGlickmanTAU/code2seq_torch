@@ -1059,19 +1059,18 @@ can get over 0.8 acc in instance coloring with 1 layer and 1 example! just propo
 ### 2/6
 
 looking at ~15 examples visually in the instance coloring case e.g ![img_4.png](img_4.png)
-as a sanity check that ~0.5 are red/blue and colors spread nicly.(        #[(i,batch[i].y.float().var()) for i in range(batch.num_graphs)])
+as a sanity check that ~0.5 are red/blue and colors spread nicly.(        #[(i,batch[i].y.float().var()) for i in range(
+batch.num_graphs)])
 there almost always seem to be some "pattern" of how to colors spread, but i think it is not a bug but just a likleyhood
-of patterns to appear 
-
+of patterns to appear
 
 sanity check 3cycle, 50 cycle, 100 cycle.
 gets 3 cycle perfect and 50, 100 cycle < 0.6
 
-
 cm.colors.CSS4_COLORS
 
-
 ### 5/6
+
 both task: looks like when adding colors, the task becomes harder..?
 
 edge prob < 1. seems easier...
@@ -1085,27 +1084,28 @@ should i use gnn as positional/structural encoding?
 if I add visualization can be useful..
 
 ### 7/6
+
 task rows: probability of a single shape in a grid getting label one
 2 * p^(n-1)
 p is 1/number of shapes+colors
-n is row size 
+n is row size
 2 is because we consider both rows and cols
 
-### 8/6 
+### 8/6
+
 task rows: thinking about what is the right metric to use..
 macro average seems fine
 
 going for now for only_color=True.. i.e labels row/col if all the shapes are in the same color, with no regards to shape
 
-0.2371 are labeled as 1(row/col match) # compute.get_torch().cat([_.y for _ in dataset]).float().mean() 
-
+0.2371 are labeled as 1(row/col match) # compute.get_torch().cat([_.y for _ in dataset]).float().mean()
 
 ### 13/6
+
 visualizing the graph color with my position or with network random positions
- ![](myplot.png)
+![](myplot.png)
 there 2 are the same:
 ![](myplot1.png)  ![](myplot2.png)  ![](myplot888.png)
-
 
 GNN fails finally:
 https://www.comet.ml/danielglickmantau/row-coloring/view/new/experiments
@@ -1114,55 +1114,50 @@ https://www.comet.ml/danielglickmantau/row-coloring/view/new/experiments
 with 60 layers can get 100% accuracy, no ambigiousy
 https://www.comet.ml/danielglickmantau/row-coloring-should-overfit/4bc6b955afed467198660eed5554e5b6?experiment-tab=chart&showOutliers=true&smoothing=0&transformY=smoothing&xAxis=step
 
-
 ## 21/6
+
 number of nodes in molpcba with 45>=n>=15 which covers 0.97 of the nodes.  
 ![](molpcba-n=15-45.png)
 note there are some graphs with over 300 nodes and grpahs with 1 node...
 
 free space ![](molpcbg-n=15-45-freespace-45-y.png)
 
-
 ## 22/6
+
 global config in torch geometric experiment:
 cfg =CM() object.. global object
+
 - how to get it?
-??
--how are argsparse args join into it?
-method call load_cfg
+  ??
+  -how are argsparse args join into it?
+  method call load_cfg
 
 - how to i make argparse work with my existing config?
-chnage main.py call to parse_args(torch_geometric) to my call rows_coloring_main#add_args
-
-
+  chnage main.py call to parse_args(torch_geometric) to my call rows_coloring_main#add_args
 
 models register to network_dict with #register_network
 
 ## 23/6
+
 set up expirment name with cfg.wandb.project
 
-
-
 ## 26/6
-
 
 training was failing because when tried to evaluate, it thought the batch size so far was 0.
 looks like it was failing since I was limiting the number of examples, which caused the eval
 dataset to be empty
 
-
 - set_dataset_splits(dataset, idxs_) on pattenr dataset filters out all of val and test because all
-of the indexes there are < max_examples(train/eval/test indexes are sorted in this dataset)
+  of the indexes there are < max_examples(train/eval/test indexes are sorted in this dataset)
 - currently the implementation takes the first max_examples for processing in pre_transform_in_memory
 - ideally, we would want to first limit the dataset and then simply process
 
-
 ## can restore results with gin and 10 layers! https://wandb.ai/daniel-ai/molpcba/runs/rmmbzu7d/overview?workspace=user-danielglickman
-
 
 ## 29/6
 
-so I was sure that laplacian positional was working because it was set in the .yaml file and I did not consider it not working
+so I was sure that laplacian positional was working because it was set in the .yaml file and I did not consider it not
+working
 I noticed that the number of parameters remaind the same when I disabled the laplacian
 I decided to debug it
 confirmed that enabling laplacian adds the "EignVal" attribute
@@ -1176,8 +1171,9 @@ if posenc_LapPE.enable is True, node_encoder_name should contain 'LapPE'
 if it is disabled num layer should be false..
 
 conclustion:
+
 * when I am changing a variable, check at least once that the change I expect indeed happens
-* have comet/wandb show clear parameters that are not confusing 
+* have comet/wandb show clear parameters that are not confusing
 * write assertions and checks to handle edgy logic
 
 ### 6.7
@@ -1191,40 +1187,35 @@ GINEConvGraphGymLayer: linear->relu->linear
 
 gps_layer is using GINEConv..guess it is ok because gin is not linear....
 
-
 num params 6 gt.layers 0 gt.n_layers_gnn_only: Num parameters: 7157862
 num params 12 gt.layers 6 gt.n_layers_gnn_only:Num parameters: 7165062
 good!
 6 x (gnn + attention + ffn) == 6 * (gnn) + 6 * (attention + ffn)
 
-
-
 ### 9.7
+
 shapes datasets looks ok.
-close to 1/32 = 2(1/4)^3 get label one(matching row/col) 
+close to 1/32 = 2(1/4)^3 get label one(matching row/col)
 
 idea for future:
 increase number of rows, but not cols.. will break symmetris.
 
-
 ### 10.7
+
 comparining 1e-5 and 5e-5 learning rates for signet.
 seems like higher learning rate starts off better.
 and maybe it gets better results because it is more jiggly(more vairnance in f1)..
 acordding to deep learning book, it is ok
 both early stopped
 
-
 gnn on starts:
 looks like it helps avoid overfitting(test results close to train)
 looks like it speeds up training
-
 
 computing rwse:
 when loading dataset, compute it in posenc_stats#compute_posenc_stats
 keeps it in pestat_RWSE
 then on model forward, calls kernel_pos_encoder, which uses that attribute.
-
 
 if expand_x is False(it is always from what i have seen for not first encoder),
 will concat values of different encoders
@@ -1232,12 +1223,15 @@ will concat values of different encoders
 if layers_pre_mp > 0 (sometimes it is 0 sometimes it is 1), will do linear projection d->d
 that mixes embeddings
 
-
 number of options for row:
 if there are b options pet atom(e.g num_color * num_shapes = b)
-then for row of size 2, there are (2 choose b) + b options #choose 2 atoms, a and b and assume a>b, this gives (2 C b).. then chooce 2 numbers where a==b, for that there are b options.
-for row of size 3: you can imagine inserting any of the b options inbetween the 2 atoms of the previous step, so there are ( (2 C b) + b ) * B
-for even size rows, I think(didnt vverify) there are (2 C (b^(n/2)) + b^(n^2)).. why? we care to not count symetris. can think of row of size 2n as made simply 2 nodes each with (b^n) options.. choosing 2 guranntes not double counting the symetris
+then for row of size 2, there are (2 choose b) + b options #choose 2 atoms, a and b and assume a>b, this gives (2 C b)..
+then chooce 2 numbers where a==b, for that there are b options.
+for row of size 3: you can imagine inserting any of the b options inbetween the 2 atoms of the previous step, so there
+are ( (2 C b) + b ) * B
+for even size rows, I think(didnt vverify) there are (2 C (b^(n/2)) + b^(n^2)).. why? we care to not count symetris. can
+think of row of size 2n as made simply 2 nodes each with (b^n) options.. choosing 2 guranntes not double counting the
+symetris
 
 there are 20 colors and 4 shapes.
 20*4= 80 row patterns that get positive labels.
@@ -1251,23 +1245,22 @@ and we cover about 1 -(72959 / 72960) ^ 40000 = 0.42 of examples..
 
 and we are not taking into account in this analysis the fact that each grid is made of multiple rows
 
-
 ### 14/7
+
 row dataset is the same everytime. no randomness
 
-
 ** guide how to load saved weights **:
-1) download ckpt file e.g https://wandb.ai/daniel-ai/single-shape-coloring-rows-shapes-visualization/runs/dmtrvo2u/files/tests/results/1657732829.8918536_0/ckpt
-2) put it under dir named ckpt. e.g runs/ckpt/1499.ckpt  
-3) run main with flag --load_checkpoint_from_dir runs (where runs is the dir containins ckpt), it will load .ckpt file with highest number
-notice to use the right parameters to load model, can take that from wandb overview
 
-
+1) download ckpt file
+   e.g https://wandb.ai/daniel-ai/single-shape-coloring-rows-shapes-visualization/runs/dmtrvo2u/files/tests/results/1657732829.8918536_0/ckpt
+2) put it under dir named ckpt. e.g runs/ckpt/1499.ckpt
+3) run main with flag --load_checkpoint_from_dir runs (where runs is the dir containins ckpt), it will load .ckpt file
+   with highest number
+   notice to use the right parameters to load model, can take that from wandb overview
 
 eigenvalues are same for all nodes in the graph.
 eigenvector entries assosiated with eigenvalues get differnet color:
 ![](myplot_eigval0.png) ![](myplot_eigval1.png) ![](myplot_eigval2.png)
-
 
 with (exact) grid graph.
 second eigenenvalue corrospondes to center
@@ -1280,46 +1273,56 @@ second corrposponed to row
 ![](third_eigenvec.png)
 
 ### 15/7
+
 analysing hisrohima attention patterns:![](myplot123.png) ![](myplot1233.png)
 nodes seem to give attention to some random node around the middle..
 some are more spread out to different nodes along the graph, but no idea why.
---cfg tests/configs/graph/row-coloring-laplace.yaml --load_checkpoint_from_dir runs --max_examples 30 --atom_set 9 --words_per_row 3 --num_rows 5 --num_unique_atoms 1 --num_unique_colors 4 optim.base_lr 0.0001 gt.layers 11 gt.n_layers_gnn_only 10 posenc_LapPE.enable False posenc_LapPE.layers 0 dataset.node_encoder_name TypeDictNode+RWSE posenc_SignNet.enable True posenc_SignNet.model DeepSet posenc_SignNet.dim_pe 64 posenc_SignNet.layers 6 posenc_SignNet.post_layers 2 posenc_RWSE.enable True posenc_RWSE.kernel.times_func "range(1, 21)" posenc_RWSE.model Linear posenc_RWSE.dim_pe 24 posenc_RWSE.raw_norm_type BatchNorm dataset.transformer_node_encoder_name SignNet dataset.only_color False wandb.project single-shape-coloring-rows-shapes-visualization-no-decay optim.early_stop_patience 9999 train.eval_period 50 gt.attn_dropout 0.0 gt.n_heads 1 wandb.use False
-use weights from https://wandb.ai/daniel-ai/single-shape-coloring-rows-shapes-visualization-no-decay/runs/303brljw?workspace=user-danielglickman
-
-
+--cfg tests/configs/graph/row-coloring-laplace.yaml --load_checkpoint_from_dir runs --max_examples 30 --atom_set 9
+--words_per_row 3 --num_rows 5 --num_unique_atoms 1 --num_unique_colors 4 optim.base_lr 0.0001 gt.layers 11
+gt.n_layers_gnn_only 10 posenc_LapPE.enable False posenc_LapPE.layers 0 dataset.node_encoder_name TypeDictNode+RWSE
+posenc_SignNet.enable True posenc_SignNet.model DeepSet posenc_SignNet.dim_pe 64 posenc_SignNet.layers 6
+posenc_SignNet.post_layers 2 posenc_RWSE.enable True posenc_RWSE.kernel.times_func "range(1, 21)" posenc_RWSE.model
+Linear posenc_RWSE.dim_pe 24 posenc_RWSE.raw_norm_type BatchNorm dataset.transformer_node_encoder_name SignNet
+dataset.only_color False wandb.project single-shape-coloring-rows-shapes-visualization-no-decay
+optim.early_stop_patience 9999 train.eval_period 50 gt.attn_dropout 0.0 gt.n_heads 1 wandb.use False
+use weights
+from https://wandb.ai/daniel-ai/single-shape-coloring-rows-shapes-visualization-no-decay/runs/303brljw?workspace=user-danielglickman
 
 ### 18/7
 
-Epoch 73: took 8.2s (avg 27.2s) | Best so far: epoch 34	train_loss: 0.2159 train_f1: 0.8056	val_loss: 0.2096 val_f1: 0.8215	test_loss: 0.2176 test_f1: 0.8079
-train: {'epoch': 74, 'time_epoch': 7.04847, 'eta': 21762.31868, 'eta_hours': 6.04509, 'loss': 0.21906425, 'lr': 0.01, 'params': 1425242, 'time_iter': 0.05639, 'accuracy': 0.7833, 'precision': 0.73167, 'recall': 0.89699, 'f1': 0.80594, 'auc': 0.85105}
-
+Epoch 73: took 8.2s (avg 27.2s) | Best so far: epoch 34 train_loss: 0.2159 train_f1: 0.8056 val_loss: 0.2096 val_f1:
+0.8215 test_loss: 0.2176 test_f1: 0.8079
+train: {'epoch': 74, 'time_epoch': 7.04847, 'eta': 21762.31868, 'eta_hours': 6.04509, 'loss': 0.21906425, 'lr': 0.01, '
+params': 1425242, 'time_iter': 0.05639, 'accuracy': 0.7833, 'precision': 0.73167, 'recall': 0.89699, 'f1': 0.80594, '
+auc': 0.85105}
 
 verfiyed attention drawing, looks good.
 
-
 moved to using only max_freq=3(was 10), in eigenvalues. looks better!!
 ![](eigns1.png) ![](eigns11.png) ![](eigns111.png)
-
-
 
 ### 24/7
 
 signets: what it does with eigenvalues:
 decomposition: looks like it just breaks it to eigenvalues and eigenvectors.
 there are n eigenvectors, each node is associated with one
-then taking the  max_freq SMALLEST eigenVECTORS(by eigenvalue),
+then taking the max_freq SMALLEST eigenVECTORS(by eigenvalue),
 normalize, and pass through signnet
 
-
-
 ### 25/7
-test_grid_edges.py shows distribution of edges on grid
 
+test_grid_edges.py shows distribution of edges on grid
 
 ### 27/7
 
 batch norm on stacks ffn makes the difference between being able to fit 100 examples perfectly and not..
 
-
 ### 28/7
+
 most time of nagasaki goes to torch.cat ....
+
+### 2/8
+
+batch norm -> linear seems good..
+
+seems like there is some randomness of dot grid results.. keep that in mind.

@@ -29,7 +29,11 @@ params_for_exp = {
     'optim.early_stop_patience': 10,
     # 'nagasaki.edge_model_type': ['bn-linear', 'linear']
     # 'nagasaki.edge_model_type': ['bn-linear', 'mlp']
-    'nagasaki.edge_model_type': ['bn-mlp']
+    'nagasaki.edge_model_type': ['bn-mlp', 'mlp'],
+    # 'nagasaki.ffn_layers': [2, 4],
+    'nagasaki.ffn_layers': [2],
+    'nagasaki.edge_reduction': ['bn-linear'],
+
     # 'nagasaki.edge_model_type': ['mlp']
 
 }
@@ -57,7 +61,7 @@ params_for_grid_search = [
     # baseline_config.get_RSWE_gnn_transformer_signnet_deepset_config(),
     # baseline_config.get_STRONG_RSWE_gnn_transformer_signnet_AFTERGNN_deepset_config(),
     # baseline_config.get_nagasaki_config(total_layers=6, gnn_layers=4),
-    baseline_config.get_nagasaki_config(total_layers=6, gnn_layers=5),
+    baseline_config.get_nagasaki_config(total_layers=7, gnn_layers=5),
 
 ]
 
