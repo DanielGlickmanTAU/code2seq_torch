@@ -28,7 +28,7 @@ def run_on_slurm(job_name, params, no_flag_param='', slurm=True, gpu=True, sleep
     job_name = job_name + str(time.time())
     # need to for gps main stuff
     if isinstance(no_flag_param, dict):
-        if wandb:
+        if wandb and 'wandb.project' not in no_flag_param:
             no_flag_param['wandb.project'] = os.path.basename(sys.argv[0]).replace('.py', '')
         no_flag_param = ' '.join([f'{key} {value}' for key, value in no_flag_param.items()])
     command = f'{python} {python_file}.py ' + ' '.join(
