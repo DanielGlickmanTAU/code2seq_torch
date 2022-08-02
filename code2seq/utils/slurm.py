@@ -1,4 +1,5 @@
 import os
+import sys
 
 import time
 import random
@@ -20,13 +21,15 @@ def get_partition_and_time_limit():
     return 'studentbatch', '7-00:00:00'
 
 
-def run_on_slurm(job_name, params, no_flag_param='', slurm=True, gpu=True, sleep=True):
+def run_on_slurm(job_name, params, no_flag_param='', slurm=True, gpu=True, sleep=True, wandb=True):
     partition, time_limit = get_partition_and_time_limit()
     python_file = job_name
     python_file = python_file.replace('.py', '')
     job_name = job_name + str(time.time())
     # need to for gps main stuff
     if isinstance(no_flag_param, dict):
+        if wandb:
+            no_flag_param['wandb.project'] = os.path.basename(sys.argv[0]).replace('.py', '')
         no_flag_param = ' '.join([f'{key} {value}' for key, value in no_flag_param.items()])
     command = f'{python} {python_file}.py ' + ' '.join(
         [f'--{key} {value}' for key, value in params.items()]) + ' ' + no_flag_param
