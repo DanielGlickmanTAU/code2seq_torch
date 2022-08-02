@@ -1314,3 +1314,12 @@ normalize, and pass through signnet
 
 ### 25/7
 test_grid_edges.py shows distribution of edges on grid
+
+
+### 27/7
+
+batch norm on stacks ffn makes the difference between being able to fit 100 examples perfectly and not..
+
+
+### 28/7
+most time of nagasaki goes to torch.cat ....
