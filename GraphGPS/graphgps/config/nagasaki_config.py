@@ -10,4 +10,5 @@ def set_cfg_nagasaki(cfg):
     cfg.nagasaki.ffn_hidden_multiplier = 2
     cfg.nagasaki.ffn_layers = 1
 
+
 register_config('cfg_nagasaki', set_cfg_nagasaki)
