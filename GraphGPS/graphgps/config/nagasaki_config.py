@@ -10,5 +10,7 @@ def set_cfg_nagasaki(cfg):
     cfg.nagasaki.ffn_hidden_multiplier = 2
     cfg.nagasaki.ffn_layers = 1
 
+    cfg.nagasaki.edge_reduction = 'bn-mlp'
+
 
 register_config('cfg_nagasaki', set_cfg_nagasaki)

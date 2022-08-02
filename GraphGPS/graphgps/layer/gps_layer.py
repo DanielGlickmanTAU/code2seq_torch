@@ -8,12 +8,10 @@ from torch_geometric.data import Batch
 from torch_geometric.nn import Linear as Linear_pyg
 from torch_geometric.utils import to_dense_batch
 
+from graphgps.layer.bigbird_layer import SingleBigBirdLayer
 from graphgps.layer.gatedgcn_layer import GatedGCNLayer
 from graphgps.layer.gine_conv_layer import GINEConvESLapPE
-from graphgps.layer.bigbird_layer import SingleBigBirdLayer
-
 from graphgps.layer.graph_attention.ContentMultiHeadAttention import ContentMultiheadAttention
-from graphgps.layer.graph_attention.positional import nagasaki
 from graphgps.layer.graph_attention.positional.nagasaki import Nagasaki
 
 
@@ -84,11 +82,6 @@ class GPSLayer(nn.Module):
         elif global_model_type == 'Transformer':
             # self.self_attn = torch.nn.MultiheadAttention(
             #     dim_h, num_heads, dropout=self.attn_dropout, batch_first=True)
-            # self.global_model = torch.nn.TransformerEncoderLayer(
-            #     d_model=dim_h, nhead=num_heads,
-            #     dim_feedforward=2048, dropout=0.1, activation=F.relu,
-            #     layer_norm_eps=1e-5, batch_first=True)
-            # here put num_adj_stacks etc
             self.self_attn = ContentMultiheadAttention(dim_h, num_heads, self.attn_dropout, batch_first=True)
         elif global_model_type == 'Nagasaki':
             self.self_attn = Nagasaki(dim_h, num_heads, self.attn_dropout, nagasaki_config)

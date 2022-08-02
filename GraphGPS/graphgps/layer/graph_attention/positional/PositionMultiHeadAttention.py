@@ -18,9 +18,10 @@ class PositionMultiHeadAttention(Module):
     bias_k: Optional[torch.Tensor]
     bias_v: Optional[torch.Tensor]
 
-    def __init__(self, embed_dim, num_heads, num_adj_stacks, dropout=0., bias=True, add_bias_kv=False,
-                 kdim=None, vdim=None, batch_first=False, device=None, dtype=None, ffn=True,
-                 ffn_hidden_multiplier=2, ffn_layers=1) -> None:
+    def __init__(self, embed_dim, num_heads, edge_dim, dropout=0., bias=True, add_bias_kv=False,
+                 kdim=None, vdim=None, batch_first=False, device=None, dtype=None,
+                 edge_reduction='bn-mlp'
+                 ) -> None:
         factory_kwargs = {'device': device, 'dtype': dtype}
         super(PositionMultiHeadAttention, self).__init__()
         self.embed_dim = embed_dim
@@ -52,9 +53,9 @@ class PositionMultiHeadAttention(Module):
         else:
             self.bias_k = self.bias_v = None
 
-        self.positional_bias = AdjStackAttentionWeights(num_adj_stacks, num_heads, ffn=ffn,
-                                                        ffn_hidden_multiplier=ffn_hidden_multiplier,
-                                                        ffn_layers=ffn_layers)
+        self.positional_bias = AdjStackAttentionWeights(edge_dim, dim_out=num_heads, ffn=edge_reduction,
+                                                        hidden_dim=edge_dim * 1,
+                                                        ffn_layers=0)
         self.normalizer = AttentionWeightNormalizer(gating=self.gating)
 
         self._reset_parameters()
@@ -75,9 +76,8 @@ class PositionMultiHeadAttention(Module):
         if self.batch_first:
             value = value.transpose(1, 0)
 
-        attention_weights = self.positional_bias(stacks=adj_stack, mask=attn_mask)
+        attention_weights = self.positional_bias(stacks=adj_stack, mask=~attn_mask)
         b, heads, n1, n2 = attention_weights.shape
-        # attention_weights = attention_weights.contiguous().view(b * self.num_heads, n1, n1)
         attention_weights = attention_weights.reshape(b * self.num_heads, n1, n1)
         # (n,batch,d)
         value = linear(value, self.in_proj_weight, self.in_proj_bias)

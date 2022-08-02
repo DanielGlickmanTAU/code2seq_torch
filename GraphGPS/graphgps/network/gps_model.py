@@ -7,6 +7,7 @@ from torch_geometric.graphgym.models.layer import (new_layer_config,
 from torch_geometric.graphgym.register import register_network
 
 from graphgps.layer.gps_layer import GPSLayer
+from graphgps.layer.graph_attention.positional.positional_attention_weight import Diffuser
 
 
 class FeatureEncoder(torch.nn.Module):
@@ -99,6 +100,9 @@ class GPSModel(torch.nn.Module):
                         transformer_position_encoder = FeatureEncoder(dim_in, cfg.dataset.transformer_node_encoder_name,
                                                                       None, contract=True)
                         layers.append(transformer_position_encoder)
+
+                    if global_model_type == 'Nagasaki':
+                        layers.append(Diffuser(cfg.nagasaki))
 
             gps_layer = GPSLayer(dim_h=cfg.gt.dim_hidden, local_gnn_type=layer_gnn_type,
                                  global_model_type=layer_global_model, num_heads=cfg.gt.n_heads,
