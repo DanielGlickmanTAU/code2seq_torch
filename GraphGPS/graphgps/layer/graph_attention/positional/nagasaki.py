@@ -1,7 +1,11 @@
 import torch
+import torch_geometric
 
+from graphgps.layer.gatedgcn_layer import GatedGCNLayer
 from graphgps.layer.graph_attention.positional import positional_utils
 from graphgps.layer.graph_attention.positional.PositionMultiHeadAttention import PositionMultiHeadAttention
+# import torch_geometric.nn as nn
+import torch.nn as nn
 
 
 # diffusion edge reducer

@@ -102,7 +102,7 @@ class GPSModel(torch.nn.Module):
                         layers.append(transformer_position_encoder)
 
                     if global_model_type == 'Nagasaki':
-                        layers.append(Diffuser(cfg.nagasaki))
+                        layers.append(Diffuser(dim_in, cfg.nagasaki))
 
             gps_layer = GPSLayer(dim_h=cfg.gt.dim_hidden, local_gnn_type=layer_gnn_type,
                                  global_model_type=layer_global_model, num_heads=cfg.gt.n_heads,

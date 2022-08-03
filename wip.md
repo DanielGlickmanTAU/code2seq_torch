@@ -1326,3 +1326,29 @@ most time of nagasaki goes to torch.cat ....
 batch norm -> linear seems good..
 
 seems like there is some randomness of dot grid results.. keep that in mind.
+
+
+### 3/8
+how do I assert my impl is correct?
+
+Try changing stuff and see things break
+
+
+linear edge reduction works well.. not as well as bn-mlp, more overfitting but still good: https://wandb.ai/daniel-ai/slurm_gps_shapes_unique/table?workspace=user-danielglickman
+
+
+
+current flow: 
+stack the matrix 10 times
+mix edges with mlp
+reduce edges to logits
+
+masking wrong nodes breaks it...
+mixing with linear only: worst results on full training dot grid: https://wandb.ai/daniel-ai/slurm_gps_shapes_unique/table?
+stacking only once: a lot worst results :https://wandb.ai/daniel-ai/slurm_gps_shapes_unique/table?
+
+
+verfied visualiziation looks good also on 2 attention layers, bn-mlp positional (https://wandb.ai/daniel-ai/slurm_gps_shapes_unique/runs/1abvi2d8/overview?workspace=user-danielglickman)
+
+
+verified attention looks like shit when looking at shape 9 with bad performance

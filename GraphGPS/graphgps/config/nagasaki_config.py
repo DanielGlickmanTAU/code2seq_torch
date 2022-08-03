@@ -11,6 +11,7 @@ def set_cfg_nagasaki(cfg):
     cfg.nagasaki.ffn_layers = 1
 
     cfg.nagasaki.edge_reduction = 'bn-mlp'
+    cfg.nagasaki.learn_edges_weight = False
 
 
 register_config('cfg_nagasaki', set_cfg_nagasaki)

@@ -1,4 +1,5 @@
 import torch
+import torch_geometric
 from torch import nn, Tensor
 from torch_scatter import scatter_add
 
@@ -60,9 +61,11 @@ class AdjStack(torch.nn.Module):
         self.steps = steps
         assert len(self.steps) == len(set(self.steps)), f'duplicate power in {self.steps}'
 
-    def forward(self, batch, mask):
-        # to_dense_adj(batch.edge_index,batch.batch,batch.edge_attr)
-        adj = to_dense_adj(batch.edge_index, batch.batch)
+    def forward(self, batch, mask, edge_weights=None):
+        if edge_weights is not None:
+            adj = to_dense_adj(batch.edge_index, batch.batch, edge_weights)
+        else:
+            adj = to_dense_adj(batch.edge_index, batch.batch)
         adj = self.to_P_matrix(adj)
 
         powers = self._calc_power(adj, self.steps)
@@ -96,13 +99,18 @@ class AdjStack(torch.nn.Module):
 
 
 class Diffuser(nn.Module):
-    def __init__(self, nagasaki_config):
+    def __init__(self, dim_in, nagasaki_config):
         super().__init__()
         steps = nagasaki_config.steps
         if isinstance(steps, str):
             steps = list(eval(steps))
         num_stack = positional_utils.get_stacks_dim(nagasaki_config)
         edge_dim = positional_utils.get_edge_dim(nagasaki_config)
+
+        if nagasaki_config.learn_edges_weight:
+            self.edge_reducer = EdgeReducer(dim_in, hidden_dim=2 * dim_in, dropout=0.)
+        else:
+            self.edge_reducer = None
 
         self.adj_stacker = AdjStack(steps)
 
@@ -115,7 +123,13 @@ class Diffuser(nn.Module):
 
     def forward(self, batch):
         mask = self._mask(batch.batch)
-        stacks = self.adj_stacker(batch, mask)
+        weighted_edges = None
+        if self.edge_reducer:
+            weighted_edges = self.edge_reducer(batch).squeeze(-1)
+            assert weighted_edges.dim() == 1, f'supporting only singed weighted edges, got weights of shape {weighted_edges.shape}'
+            weighted_edges = torch.sigmoid(weighted_edges)
+
+        stacks = self.adj_stacker(batch, mask, weighted_edges)
         edges = self.edge_mlp(stacks, mask)
         batch.edges = edges
         return batch
@@ -138,3 +152,43 @@ class Diffuser(nn.Module):
         mask = mask.view(batch_size, max_num_nodes)
 
         return mask
+
+
+class EdgeReducer(torch_geometric.nn.conv.MessagePassing):
+
+    def __init__(self, in_dim, hidden_dim, dropout, **kwargs):
+        super().__init__(**kwargs)
+
+        self.A = torch_geometric.nn.Linear(in_dim, hidden_dim, bias=True)
+        self.C = torch_geometric.nn.Linear(in_dim, hidden_dim, bias=True)
+        self.edge_out_proj = torch_geometric.nn.Linear(hidden_dim, 1, bias=True)
+
+        self.bn = nn.BatchNorm1d(hidden_dim)
+        self.dropout = dropout
+
+    def forward(self, batch):
+        x, e, edge_index = batch.x, batch.edge_attr, batch.edge_index
+        # symetric distance, map i and j the same
+        Ax = self.A(x)
+        Ce = self.C(e)
+
+        e = self.propagate(edge_index,
+                           Ce=Ce,
+                           e=e, Ax=Ax,
+                           )
+        # x = torch.nn.functional.dropout(x, self.dropout, training=self.training)
+        # e = torch.nn.functional.dropout(e, self.dropout, training=self.training)
+
+        return e
+
+    def message(self, Ax_i, Ax_j, Ce):
+        e_ij = Ax_i + Ax_j + Ce
+        e_ij = torch.nn.functional.relu(self.bn(e_ij))
+        e_ij = self.edge_out_proj(e_ij)
+
+        sigma_ij = e_ij
+        # sigma_ij = torch.sigmoid(e_ij)
+        return sigma_ij
+
+    def aggregate(self, e):
+        return e
