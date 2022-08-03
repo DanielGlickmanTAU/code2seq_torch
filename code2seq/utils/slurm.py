@@ -24,7 +24,7 @@ def get_partition_and_time_limit():
 def run_on_slurm(job_name, params, no_flag_param='', slurm=True, gpu=True, sleep=True, wandb=True):
     partition, time_limit = get_partition_and_time_limit()
     python_file = job_name
-    python_file = python_file.replace('.py', '')
+    python_file = python_file.replace('.py', '').replace('slurm', '')
     job_name = job_name + str(time.time())
     # need to for gps main stuff
     if isinstance(no_flag_param, dict):
