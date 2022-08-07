@@ -33,7 +33,7 @@ def get_cache_dir():
 def get_index_of_free_gpus(minimum_free_giga=minimum_free_giga):
     def get_free_gpu():
         try:
-            lines = os.popen('nvidia-smi -q -d Memory |grep -A4 GPU|grep Free').readlines()
+            lines = os.popen('nvidia-smi -q -d Memory |grep -A5 GPU|grep Free').readlines()
         except Exception as e:
             print('error getting free memory', e)
             return {0: 10000, 1: 10000, 2: 0, 3: 10000, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -43,12 +43,12 @@ def get_index_of_free_gpus(minimum_free_giga=minimum_free_giga):
         return gpus
 
     gpus = get_free_gpu()
-    # write_gpus_to_file(gpus)
+    if len(gpus) == 0 and not is_university_server():
+        return {0: 9999}
+
     gpus = {index: mega for index, mega in gpus.items() if mega >= minimum_free_giga * 1000}
     gpus = {k: v for k, v in sorted(gpus.items(), key=lambda x: x[1], reverse=True)}
 
-    if len(gpus) == 0 and not is_university_server():
-        return {0: 9999}
     return gpus
 
 
