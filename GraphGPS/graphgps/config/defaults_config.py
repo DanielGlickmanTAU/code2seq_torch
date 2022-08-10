@@ -13,9 +13,11 @@ def overwrite_defaults_cfg(cfg):
 
     # Overwrite default dataset name
     cfg.dataset.name = 'none'
-    
+
     # Overwrite default rounding precision
     cfg.round = 5
+
+    cfg.debug = False
 
 
 register_config('overwrite_defaults', overwrite_defaults_cfg)

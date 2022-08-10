@@ -274,13 +274,15 @@ class WordsCombinationGraphDataset(Dataset):
             if color_mode == 'rows':
 
                 # first color all nodes(x)
-                for row, color_row in zip(words_in_grid, colors_in_grid):
+                for row_id, (row, color_row) in enumerate(zip(words_in_grid, colors_in_grid)):
 
                     for i, (word_instance, chosen_color) in enumerate(zip(row, color_row)):
                         for node in word_instance.nodes:
                             word_instance.nodes[node]['shape'] = word_instance.name
                             word_instance.nodes[node]['y'] = 0
                             word_instance.nodes[node]['x'] = chosen_color
+                            # hack to identify node's atom easliy
+                            word_instance.nodes[node]['g_id'] = row_id * 1000 + i
 
                 # now go by rows and see if any contain all with same shape + color
                 for i in range(num_rows):

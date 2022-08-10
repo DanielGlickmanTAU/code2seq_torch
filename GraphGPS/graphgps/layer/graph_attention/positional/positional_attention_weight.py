@@ -63,6 +63,8 @@ class AdjStack(torch.nn.Module):
 
     def forward(self, batch, mask, edge_weights=None):
         if edge_weights is not None:
+            edge_weights = edge_weights.squeeze(-1)
+            assert edge_weights.dim() == 1, f'supporting only single weighted edges, got weights of shape {edge_weights.shape}'
             adj = to_dense_adj(batch.edge_index, batch.batch, edge_weights)
         else:
             adj = to_dense_adj(batch.edge_index, batch.batch)
@@ -125,9 +127,10 @@ class Diffuser(nn.Module):
         mask = self._mask(batch.batch)
         weighted_edges = None
         if self.edge_reducer:
-            weighted_edges = self.edge_reducer(batch).squeeze(-1)
-            assert weighted_edges.dim() == 1, f'supporting only singed weighted edges, got weights of shape {weighted_edges.shape}'
+            weighted_edges = self.edge_reducer(batch)
             weighted_edges = torch.sigmoid(weighted_edges)
+
+            shape_edges = FakeReducer()(batch)
 
         stacks = self.adj_stacker(batch, mask, weighted_edges)
         edges = self.edge_mlp(stacks, mask)
@@ -189,6 +192,22 @@ class EdgeReducer(torch_geometric.nn.conv.MessagePassing):
         sigma_ij = e_ij
         # sigma_ij = torch.sigmoid(e_ij)
         return sigma_ij
+
+    def aggregate(self, e):
+        return e
+
+
+# returns if 1./0 if (*real*) edge is inside shape
+class FakeReducer(torch_geometric.nn.conv.MessagePassing):
+    def __init__(self):
+        super().__init__()
+
+    def forward(self, batch):
+        x_id = batch.g_id
+        return self.propagate(batch.edge_index, X=x_id.unsqueeze(1))
+
+    def message(self, X_i, X_j):
+        return (X_i == X_j).float()
 
     def aggregate(self, e):
         return e

@@ -1352,3 +1352,14 @@ verfied visualiziation looks good also on 2 attention layers, bn-mlp positional 
 
 
 verified attention looks like shit when looking at shape 9 with bad performance
+
+
+### 7/8
+
+alpha*x: if init alpha to zero, gradient of alpha is not zero, it is depenadnt on x..
+
+dropout:https://wandb.ai/daniel-ai/shapes_grid_unique_per_instance_gnn_reduce/
+dropout in gnn(gt.dropout) seems to be important. attention dropout, not sure..
+reducing gt.dropout to 0, makes model achive higher train f1(by 0.08) and a little better val f1(by 0.01)..
+and now train f1 > val f1..
+**having dropout, but lower, may achive best results**
