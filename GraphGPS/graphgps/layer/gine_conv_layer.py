@@ -15,6 +15,7 @@ class GINEConvESLapPE(pyg_nn.conv.MessagePassing):
     according to EquivStable LapPE:
         ICLR 2022 https://openreview.net/pdf?id=e95i1IHcWj
     """
+
     def __init__(self, nn, eps=0., train_eps=False, edge_dim=None, **kwargs):
         kwargs.setdefault('aggr', 'add')
         super().__init__(**kwargs)
@@ -87,23 +88,32 @@ class GINEConvESLapPE(pyg_nn.conv.MessagePassing):
         return f'{self.__class__.__name__}(nn={self.nn})'
 
 
-class GINEConvLayer(nn.Module):
+# class GINEConvLayer(nn.Module):
+class GINEConvLayer(pyg_nn.conv.MessagePassing):
     """Graph Isomorphism Network with Edge features (GINE) layer.
     """
-    def __init__(self, dim_in, dim_out, dropout, residual):
+
+    def __init__(self, dim_in, dim_out, dropout, residual, dim_hidden=None):
         super().__init__()
+        if not dim_hidden:
+            dim_hidden = dim_out
+        self.dim_hidden = dim_hidden
         self.dim_in = dim_in
         self.dim_out = dim_out
         self.dropout = dropout
         self.residual = residual
 
         gin_nn = nn.Sequential(
-            pyg_nn.Linear(dim_in, dim_out), nn.ReLU(),
-            pyg_nn.Linear(dim_out, dim_out))
+            pyg_nn.Linear(dim_in, dim_hidden), nn.ReLU(),
+            pyg_nn.Linear(dim_hidden, dim_out))
         self.model = pyg_nn.GINEConv(gin_nn)
 
     def forward(self, batch):
         x_in = batch.x
+
+        x, e, edge_index = batch.x, batch.edge_attr, batch.edge_index
+        if batch.edge_attr is None:
+            batch.edge_attr = torch.zeros(edge_index.shape[-1], x.shape[-1], device=x.device)
 
         batch.x = self.model(batch.x, batch.edge_index, batch.edge_attr)
 
@@ -116,9 +126,11 @@ class GINEConvLayer(nn.Module):
         return batch
 
 
-class GINEConvGraphGymLayer(nn.Module):
+# class GINEConvGraphGymLayer(nn.Module):
+class GINEConvGraphGymLayer(pyg_nn.conv.MessagePassing):
     """Graph Isomorphism Network with Edge features (GINE) layer.
     """
+
     def __init__(self, layer_config: LayerConfig, **kwargs):
         super().__init__()
         gin_nn = nn.Sequential(
@@ -129,5 +141,6 @@ class GINEConvGraphGymLayer(nn.Module):
     def forward(self, batch):
         batch.x = self.model(batch.x, batch.edge_index, batch.edge_attr)
         return batch
+
 
 register_layer('gineconv', GINEConvGraphGymLayer)
