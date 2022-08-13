@@ -149,6 +149,8 @@ def get_atom_set(number):
         return [lambda: Cycle(3), lambda: Cycle(4), lambda: Tree_small(), lambda: ChordCycle()]
     if number == 10:
         return [lambda: Dot(), lambda: Cycle(3), lambda: Clique(4), lambda: Cycle(5), lambda: ChordCycle(5)]
+    if number == 11:
+        return [lambda: Cycle(3), lambda: Clique(4), lambda: Cycle(5), lambda: ChordCycle(5)]
 
     raise Exception(f'unknown atom set option {number}')
 
@@ -185,15 +187,7 @@ class WordsCombinationGraphDataset(Dataset):
                 for node in atom.nodes:
                     atom.nodes[node]['y'] = 1
 
-    def set_color_if_any_nodes_have_same_shape(self, atoms_in_row, only_color):
-        colors_in_rows = set(atom.nodes[0]['x'] for atom in atoms_in_row)
-        shapes_in_rows = set(atom.nodes[0]['shape'] for atom in atoms_in_row)
-        # col/row has same shape row and color
-        if len(colors_in_rows) == 1 and (only_color or len(shapes_in_rows) == 1):
-            for atom in atoms_in_row:
-                for node in atom.nodes:
-                    atom.nodes[node]['y'] = 1
-
+    def set_color_if_any_nodes_have_same_shape(self, atoms_in_row):
         for i in range(1, len(atoms_in_row)):
             for j in range(0, i):
                 a1 = atoms_in_row[i]
@@ -208,7 +202,7 @@ class WordsCombinationGraphDataset(Dataset):
     def __init__(self, color_mode, word_graphs, num_samples, words_per_row, num_rows=None, num_colors=2, edge_p=1.,
                  only_color=False, unique_atoms_per_example=False, unique_colors_per_example=False,
                  num_unique_atoms=2, num_unique_colors=2, make_prob_of_row_half=False,
-                 shape_per_row=False, color_per_row=False
+                 shape_per_row=False, color_per_row=False, row_color_mode='and'
                  ):
         """
         num_unique_colors, and num unique_atoms only relevant when unique_atom_per_example and unique_color_per_example are true.. just for debugging something.
@@ -322,10 +316,16 @@ class WordsCombinationGraphDataset(Dataset):
                 # now go by rows and see if any contain all with same shape + color
                 for i in range(num_rows):
                     atoms_in_row = words_in_grid[i]
-                    self.set_color_if_all_nodes_have_same_shape(atoms_in_row, only_color)
+                    if row_color_mode == 'and':
+                        self.set_color_if_all_nodes_have_same_shape(atoms_in_row, only_color)
+                    elif row_color_mode == 'or':
+                        self.set_color_if_any_nodes_have_same_shape(atoms_in_row)
                 for j in range(words_per_row):
                     atoms_in_col = [words_in_grid[i][j] for i in range(num_rows)]
-                    self.set_color_if_all_nodes_have_same_shape(atoms_in_col, only_color)
+                    if row_color_mode == 'and':
+                        self.set_color_if_all_nodes_have_same_shape(atoms_in_col, only_color)
+                    elif row_color_mode == 'or':
+                        self.set_color_if_any_nodes_have_same_shape(atoms_in_col)
 
             if color_mode == 'global':
                 for row in words_in_grid:
