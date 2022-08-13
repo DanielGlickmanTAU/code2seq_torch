@@ -130,11 +130,15 @@ class Diffuser(nn.Module):
             weighted_edges = self.edge_reducer(batch)
             weighted_edges = torch.sigmoid(weighted_edges)
 
-            shape_edges = FakeReducer()(batch)
+            # shape_edges = FakeReducer()(batch)
+            # shape_edges_full = to_dense_adj(batch.edge_index, batch.batch, shape_edges).squeeze(-1)
+            # # add self loops
+            # [g.fill_diagonal_(1) for g in shape_edges_full]
 
         stacks = self.adj_stacker(batch, mask, weighted_edges)
         edges = self.edge_mlp(stacks, mask)
         batch.edges = edges
+        # visualization.draw_attention(batch[6].graph, 0, to_dense_adj(batch.edge_index, batch.batch, shape_edges).squeeze(-1)[6])
         return batch
 
     def _mask(self, batch) -> Tensor:
