@@ -31,6 +31,9 @@ def parse_args():
     parser.add_argument('--num_unique_atoms', type=int, default=2)
     parser.add_argument('--num_unique_colors', type=int, default=2)
     parser.add_argument('--make_prob_of_row_half', type=bool_, default=False)
+    parser.add_argument('--shape_per_row', type=bool_, default=False)
+    parser.add_argument('--color_per_row', type=bool_, default=False)
+
     parser.add_argument('--profiler', type=bool_, default=False)
 
     parser.add_argument('opts', help='See graphgym/config.py for all options',

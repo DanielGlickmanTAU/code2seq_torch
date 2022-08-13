@@ -147,6 +147,8 @@ def get_atom_set(number):
 
     if number == 9:
         return [lambda: Cycle(3), lambda: Cycle(4), lambda: Tree_small(), lambda: ChordCycle()]
+    if number == 10:
+        return [lambda: Dot(), lambda: Cycle(3), lambda: Clique(4), lambda: Cycle(5), lambda: ChordCycle(5)]
 
     raise Exception(f'unknown atom set option {number}')
 
@@ -183,9 +185,30 @@ class WordsCombinationGraphDataset(Dataset):
                 for node in atom.nodes:
                     atom.nodes[node]['y'] = 1
 
+    def set_color_if_any_nodes_have_same_shape(self, atoms_in_row, only_color):
+        colors_in_rows = set(atom.nodes[0]['x'] for atom in atoms_in_row)
+        shapes_in_rows = set(atom.nodes[0]['shape'] for atom in atoms_in_row)
+        # col/row has same shape row and color
+        if len(colors_in_rows) == 1 and (only_color or len(shapes_in_rows) == 1):
+            for atom in atoms_in_row:
+                for node in atom.nodes:
+                    atom.nodes[node]['y'] = 1
+
+        for i in range(1, len(atoms_in_row)):
+            for j in range(0, i):
+                a1 = atoms_in_row[i]
+                a2 = atoms_in_row[j]
+
+                if a1.nodes[0]['shape'] == a2.nodes[0]['shape'] and a1.nodes[0]['x'] == a2.nodes[0]['x']:
+                    for node in a1.nodes:
+                        a1.nodes[node]['y'] = 1
+                    for node in a2.nodes:
+                        a2.nodes[node]['y'] = 1
+
     def __init__(self, color_mode, word_graphs, num_samples, words_per_row, num_rows=None, num_colors=2, edge_p=1.,
                  only_color=False, unique_atoms_per_example=False, unique_colors_per_example=False,
-                 num_unique_atoms=2, num_unique_colors=2, make_prob_of_row_half=False
+                 num_unique_atoms=2, num_unique_colors=2, make_prob_of_row_half=False,
+                 shape_per_row=False, color_per_row=False
                  ):
         """
         num_unique_colors, and num unique_atoms only relevant when unique_atom_per_example and unique_color_per_example are true.. just for debugging something.
@@ -214,13 +237,24 @@ class WordsCombinationGraphDataset(Dataset):
             raise Exception(f'unsupported color mode {color_mode}')
 
         for _ in range(num_samples):
-            if unique_atoms_per_example:
+            if shape_per_row:
+                unique_atoms = numpy.random.choice(word_graphs, num_rows, replace=False)
+                selected_words_ctors = sum([[unique_atom] * words_per_row for unique_atom in unique_atoms], [])
+            elif unique_atoms_per_example:
                 unique_atoms = numpy.random.choice(word_graphs, num_unique_atoms, replace=False)
                 selected_words_ctors = numpy.random.choice(unique_atoms, words_per_row * num_rows)
             else:
                 selected_words_ctors = numpy.random.choice(word_graphs, words_per_row * num_rows)
 
-            if unique_colors_per_example:
+            if color_per_row:
+                colors_in_row = 2
+                unique_colors = numpy.random.choice(list(range(1, num_colors + 1)), num_rows * colors_in_row,
+                                                    replace=False)
+                unique_colors = unique_colors.reshape(num_rows, colors_in_row)
+                selected_colors = sum(
+                    [list(numpy.random.choice(unique_color, words_per_row)) for unique_color in unique_colors], [])
+
+            elif unique_colors_per_example:
                 unique_colors = numpy.random.choice(list(range(1, num_colors + 1)), num_unique_colors, replace=False)
                 selected_colors = numpy.random.choice(unique_colors, words_per_row * num_rows)
             else:
@@ -234,7 +268,8 @@ class WordsCombinationGraphDataset(Dataset):
             p_row_same_color = (1 / n_atom_options) ** (words_per_row - 1)
             ## (p + (1-p)/n_atom_options) ** (words_per_row -1) == 0.5
             # p_make_like_previous = 0.5 ** (1 / (words_per_row - 1)) - 1 / n_atom_options
-            p_make_like_previous = ((0.5 ** (1 / (words_per_row - 1))) * n_atom_options - 1) / (n_atom_options - 1)
+            # p_make_like_previous = ((0.5 ** (1 / (words_per_row - 1))) * n_atom_options - 1) / (n_atom_options - 1)
+            p_make_like_previous = 0.3
 
             for i in range(0, len(selected_words), words_per_row):
                 force_color_all_row_same = make_prob_of_row_half and random.uniform(0, 1) <= (
