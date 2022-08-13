@@ -1327,32 +1327,29 @@ batch norm -> linear seems good..
 
 seems like there is some randomness of dot grid results.. keep that in mind.
 
-
 ### 3/8
+
 how do I assert my impl is correct?
 
 Try changing stuff and see things break
 
+linear edge reduction works well.. not as well as bn-mlp, more overfitting but still
+good: https://wandb.ai/daniel-ai/slurm_gps_shapes_unique/table?workspace=user-danielglickman
 
-linear edge reduction works well.. not as well as bn-mlp, more overfitting but still good: https://wandb.ai/daniel-ai/slurm_gps_shapes_unique/table?workspace=user-danielglickman
-
-
-
-current flow: 
+current flow:
 stack the matrix 10 times
 mix edges with mlp
 reduce edges to logits
 
 masking wrong nodes breaks it...
-mixing with linear only: worst results on full training dot grid: https://wandb.ai/daniel-ai/slurm_gps_shapes_unique/table?
+mixing with linear only: worst results on full training dot
+grid: https://wandb.ai/daniel-ai/slurm_gps_shapes_unique/table?
 stacking only once: a lot worst results :https://wandb.ai/daniel-ai/slurm_gps_shapes_unique/table?
 
-
-verfied visualiziation looks good also on 2 attention layers, bn-mlp positional (https://wandb.ai/daniel-ai/slurm_gps_shapes_unique/runs/1abvi2d8/overview?workspace=user-danielglickman)
-
+verfied visualiziation looks good also on 2 attention layers, bn-mlp
+positional (https://wandb.ai/daniel-ai/slurm_gps_shapes_unique/runs/1abvi2d8/overview?workspace=user-danielglickman)
 
 verified attention looks like shit when looking at shape 9 with bad performance
-
 
 ### 7/8
 
@@ -1363,3 +1360,54 @@ dropout in gnn(gt.dropout) seems to be important. attention dropout, not sure..
 reducing gt.dropout to 0, makes model achive higher train f1(by 0.08) and a little better val f1(by 0.01)..
 and now train f1 > val f1..
 **having dropout, but lower, may achive best results**
+
+### 11/8
+
+Testing triangles, trying to reduce to one point
+
+1) visuaalize just 1 step: should pay attention only inside triangles ![img_5.png](img_5.png)
+2) what happens when multiple by transpose: nothing, because already clustered
+3) what happens when multiple by self: nothing, because already transetivite
+4) what happens when multiple by (1- self)..? expands once to next cluster's connecting node ![img_6.png](img_6.png)
+5) when multiple by p*(1-p)*(p) :  expands attention to all in the next clusters(shapes) ![img_7.png](img_7.png)
+6) when multiple by p*(1-p)*p * p * (1-p)*p: expands attention 2 clusters away. those in stright line have different
+   weight than those that are 1 up 1 left
+   ![img_8.png](img_8.png)
+
+### 12/8
+huge difference between grid with row size 3 and 4 in GNN.
+https://wandb.ai/daniel-ai/color_per_row/table?workspace=user-danielglickman
+node distribution with row size 3:1835,  165
+row size 4: 1980,   20
+with 3 gnn gets:0.99
+with 4 gnn gets:0.08
+
+maybe it is data leak...?
+
+
+there is under reaching, because 6 gnn layers only get 0.5 f1
+
+try make prob of adj in row 0.5
+
+
+
+https://wandb.ai/daniel-ai/color_per_row_good_prob/table?workspace=user-danielglickman
+RWSE is significant
+6 layer gnn doing better than 12...?
+
+GIN is working bad on the task!! much worse than GatedGCN.
+https://wandb.ai/daniel-ai/atom_set_10_good_prob/table?workspace=user-danielglickman
+
+
+
+RWSE is significant.(detects shapes fast)
+GatedGCN is very good at filtering things
+Solving AND problems with gatedGCN is easier.
+
+With dot grid I was good because I only had to measure the diffustion distance.
+With Shapes it is different.
+
+It is more fitting for transformer(histograms counting), because "words" are not adjacent.. like transformer vs convlustion/lstm
+
+
+Now I need to think of a way to mix diffustions..
