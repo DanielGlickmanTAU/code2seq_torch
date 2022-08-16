@@ -36,7 +36,8 @@ class GNNTransformer(nn.Module):
 
     def forward_transformer(self, batched_data, h_node):
         # (n_graph,max_nodes_in_graph,emb_dim), (n_graph,max_nodes_in_graph)
-        h_node_batch, original_mask = pygraph_utils.get_dense_x_and_mask(h_node, batched_data.batch)
+        h_node_batch, original_mask, = pygraph_utils.get_dense_x_and_mask(h_node, batched_data.batch)
+        original_mask = ~original_mask
         adj_stack = pygraph_utils.get_dense_adjstack(batched_data.adj_stack, batched_data.batch)
         if self.mask_far_away_nodes:
             # size (B,N,N)
