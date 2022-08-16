@@ -1,3 +1,5 @@
+import time
+
 import torch
 from torch_geometric.data import InMemoryDataset
 
@@ -24,6 +26,7 @@ class RowColoringDataset(InMemoryDataset):
             num_rows = words_per_row = 4
 
         only_color = cfg.dataset.only_color
+        start = time.time()
         ds = WordsCombinationGraphDataset(color_mode='rows',
                                           word_graphs=graph_words.word_graphs.get_atom_set(atom_set),
                                           num_samples=num_samples,
@@ -39,11 +42,13 @@ class RowColoringDataset(InMemoryDataset):
                                           make_prob_of_row_half=cfg.make_prob_of_row_half,
                                           shape_per_row=cfg.shape_per_row,
                                           color_per_row=cfg.color_per_row,
+                                          row_color_mode=cfg.row_color_mode,
                                           )
         self.data, self.slices = self.collate(ds.dataset)
         # in WOrdCombinationGraphDataset x gets values from 1 to num_colors(because of some issue with drawing the graph colors).. but here we want it to get values from 0 to num_colors-1
         self.data.x = self.data.x - self.data.x.min()
         self.data.x = self.data.x.unsqueeze(1)
+        print(f'creating dataset took {time.time() - start} seconds')
 
     def get_idx_split(self):
         indexes = torch.arange(len(self))
