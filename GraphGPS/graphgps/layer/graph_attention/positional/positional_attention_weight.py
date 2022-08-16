@@ -4,6 +4,7 @@ from torch import nn
 # import global_config
 # from arg_parse_utils import bool_
 from torch_geometric.utils import to_dense_adj
+from examples.graphproppred.mol.pygraph_utils import get_dense_x_and_mask
 
 from examples.graphproppred.mol import pygraph_utils
 from graphgps.layer.graph_attention.positional import positional_utils
@@ -143,8 +144,11 @@ class Diffuser(nn.Module):
         # h_dense, mask2 = to_dense_batch(batch.x, batch.batch)
         # adj = to_dense_adj(batch.edge_index, batch.batch)
 
-        from examples.graphproppred.mol.pygraph_utils import get_dense_x_and_mask
-        _, mask = get_dense_x_and_mask(batch.x, batch.batch)
+        if 'mask' in batch.keys:
+            mask = batch.mask
+        else:
+            _, mask = get_dense_x_and_mask(batch.x, batch.batch)
+            batch.mask = mask
 
         weighted_edges = None
         if self.edge_reducer:
@@ -173,19 +177,6 @@ class Diffuser(nn.Module):
 
 class EdgeReducer(torch_geometric.nn.conv.MessagePassing):
 
-    def __init__(self, in_dim, hidden_dim, dropout, norm_output=False, **kwargs):
-        super().__init__(**kwargs)
-
-        self.A = torch_geometric.nn.Linear(in_dim, hidden_dim, bias=True)
-        self.C = torch_geometric.nn.Linear(in_dim, hidden_dim, bias=True)
-        self.edge_out_proj = torch_geometric.nn.Linear(hidden_dim, 1, bias=True)
-
-        self.bn = nn.BatchNorm1d(hidden_dim)
-        self.norm_output = norm_output
-        if norm_output:
-            self.bn_out = nn.BatchNorm1d(1)
-        self.dropout = dropout
-
     def forward(self, batch):
         x, e, edge_index = batch.x, batch.edge_attr, batch.edge_index
         # symetric distance, map i and j the same
@@ -200,6 +191,19 @@ class EdgeReducer(torch_geometric.nn.conv.MessagePassing):
         # e = torch.nn.functional.dropout(e, self.dropout, training=self.training)
 
         return e
+
+    def __init__(self, in_dim, hidden_dim, dropout, norm_output=False, **kwargs):
+        super().__init__(**kwargs)
+
+        self.A = torch_geometric.nn.Linear(in_dim, hidden_dim, bias=True)
+        self.C = torch_geometric.nn.Linear(in_dim, hidden_dim, bias=True)
+        self.edge_out_proj = torch_geometric.nn.Linear(hidden_dim, 1, bias=True)
+
+        self.bn = nn.BatchNorm1d(hidden_dim)
+        self.norm_output = norm_output
+        if norm_output:
+            self.bn_out = nn.BatchNorm1d(1)
+        self.dropout = dropout
 
     def message(self, Ax_i, Ax_j, Ce):
         e_ij = Ax_i + Ax_j + Ce
