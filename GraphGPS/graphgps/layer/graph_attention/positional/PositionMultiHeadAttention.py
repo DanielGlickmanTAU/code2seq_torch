@@ -76,11 +76,13 @@ class PositionMultiHeadAttention(Module):
         if self.batch_first:
             value = value.transpose(1, 0)
 
-        attention_weights = self.positional_bias(stacks=adj_stack, mask=~attn_mask)
+        attention_weights = self.positional_bias(stacks=adj_stack, mask=attn_mask)
         b, heads, n1, n2 = attention_weights.shape
         attention_weights = attention_weights.reshape(b * self.num_heads, n1, n1)
         # (n,batch,d)
         value = linear(value, self.in_proj_weight, self.in_proj_bias)
+        attn_mask = pygraph_utils.dense_mask_to_attn_mask(attn_mask)
+        attn_mask = ~attn_mask
         attn_mask = pygraph_utils.reshape_attention_mask_to_multihead(attn_mask, self.num_heads)
 
         attn_output, attn_output_weights = multi_head_positional_attention(

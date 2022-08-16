@@ -18,6 +18,7 @@ class Nagasaki(torch.nn.Module):
                                               batch_first=True, edge_reduction=nagasaki_config.edge_reduction)
 
     def forward(self, batch, h, mask):
+        assert mask.dim() == 3
         stacks = batch.edges
-        atten_out, atten_weights = self.att(h, stacks, attn_mask=~mask)
+        atten_out, atten_weights = self.att(h, stacks, attn_mask=mask)
         return atten_out, atten_weights

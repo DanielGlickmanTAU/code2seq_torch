@@ -8,6 +8,7 @@ from torch_geometric.data import Batch
 from torch_geometric.nn import Linear as Linear_pyg
 from torch_geometric.utils import to_dense_batch
 
+from examples.graphproppred.mol import pygraph_utils
 from graphgps.layer.bigbird_layer import SingleBigBirdLayer
 from graphgps.layer.gatedgcn_layer import GatedGCNLayer
 from graphgps.layer.gine_conv_layer import GINEConvESLapPE, GINEConvLayer
@@ -180,7 +181,12 @@ class GPSLayer(nn.Module):
                 h_attn, att_weights = self.self_attn(h_dense, h_dense, h_dense, attn_mask=~mask, key_padding_mask=None)
                 h_attn = h_attn[mask]
             elif self.global_model_type == 'Nagasaki':
-                h_attn, att_weights = self.self_attn(batch, h_dense, mask)
+                if 'mask' in batch.keys:
+                    dense_mask = batch.mask
+                else:
+                    dense_mask = pygraph_utils.attn_mask_to_dense_mask(batch, mask)
+                    batch.mask = dense_mask
+                h_attn, att_weights = self.self_attn(batch, h_dense, dense_mask)
                 h_attn = h_attn[mask]
 
             elif self.global_model_type == 'Performer':

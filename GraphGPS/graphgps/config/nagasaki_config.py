@@ -12,6 +12,11 @@ def set_cfg_nagasaki(cfg):
 
     cfg.nagasaki.edge_reduction = 'bn-mlp'
     cfg.nagasaki.learn_edges_weight = False
+    cfg.nagasaki.two_diffusion = False
+    cfg.nagasaki.normalize = True
+    cfg.nagasaki.kernel = 'sigmoid'
+    cfg.nagasaki.bn_out = False
+
 
 
 register_config('cfg_nagasaki', set_cfg_nagasaki)

@@ -6,9 +6,11 @@ from torch import Tensor
 from torch_geometric.data import Batch
 import torch.nn.functional as F
 
-
 # gets tensor in shape (n,batch_size,d) and num_heads
 # returns tensor in shape (batch_size*num_heads, n ,d/num_head)
+from torch_scatter import scatter_add
+
+
 def reshape_to_multihead(tensor: Tensor, num_heads: int):
     n, batch_size, embed_dim = tensor.shape
     head_dim = embed_dim // num_heads
@@ -54,15 +56,47 @@ def get_graph_sizes(batching_data: Union[Batch, torch.Tensor]):
     return torch.unique_consecutive(batching_data, return_counts=True)[1]
 
 
-# mask is True for hidden node and False for real node
+# B,n,n mask is True for hidden node and False for real node
 def get_dense_x_and_mask(x, batch):
     x, node_mask = torch_geometric.utils.to_dense_batch(x, batch)
-    batch_size, N = node_mask.shape
 
-    masks = torch.ones((batch_size, N, N), dtype=torch.bool, device=x.device)
+    return x, attn_mask_to_dense_mask(batch, node_mask)
+
+
+# gets attn mask of shape (B,N), e.g obtained with torch_geometric.utils.to_dense_batch
+# returns (B,N,N) mask. useful e.g for edge wise operation with batch norm
+def attn_mask_to_dense_mask(batch, attn_mask):
+    batch_size, N = attn_mask.shape
+
+    masks = torch.ones((batch_size, N, N), dtype=torch.bool, device=attn_mask.device)
     for mask, real_size, in zip(masks, get_graph_sizes(batch)):
         mask[0:real_size, 0:real_size] = False
-    return x, masks
+    return ~masks
+
+
+def dense_mask_to_attn_mask(dense_mask):
+    assert dense_mask.dim() == 3
+    return dense_mask[:, 0]
+
+
+# works like torch_geometric.utils.to_dense_batch masking
+def _mask(batch) -> Tensor:
+    batch_size = int(batch.max()) + 1
+
+    num_nodes = scatter_add(batch.new_ones(batch.size(0)), batch, dim=0,
+                            dim_size=batch_size)
+    cum_nodes = torch.cat([batch.new_zeros(1), num_nodes.cumsum(dim=0)])
+
+    max_num_nodes = int(num_nodes.max())
+
+    idx = torch.arange(batch.size(0), dtype=torch.long, device=batch.device)
+    idx = (idx - cum_nodes[batch]) + (batch * max_num_nodes)
+
+    mask = torch.zeros(batch_size * max_num_nodes, dtype=torch.bool,
+                       device=batch.device)
+    mask[idx] = 1
+    mask = mask.view(batch_size, max_num_nodes)
+    return mask
 
 
 def get_spare_x(dense_x, origin_mask):
