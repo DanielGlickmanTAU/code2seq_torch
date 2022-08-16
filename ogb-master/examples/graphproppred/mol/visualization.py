@@ -58,10 +58,10 @@ def draw(graph: Union[torch_geometric.data.Data, nx.Graph], color_tensor, color_
         plt.show()
 
 
-basic_color_map = ['red', 'green', 'blue', 'pink', 'yellow', 'orange', 'purple', 'brown', 'crimson', 'cyan',
+basic_color_map = ['red', 'green', 'blue', 'pink', 'yellow', 'orange', 'purple', 'brown', 'cyan',
                    'antiquewhite',
                    'bisque', 'burlywood', 'cadetblue', 'chartreuse', 'chocolate', 'coral', 'cornflowerblue', 'cornsilk',
-                   'darkolivegreen', 'darksalmon', 'firebrick', 'deepskyblue']
+                   'darkolivegreen', 'darksalmon', 'firebrick', 'deepskyblue', 'crimson']
 # just so we dont get out of index error..
 basic_color_map = basic_color_map * 10
 
@@ -110,12 +110,12 @@ def draw_attention(graph, source_node, attention_matrix):
     source_node_attention_scores = attention_matrix[source_node_tensor_index]
     source_node_attention_scores_nx_indexed = {tensor_id_to_nx_index[i]: score.item() for i, score in
                                                enumerate(source_node_attention_scores)
-                                               #this if ignores padding nodes
+                                               # this if ignores padding nodes
                                                if i in tensor_id_to_nx_index}
     heatmap = [source_node_attention_scores_nx_indexed[n] for n in graph.nodes]
-    nx.draw(graph, graph.positions, node_color=heatmap, with_labels=True,cmap=plt.cm.Reds)
+    nx.draw(graph, graph.positions, node_color=heatmap, with_labels=True, cmap=plt.cm.Reds)
     nx.draw(graph.subgraph(source_node), graph.positions, node_color=[heatmap[source_node_tensor_index]],
-            with_labels=True, font_color='red',cmap=plt.cm.Reds)
+            with_labels=True, font_color='red', cmap=plt.cm.Reds)
     plt.show()
 
 
