@@ -1,5 +1,7 @@
 import time
 
+from torch_geometric.graphgym import load_ckpt
+
 from code2seq.utils import compute
 
 compute.get_torch()
@@ -125,7 +127,6 @@ def cfg_assertions(cfg):
 
 
 def load_save_model(model, checkpoint_dir='runs'):
-    from torch_geometric.graphgym.checkpoint import load_ckpt
     p = cfg.run_dir
     cfg.run_dir = checkpoint_dir
     ckpt = load_ckpt(model, optimizer, scheduler)
