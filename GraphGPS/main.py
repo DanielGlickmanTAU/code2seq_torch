@@ -126,7 +126,7 @@ def cfg_assertions(cfg):
         cfg.dataset['node_encoder_name'] = cfg.dataset['node_encoder_name'].replace('+LapPE', '')
 
 
-def load_save_model(model, checkpoint_dir='runs'):
+def load_model(model, checkpoint_dir='runs'):
     p = cfg.run_dir
     cfg.run_dir = checkpoint_dir
     ckpt = load_ckpt(model, optimizer, scheduler)
@@ -191,7 +191,7 @@ if __name__ == '__main__':
         scheduler = create_scheduler(optimizer, new_scheduler_config(cfg))
 
         if cfg.load_checkpoint_from_dir:
-            load_save_model(model, checkpoint_dir=cfg.load_checkpoint_from_dir)
+            load_model(model, checkpoint_dir=cfg.load_checkpoint_from_dir)
         # Print model info
         logging.info(model)
         logging.info(cfg)
