@@ -19,3 +19,8 @@ notice to use the right parameters to load model, can take that from wandb overv
 ## visualize attention
 1) break point at a place where you have attentio weights e.g gps layer after using attention module
 2) visualization.draw_attention(batch[index_in_batch].graph, node_id, att_weights[index_in_batch])
+
+
+## visualize embeddings:
+random projects the colors into 3 dim(r,g,b)
+visualization.draw_pyramid(batch[graph_index], color_with=graph_pos_enc,color_mode='project')

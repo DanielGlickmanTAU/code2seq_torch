@@ -1411,3 +1411,28 @@ It is more fitting for transformer(histograms counting), because "words" are not
 
 
 Now I need to think of a way to mix diffustions..
+
+
+### 13/8
+2 on 4 with or row is harder..
+gnn results is here ...https://wandb.ai/daniel-ai/atom_set_10_good_prob/table?workspace=user-danielglickman
+
+
+### 16/8
+batch.edge_index().size() ==(to_dense_adj(batch.edge_index, batch.batch,batch.edge_attr)[mask].sum(-1) !=0).sum()
+
+
+right now , the mask is 1d. that means that when selecting edges, it will select all real nodes.
+but real nodes will look at *all* nodes(including padding)
+I want stacks[mask] to be same size as batch.edge_index
+need nxn mask.. mask.unsqueeze(1).expand(-1,n,-1)... mask[~mask[:,0]] = False/True
+
+
+Now as for adding cls node
+If you want to do it before reducing edges(in diffusion, so we calculate the score of per node.. and it takes part of diffusion),
+then need to modify batch.x(add the node) and batch.edge_index, batch.edge_attr.
+The problem is that batch contains many isolated graphs(pyg batching). 
+The easiest way to add would be to  
+1) convert it to dense edge(b,n,n,e)
+2) append edge: 1) add column(b,n,n+1,e). 2) set last column[mask] = edge_embedding
+2) append node: 1) add row(b,n,n+1,e). 2) set last row[mask] = edge2_embedding
