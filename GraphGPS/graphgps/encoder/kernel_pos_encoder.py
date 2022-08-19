@@ -96,6 +96,11 @@ class KernelPENodeEncoder(torch.nn.Module):
         else:
             h = batch.x
         # Concatenate final PEs to input embedding
+
+        # from examples.graphproppred.mol import visualization
+        # graph_index = 2
+        # graph_pos_enc = pos_enc[batch.batch == graph_index]
+        # visualization.draw_pyramid(batch[graph_index], color_with=graph_pos_enc,color_mode='project')
         batch.x = torch.cat((h, pos_enc), 1)
         # Keep PE also separate in a variable (e.g. for skip connections to input)
         if self.pass_as_var:
