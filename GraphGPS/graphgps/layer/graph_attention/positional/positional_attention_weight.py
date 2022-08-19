@@ -24,10 +24,9 @@ class AdjStackAttentionWeights(torch.nn.Module):
             )
         elif ffn == 'bn-mlp' or ffn == 'mlp':
             if ffn == 'mlp':
-                layers = [torch.nn.Linear(input_dim, hidden_dim), torch.nn.BatchNorm1d(hidden_dim)]
+                layers = [torch.nn.Linear(input_dim, hidden_dim), torch.nn.ReLU()]
             else:
-                layers = [torch.nn.BatchNorm1d(input_dim), torch.nn.Linear(input_dim, hidden_dim)]
-            layers.append(torch.nn.ReLU())
+                layers = [torch.nn.BatchNorm1d(input_dim), torch.nn.Linear(input_dim, hidden_dim), torch.nn.ReLU()]
             for _ in range(ffn_layers - 1):
                 layers.append(torch.nn.Linear(hidden_dim, hidden_dim))
                 layers.append(torch.nn.ReLU())
@@ -56,34 +55,43 @@ class AdjStackAttentionWeights(torch.nn.Module):
 
 class AdjStack(torch.nn.Module):
 
-    def __init__(self, steps: list, normalize: bool = True):
+    def __init__(self, steps: list, nhead=1, kernel=None, normalize: bool = True):
         super().__init__()
         self.normalize = normalize
         self.steps = steps
+        self.kernel = kernel
+        self.nhead = nhead
         assert len(self.steps) == len(set(self.steps)), f'duplicate power in {self.steps}'
 
     def forward(self, batch, mask, edge_weights=None):
         if edge_weights is not None:
-            edge_weights = edge_weights.squeeze(-1)
-            if edge_weights.dim() == 3:
-                adj = edge_weights
-            else:
-                assert edge_weights.dim() == 1, f'supporting only single weighted edges, got weights of shape {edge_weights.shape}'
+            # edge_weights = edge_weights.squeeze(-1)
+            if self.kernel:
+                edge_weights = torch.sigmoid(edge_weights) if self.kernel == 'sigmoid' else torch.exp(
+                    -(edge_weights ** 2)) if self.kernel == 'exp' else torch.exp(edge_weights)
+            if edge_weights.dim() == 2:
                 adj = to_dense_adj(batch.edge_index, batch.batch, edge_weights)
+            else:
+                adj = edge_weights
+            assert adj.dim() == 4
+            adj = adj.permute(0, 3, 1, 2)
         else:
             adj = to_dense_adj(batch.edge_index, batch.batch)
-        adj = self.to_P_matrix(adj)
 
-        powers = self._calc_power(adj, self.steps) if self.normalize else adj
+        if self.normalize:
+            adj = self.to_P_matrix(adj)
+
+        powers = self._calc_power(adj, self.steps)
 
         # if mask.dim() == 3:
         mask = pygraph_utils.dense_mask_to_attn_mask(mask)
-        self_adj = torch.diag_embed((mask).float())
+        self_adj = torch.diag_embed((mask).float()).unsqueeze(1).expand(-1, 2, -1, -1)
         powers.insert(0, self_adj)
         stacks = torch.stack(powers, dim=-1)
         return stacks
 
     def to_P_matrix(self, A: torch.Tensor):
+        # sum over rows
         D = A.sum(dim=-1, keepdim=True)
         # if all entries are zero, we want to avoid dividing by zero.
         # set it to any number, as the entries in A are 0 anyway so A/D will be 0
@@ -106,6 +114,40 @@ class AdjStack(torch.nn.Module):
         return powers
 
 
+class MultiHeadAdjStackWeight(nn.Module):
+    def __init__(self, input_dim, hidden_dim, dim_out, edge_model_type, ffn_layers, nhead, reduce):
+        super().__init__()
+        self.nhead = nhead
+        self.reduce = reduce
+        self.hidden_reducer_list = torch.nn.ModuleList([
+            AdjStackAttentionWeights(
+                input_dim=input_dim,
+                hidden_dim=hidden_dim,
+                dim_out=1 if reduce else hidden_dim,
+                ffn=edge_model_type,
+                ffn_layers=ffn_layers)
+            for _ in range(nhead)]
+        )
+        if reduce:
+            self.hidden_reducer_combiner = AdjStackAttentionWeights(
+                input_dim=self.nhead,
+                hidden_dim=self.nhead * 2,
+                dim_out=dim_out,
+                ffn='mlp',
+                ffn_layers=1
+            )
+
+    def forward(self, stacks, mask):
+        reduced_edges = [self.hidden_reducer_list[i](stacks[:, i, :, :, :], mask) for i in range(stacks.shape[1])]
+        if self.reduce:
+            reduced_edges = torch.cat(reduced_edges, dim=-1)
+            reduced_edges = self.hidden_reducer_combiner(reduced_edges, mask)
+        else:
+            reduced_edges = torch.stack(reduced_edges, dim=-1)
+            reduced_edges = torch.sum(reduced_edges, dim=-1)
+        return reduced_edges
+
+
 class Diffuser(nn.Module):
     def __init__(self, dim_in, nagasaki_config):
         super().__init__()
@@ -114,64 +156,87 @@ class Diffuser(nn.Module):
             steps = list(eval(steps))
         num_stack = positional_utils.get_stacks_dim(nagasaki_config)
         edge_dim = positional_utils.get_edge_dim(nagasaki_config)
-
+        self.nhead = nagasaki_config.nhead
         if nagasaki_config.learn_edges_weight:
-            self.edge_reducer = EdgeReducer(dim_in, hidden_dim=2 * dim_in, dropout=0.,
+            self.edge_reducer = EdgeReducer(dim_in, hidden_dim=2 * dim_in, dim_out=self.nhead, dropout=0.,
                                             norm_output=nagasaki_config.bn_out)
         else:
             self.edge_reducer = None
 
-        self.adj_stacker = AdjStack(steps, normalize=nagasaki_config.normalize)
+        self.adj_stacker = AdjStack(steps, nhead=nagasaki_config.nhead, kernel=nagasaki_config.kernel,
+                                    normalize=nagasaki_config.normalize)
 
-        self.edge_mlp = AdjStackAttentionWeights(
-            input_dim=num_stack,
-            hidden_dim=edge_dim,
-            dim_out=edge_dim,
-            ffn=nagasaki_config.edge_model_type,
-            ffn_layers=nagasaki_config.ffn_layers)
+        self.edge_mlp = MultiHeadAdjStackWeight(input_dim=num_stack,
+                                                hidden_dim=edge_dim,
+                                                dim_out=edge_dim,
+                                                edge_model_type=nagasaki_config.edge_model_type,
+                                                ffn_layers=nagasaki_config.ffn_layers,
+                                                reduce=False, nhead=self.nhead)
+        # AdjStackAttentionWeights(
+        # input_dim=num_stack,
+        # hidden_dim=edge_dim,
+        # dim_out=edge_dim,
+        # ffn=nagasaki_config.edge_model_type,
+        # ffn_layers=nagasaki_config.ffn_layers)
 
         self.kernel = nagasaki_config.kernel
         self.two_diffusion = nagasaki_config.two_diffusion
+
         if nagasaki_config.two_diffusion:
-            self.hidden_edge_mlp = AdjStackAttentionWeights(
+            self.hidden_reducer = MultiHeadAdjStackWeight(
                 input_dim=num_stack,
                 hidden_dim=edge_dim,
-                dim_out=1,
-                ffn=nagasaki_config.edge_model_type,
-                ffn_layers=nagasaki_config.ffn_layers)
+                edge_model_type=nagasaki_config.edge_model_type,
+                ffn_layers=nagasaki_config.ffn_layers,
+                dim_out=self.nhead,
+                nhead=self.nhead, reduce=True)
+            # self.hidden_reducer_list = torch.nn.ModuleList([
+            #     AdjStackAttentionWeights(
+            #         input_dim=num_stack,
+            #         hidden_dim=edge_dim,
+            #         dim_out=1,
+            #         ffn=nagasaki_config.edge_model_type,
+            #         ffn_layers=nagasaki_config.ffn_layers,
+            #
+            #     )
+            #     for _ in range(self.nhead)]
+            # )
+            # self.hidden_reducer_combiner = AdjStackAttentionWeights(
+            #     input_dim=self.nhead,
+            #     hidden_dim=self.nhead * 4,
+            #     dim_out=self.nhead,
+            #     ffn='mlp',
+            #     ffn_layers=1
+            # )
 
     def forward(self, batch):
-        # h_dense, mask2 = to_dense_batch(batch.x, batch.batch)
-        # adj = to_dense_adj(batch.edge_index, batch.batch)
-
-        if 'mask' in batch.keys:
-            mask = batch.mask
-        else:
-            _, mask = get_dense_x_and_mask(batch.x, batch.batch)
-            batch.mask = mask
+        _, mask = get_dense_x_and_mask(batch.x, batch.batch)
+        batch.mask = mask
 
         weighted_edges = None
         if self.edge_reducer:
             weighted_edges = self.edge_reducer(batch)
-            weighted_edges = torch.sigmoid(weighted_edges) if self.kernel == 'sigmoid' else torch.exp(
-                -(weighted_edges ** 2))
-
-            # shape_edges = FakeReducer()(batch)
-            # shape_edges_full = to_dense_adj(batch.edge_index, batch.batch, shape_edges).squeeze(-1)
-            # # add self loops
-            # [g.fill_diagonal_(1) for g in shape_edges_full]
 
         stacks = self.adj_stacker(batch, mask, weighted_edges)
 
         if self.two_diffusion:
-            reduced_edges = self.hidden_edge_mlp(stacks, mask)
+            # reduced_edges = torch.cat(
+            #     [self.hidden_reducer_list[i](stacks[:, i, :, :, :], mask) for i in range(stacks.shape[1])],
+            #     dim=-1)
+            # reduced_edges = self.hidden_reducer_combiner(reduced_edges, mask)
+            reduced_edges = self.hidden_reducer(stacks, mask)
+
             stacks = self.adj_stacker(batch, mask, reduced_edges)
 
         edges = self.edge_mlp(stacks, mask)
 
         batch.edges = edges
-        # visualization.draw_attention(batch[6].graph, 0, to_dense_adj(batch.edge_index, batch.batch, shape_edges).squeeze(-1)[6])
 
+        # shape_edges = FakeReducer()(batch)
+        # shape_edges_full = to_dense_adj(batch.edge_index, batch.batch, shape_edges).squeeze(-1)
+        # # add self loops
+        # [g.fill_diagonal_(1) for g in shape_edges_full]
+        # visualization.draw_attention(batch[6].graph, 0, to_dense_adj(batch.edge_index, batch.batch, shape_edges).squeeze(-1)[6])
         return batch
 
 
@@ -192,17 +257,17 @@ class EdgeReducer(torch_geometric.nn.conv.MessagePassing):
 
         return e
 
-    def __init__(self, in_dim, hidden_dim, dropout, norm_output=False, **kwargs):
+    def __init__(self, in_dim, hidden_dim, dim_out, dropout, norm_output=False, **kwargs):
         super().__init__(**kwargs)
 
         self.A = torch_geometric.nn.Linear(in_dim, hidden_dim, bias=True)
         self.C = torch_geometric.nn.Linear(in_dim, hidden_dim, bias=True)
-        self.edge_out_proj = torch_geometric.nn.Linear(hidden_dim, 1, bias=True)
+        self.edge_out_proj = torch_geometric.nn.Linear(hidden_dim, dim_out, bias=True)
 
         self.bn = nn.BatchNorm1d(hidden_dim)
         self.norm_output = norm_output
         if norm_output:
-            self.bn_out = nn.BatchNorm1d(1)
+            self.bn_out = nn.BatchNorm1d(dim_out)
         self.dropout = dropout
 
     def message(self, Ax_i, Ax_j, Ce):

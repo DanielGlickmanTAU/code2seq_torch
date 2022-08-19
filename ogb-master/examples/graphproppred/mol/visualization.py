@@ -68,10 +68,14 @@ basic_color_map = basic_color_map * 10
 
 # force_show is for debugging. will show plt locally and not only on  comet
 def draw_pyramid(data: torch_geometric.data.Data, color_with: Union[str, torch.Tensor], label=None, fig_name=None,
-                 force_show=False, step=None):
+                 force_show=False, step=None, positions=True):
     """gets PyramidNodeColorDataset and colors it..
     uses positions from graph. color_with is either x, y or a tensor of predictions"""
-    positions = data.graph.positions
+    if positions == True:
+        positions = data.graph.positions
+    elif not positions:
+        positions = None
+
     alpha = None
     if isinstance(color_with, str):
         if color_with == 'x':

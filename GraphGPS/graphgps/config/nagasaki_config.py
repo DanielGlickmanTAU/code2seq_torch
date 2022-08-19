@@ -16,7 +16,7 @@ def set_cfg_nagasaki(cfg):
     cfg.nagasaki.normalize = True
     cfg.nagasaki.kernel = 'sigmoid'
     cfg.nagasaki.bn_out = False
-
+    cfg.nagasaki.nhead = 1
 
 
 register_config('cfg_nagasaki', set_cfg_nagasaki)
