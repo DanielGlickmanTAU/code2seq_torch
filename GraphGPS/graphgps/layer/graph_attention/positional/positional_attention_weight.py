@@ -85,7 +85,7 @@ class AdjStack(torch.nn.Module):
 
         # if mask.dim() == 3:
         mask = pygraph_utils.dense_mask_to_attn_mask(mask)
-        self_adj = torch.diag_embed((mask).float()).unsqueeze(1).expand(-1, 2, -1, -1)
+        self_adj = torch.diag_embed((mask).float()).unsqueeze(1).expand(-1, self.nhead, -1, -1)
         powers.insert(0, self_adj)
         stacks = torch.stack(powers, dim=-1)
         return stacks
@@ -190,24 +190,6 @@ class Diffuser(nn.Module):
                 ffn_layers=nagasaki_config.ffn_layers,
                 dim_out=self.nhead,
                 nhead=self.nhead, reduce=True)
-            # self.hidden_reducer_list = torch.nn.ModuleList([
-            #     AdjStackAttentionWeights(
-            #         input_dim=num_stack,
-            #         hidden_dim=edge_dim,
-            #         dim_out=1,
-            #         ffn=nagasaki_config.edge_model_type,
-            #         ffn_layers=nagasaki_config.ffn_layers,
-            #
-            #     )
-            #     for _ in range(self.nhead)]
-            # )
-            # self.hidden_reducer_combiner = AdjStackAttentionWeights(
-            #     input_dim=self.nhead,
-            #     hidden_dim=self.nhead * 4,
-            #     dim_out=self.nhead,
-            #     ffn='mlp',
-            #     ffn_layers=1
-            # )
 
     def forward(self, batch):
         _, mask = get_dense_x_and_mask(batch.x, batch.batch)
@@ -220,10 +202,6 @@ class Diffuser(nn.Module):
         stacks = self.adj_stacker(batch, mask, weighted_edges)
 
         if self.two_diffusion:
-            # reduced_edges = torch.cat(
-            #     [self.hidden_reducer_list[i](stacks[:, i, :, :, :], mask) for i in range(stacks.shape[1])],
-            #     dim=-1)
-            # reduced_edges = self.hidden_reducer_combiner(reduced_edges, mask)
             reduced_edges = self.hidden_reducer(stacks, mask)
 
             stacks = self.adj_stacker(batch, mask, reduced_edges)
@@ -232,11 +210,6 @@ class Diffuser(nn.Module):
 
         batch.edges = edges
 
-        # shape_edges = FakeReducer()(batch)
-        # shape_edges_full = to_dense_adj(batch.edge_index, batch.batch, shape_edges).squeeze(-1)
-        # # add self loops
-        # [g.fill_diagonal_(1) for g in shape_edges_full]
-        # visualization.draw_attention(batch[6].graph, 0, to_dense_adj(batch.edge_index, batch.batch, shape_edges).squeeze(-1)[6])
         return batch
 
 
@@ -252,8 +225,6 @@ class EdgeReducer(torch_geometric.nn.conv.MessagePassing):
                            Ce=Ce,
                            e=e, Ax=Ax,
                            )
-        # x = torch.nn.functional.dropout(x, self.dropout, training=self.training)
-        # e = torch.nn.functional.dropout(e, self.dropout, training=self.training)
 
         return e
 
@@ -286,6 +257,12 @@ class EdgeReducer(torch_geometric.nn.conv.MessagePassing):
 
 
 # returns if 1./0 if (*real*) edge is inside shape
+#useage:
+# shape_edges = FakeReducer()(batch)
+# shape_edges_full = to_dense_adj(batch.edge_index, batch.batch, shape_edges).squeeze(-1)
+# # add self loops
+# [g.fill_diagonal_(1) for g in shape_edges_full]
+# visualization.draw_attention(batch[6].graph, 0, to_dense_adj(batch.edge_index, batch.batch, shape_edges).squeeze(-1)[6])
 class FakeReducer(torch_geometric.nn.conv.MessagePassing):
     def __init__(self):
         super().__init__()
