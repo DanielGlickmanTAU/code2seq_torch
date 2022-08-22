@@ -1436,3 +1436,24 @@ The easiest way to add would be to
 1) convert it to dense edge(b,n,n,e)
 2) append edge: 1) add column(b,n,n+1,e). 2) set last column[mask] = edge_embedding
 2) append node: 1) add row(b,n,n+1,e). 2) set last row[mask] = edge2_embedding
+
+
+
+
+
+### 22/8
+Right now, each location in the grid is occupied by a random shape, and shapes are connected by an edge between a randomly selected node in each shape.
+I fail to solve, or do better than GPS on this problem.
+I am thinking of moving to a constant graph structure, e.g only triangle that are connected in a determinstic way(always same node selected).
+The reasoning, is that I would not need a flexible way of jumping between shapes.
+The diffusion distance/pattern will always be the same, and in that way nagasaki could memorize it, the same way it did for dot grid. 
+
++ This is simple, and I think has a good chance of improving over GPS etc on REAL benchmarks.
+
+* How do I explain starting with gnns? with shapes, they were used to detect shapes. Now that will not be needed. 
+ - option 1: select 2 shapes per example, mlp may still be able to memorize patterns if there are not too many.
+ - option 2: decouple diffusion distance from using gnns.
+
+
+------------------  ---------------
+test just projecting diag 

@@ -4,10 +4,9 @@ import GraphGPS.runs.gps_baselines_config as baseline_config
 from code2seq.utils.gridsearch import gridsearch, ListArgument
 from code2seq.utils.slurm import run_on_slurm
 import os
+import sys
 
 params_for_exp = {
-    'wandb.project': 'shapes9_grid_unique2',
-    # 'optim.base_lr': [0.0001, 0.0002, 0.0004],
     'optim.base_lr': [0.0004],
     # 'gt.layers': [5, 10],
     # 'gt.n_layers_gnn_only': 1,
@@ -26,38 +25,41 @@ params_for_exp = {
     'gnn.dim_inner': 32,
     # 'gt.layers': [10],
     # 'gt.n_layers_gnn_only': [6],
-    'optim.early_stop_patience': 10,
-    # 'nagasaki.edge_model_type': ['bn-linear', 'linear']
-    # 'nagasaki.edge_model_type': ['bn-linear', 'mlp']
+    'optim.early_stop_patience': 20,
+    # 'nagasaki.edge_model_type': ['bn-mlp', 'mlp'],
     'nagasaki.edge_model_type': ['bn-mlp'],
-    # 'nagasaki.ffn_layers': [2, 4],
-    'nagasaki.ffn_layers': [2],
-    'nagasaki.edge_reduction': ['bn-linear'],
-    # 'nagasaki.normalize': [True, False],
-    # 'nagasaki.normalize': [False],
-    'nagasaki.normalize': [True],
-    # 'nagasaki.kernel': ['sigmoid', 'exp'],
-    'nagasaki.kernel': ['exp'],
-    # 'nagasaki.bn_out': [True, False]
-    # 'nagasaki.bn_out': [True, False],
-    'nagasaki.bn_out': [True],
+    # 'nagasaki.edge_model_type': ['mlp'],
+    # 'nagasaki.ffn_layers': [1, 2],
+    # 'nagasaki.ffn_layers': [1, 2],
+    # 'nagasaki.ffn_layers': [2],
+    'nagasaki.ffn_layers': [1],
     'nagasaki.learn_edges_weight': [True],
+    # 'nagasaki.two_diffusion': [True, False],
 
-    # 'nagasaki.edge_model_type': ['mlp']
+    'nagasaki.two_diffusion': [True],
+    'gt.dropout': 0.1,
+    'gt.attn_dropout': 0.1,
+    'nagasaki.steps': '[1, 2, 3, 4, 5]',
+
+    'nagasaki.kernel': ['sigmoid', 'exp', 'softmax'],
+    'nagasaki.nhead': 2
 
 }
 
 params = {
     '--cfg': 'tests/configs/graph/row-coloring-laplace.yaml',
-    # '--words_per_row': 4,
-    '--num_rows': 6,
+
+    '--num_rows': 4,
+    # '--num_rows': 12,
     '--words_per_row': 4,
-    # '--atom_set': 9,
-    '--atom_set': 9,
-    '--num_unique_atoms': 1,
-    '--num_unique_colors': 2,
-    # '--make_prob_of_row_half': True
-    '--make_prob_of_row_half': False,
+    # '--words_per_row': 2,
+    '--atom_set': 11,
+    '--num_unique_atoms': 4,
+    '--num_unique_colors': 10,
+
+    '--row_color_mode': 'or',
+    # '--max_examples':100
+
 }
 
 params_for_grid_search = [
@@ -66,13 +68,15 @@ params_for_grid_search = [
     # baseline_config.get_RWSE_GNN_config(layers=6),
     # baseline_config.get_gps_signnet_deepset_config(),
     # baseline_config.get_gnn_transformer_laplace_transformer_config(),
+    # baseline_config.get_RWSE_gps_config(7),
     # baseline_config.get_gnn_transformer_signnet_deepset_config(),
     # baseline_config.get_RSWE_gnn_transformer_signnet_deepset_config(),
     # baseline_config.get_STRONG_RSWE_gnn_transformer_signnet_AFTERGNN_deepset_config(),
-    # baseline_config.get_nagasaki_config(total_layers=6, gnn_layers=4),
-    # baseline_config.get_RWSE_gps_config(7),
-
-    baseline_config.get_nagasaki_config(total_layers=7, gnn_layers=5, far_away=False),
+    # baseline_config.get_nagasaki_config(total_layers=7, gnn_layers=5, far_away=True),
+    baseline_config.get_nagasaki_config(total_layers=7, gnn_layers=5),
+    # baseline_config.get_nagasaki_config(total_layers=8, gnn_layers=5, far_away=True),
+    # baseline_config.get_nagasaki_config(total_layers=8, gnn_layers=3)
+    # baseline_config.get_nagasaki_config(total_layers=2, gnn_layers=1),
 
 ]
 
