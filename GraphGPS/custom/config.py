@@ -35,6 +35,7 @@ def parse_args():
     parser.add_argument('--color_per_row', type=bool_, default=False)
     # and/or
     parser.add_argument('--row_color_mode', type=str, default='and')
+    parser.add_argument('--deterministic_edges', type=bool_, default=False)
 
     parser.add_argument('--profiler', type=bool_, default=False)
 

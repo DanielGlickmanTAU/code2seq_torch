@@ -153,6 +153,8 @@ def get_atom_set(number):
         return [lambda: Cycle(3), lambda: Clique(4), lambda: Cycle(5), lambda: ChordCycle(5)]
     if number == 12:
         return [lambda: Cycle(3), lambda: Clique(4), lambda: Cycle(5)]
+    if number == 13:
+        return [lambda: Cycle(3)]
 
     raise Exception(f'unknown atom set option {number}')
 
@@ -204,7 +206,7 @@ class WordsCombinationGraphDataset(Dataset):
     def __init__(self, color_mode, word_graphs, num_samples, words_per_row, num_rows=None, num_colors=2, edge_p=1.,
                  only_color=False, unique_atoms_per_example=False, unique_colors_per_example=False,
                  num_unique_atoms=2, num_unique_colors=2, make_prob_of_row_half=False,
-                 shape_per_row=False, color_per_row=False, row_color_mode='and'
+                 shape_per_row=False, color_per_row=False, row_color_mode='and', deterministic_edges=False
                  ):
         """
         num_unique_colors, and num unique_atoms only relevant when unique_atom_per_example and unique_color_per_example are true.. just for debugging something.
@@ -337,7 +339,7 @@ class WordsCombinationGraphDataset(Dataset):
                             word_instance.nodes[node]['y'] = self.name_2_label[word_instance.name]
                             word_instance.nodes[node]['x'] = 0
 
-            graph = join_graphs(words_in_grid, edge_p)
+            graph = join_graphs(words_in_grid, edge_p, deterministic_edges)
             # node_colors = [self.name_2_label[attr['color']] for _, attr in graph.nodes(data=True)]
             pyg_graph = create_pyg_graph(graph)
             self.dataset.append(pyg_graph)
@@ -371,10 +373,16 @@ def join_graphs_old(graphs):
     return left_graph
 
 
-def join_graphs(graphs, edge_p=1.):
+def join_graphs(graphs, edge_p=1., deterministic_edges=False):
+    def get_graph_start_id(graph_index):
+        return first_labels[graph_index]
+
+    def get_graph_end_id(graph_index):
+        return get_graph_start_id(graph_index) + len(flat_graphs[graph_index])
+
     def select_random_node(graph_index):
-        graph_lowest_node_id = first_labels[graph_index]
-        return numpy.random.randint(graph_lowest_node_id, graph_lowest_node_id + len(flat_graphs[graph_index]))
+        graph_lowest_node_id, graph_highest_node_id = get_graph_start_id(graph_index), get_graph_end_id(graph_index)
+        return numpy.random.randint(graph_lowest_node_id, graph_highest_node_id)
 
     assert isinstance(graphs[0], list), f' expects list of list(grid) not {graphs}'
 
@@ -408,16 +416,27 @@ def join_graphs(graphs, edge_p=1.):
             if random.random() > edge_p:
                 continue
             graph_num = i * len(row) + j
-            left_node = select_random_node(graph_num)
-            right_node = select_random_node(graph_num + 1)
+            if deterministic_edges:
+                left_node = get_graph_end_id(graph_num) - 1
+                # right_node = get_graph_start_id(graph_num + 1) + 1
+                down_start, down_end = get_graph_start_id(graph_num + 1), get_graph_end_id(graph_num + 1)
+                right_node = int((down_start + down_end) / 2) + 1
+            else:
+                left_node = select_random_node(graph_num)
+                right_node = select_random_node(graph_num + 1)
             R.add_edge(left_node, right_node)
 
     # connect down, with row below
     for i, row in enumerate(graphs[:-1]):
         for j, left_graph in enumerate(row):
             graph_num = i * len(row) + j
-            left_node = select_random_node(graph_num)
-            right_node = select_random_node(graph_num + len(row))
-            R.add_edge(left_node, right_node)
+            if deterministic_edges:
+                up_node = get_graph_end_id(graph_num) - 1
+                down_start, down_end = get_graph_start_id(graph_num + len(row)), get_graph_end_id(graph_num + len(row))
+                down_node = int((down_start + down_end) / 2)
+            else:
+                up_node = select_random_node(graph_num)
+                down_node = select_random_node(graph_num + len(row))
+            R.add_edge(up_node, down_node)
 
     return R
