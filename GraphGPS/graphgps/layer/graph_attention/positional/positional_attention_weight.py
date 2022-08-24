@@ -203,7 +203,6 @@ class Diffuser(nn.Module):
 
         if self.two_diffusion:
             reduced_edges = self.hidden_reducer(stacks, mask)
-
             stacks = self.adj_stacker(batch, mask, reduced_edges)
 
         edges = self.edge_mlp(stacks, mask)
