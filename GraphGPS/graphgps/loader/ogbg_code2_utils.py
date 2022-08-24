@@ -4,6 +4,7 @@ https://github.com/snap-stanford/ogb/blob/master/examples/graphproppred/code2/ut
 """
 import numpy as np
 import torch
+from torch_geometric.graphgym import cfg
 
 idx2vocab = []
 
@@ -54,6 +55,10 @@ def get_vocab_mapping(seq_list, num_vocab):
 
     vocab2idx['__EOS__'] = num_vocab + 1
     idx2vocab.append('__EOS__')
+
+    # this check is necessary, use max_examples with code2 only to test loading etc...
+    if cfg.max_examples:
+        return vocab2idx, idx2vocab
 
     # test the correspondence between vocab2idx and idx2vocab
     for idx, vocab in enumerate(idx2vocab):
