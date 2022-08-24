@@ -1,0 +1,75 @@
+out_dir: tests/results
+metric_best: accuracy
+wandb:
+  use: True
+  project: molpcba
+
+dataset:
+  format: PyG-GNNBenchmarkDataset
+  name: 'row-coloring'
+  node_encoder: True
+  #  this num_types == num_colors
+  node_encoder_num_types: 20
+  node_encoder_name: TypeDictNode+LapPE
+  transformer_node_encoder_name: None
+  node_encoder_bn: False
+  task: graph
+  task_type: classification
+  transductive: False
+  split_mode: standard
+train:
+  mode: custom
+  batch_size: 64
+  eval_period: 1
+  ckpt_period: 100
+  sampler: full_batch
+model:
+  type: GPSModel
+  loss_fun: cross_entropy
+  edge_decoding: dot
+  graph_pooling: add
+posenc_LapPE:
+  enable: True
+  eigen:
+    laplacian_norm: sym
+    eigvec_norm: L2
+    max_freqs: 10
+  model: DeepSet  # Transformer
+  dim_pe: 16
+  layers: 3
+  n_heads: 4  # Only used when `posenc.model: Transformer`
+  raw_norm_type: none
+
+gt:
+  layer_type: CustomGatedGCN+Transformer
+  layers: 3
+  n_layers_gnn_only: 0
+  n_heads: 4
+  dim_hidden: 300  # `gt.dim_hidden` must match `gnn.dim_inner`
+  dropout: 0.2
+  attn_dropout: 0.2
+  layer_norm: False
+  batch_norm: True
+
+
+gnn:
+  head: inductive_node
+  layers_pre_mp: 1
+  layers_mp: 10
+  layers_post_mp: 1
+  dim_inner: 300
+  layer_type: gcnconv #gatedgcnconv
+  stage_type: skipsum
+  batchnorm: True
+  act: prelu
+  dropout: 0.0
+  normalize_adj: False
+optim:
+  optimizer: adam
+  base_lr: 0.0003
+  #  weight_decay: 1e-5
+  weight_decay: 0.
+  num_warmup_epochs: 0
+  max_epoch: 1500
+  schedule_patience: 9999
+  early_stop_patience: 50

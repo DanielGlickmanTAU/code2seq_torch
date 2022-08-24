@@ -18,10 +18,10 @@ def get_gnn_transformer_laplace_transformer_config():
     }
 
 
-def get_gps_signnet_deepset_config():
+def get_gps_signnet_deepset_config(n_layers=6):
     return {
         'optim.base_lr': [0.00003, 0.00005],
-        'gt.layers': [6],
+        'gt.layers': [n_layers],
         'gt.n_layers_gnn_only': [0],
         'posenc_LapPE.enable': [False],
         'posenc_LapPE.layers': [0],
@@ -188,6 +188,31 @@ def get_nagasaki_config(total_layers=4, gnn_layers=2, far_away=False):
         # 'optim.base_lr': [0.00003, 0.00005],
         'nagasaki.steps': '[1, 2, 3, 4, 5, 6, 7, 8, 9, 10,11,12,13,14,15,16,17,18, 19, 20]' if far_away else '[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]',
         'gt.layer_type': 'CustomGatedGCN+Nagasaki',
+        'gt.layers': [total_layers],
+        'gt.n_heads': [2],
+        # 'gt.n_layers_gnn_only': [6, 10],
+        'gt.n_layers_gnn_only': [gnn_layers],
+        'posenc_LapPE.enable': [False],
+        'posenc_LapPE.layers': [0],
+        'dataset.node_encoder_name': 'TypeDictNode+RWSE',
+        'posenc_SignNet.enable': False,
+        'posenc_SignNet.post_layers': 2,
+
+        'posenc_RWSE.enable': True,
+        'posenc_RWSE.kernel.times_func': 'range(1, 21)',
+        'posenc_RWSE.model': 'Linear',
+        'posenc_RWSE.dim_pe': 24,
+        'posenc_RWSE.raw_norm_type': "BatchNorm",
+
+        # 'dataset.transformer_node_encoder_name': 'SignNet'
+    }
+
+
+def get_content_transformer_config(total_layers=4, gnn_layers=2, far_away=False):
+    return {
+        # 'optim.base_lr': [0.00003, 0.00005],
+        'nagasaki.steps': '[1, 2, 3, 4, 5, 6, 7, 8, 9, 10,11,12,13,14,15,16,17,18, 19, 20]' if far_away else '[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]',
+        'gt.layer_type': 'CustomGatedGCN+Transformer',
         'gt.layers': [total_layers],
         'gt.n_heads': [2],
         # 'gt.n_layers_gnn_only': [6, 10],
