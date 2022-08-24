@@ -323,27 +323,6 @@ def preformat_OGB_Graph(dataset_dir, name):
         PyG dataset object
     """
 
-    # override download dialog because it asks for user input which gets stuck on slurm
-    class DownloadPygGraphPropPredDataset(PygGraphPropPredDataset):
-        def __init__(self, name, root='dataset', transform=None, pre_transform=None, meta_dict=None, limit=0):
-            super().__init__(name, root, transform, pre_transform, meta_dict)
-            self.limit = limit
-
-        def download(self):
-            url = self.meta_info['url']
-            path = download_url(url, self.original_root)
-            extract_zip(path, self.original_root)
-            os.unlink(path)
-            shutil.rmtree(self.root)
-            shutil.move(osp.join(self.original_root, self.download_name), self.root)
-
-        def get_idx_split(self, split_type=None):
-            def limit(tensor):
-                return tensor[:self.limit] if self.limit else tensor
-
-            idx_split = super().get_idx_split(split_type)
-            return {key: limit(value) for key, value in idx_split.items()}
-
     dataset = DownloadPygGraphPropPredDataset(name=name, root=dataset_dir, limit=cfg.max_examples)
     # dataset = DownloadPygGraphPropPredDataset(name=name, root=dataset_dir)
     s_dict = dataset.get_idx_split()
@@ -511,3 +490,25 @@ def join_dataset_splits(datasets):
     datasets[0].split_idxs = split_idxs
 
     return datasets[0]
+
+
+# override download dialog because it asks for user input which gets stuck on slurm
+class DownloadPygGraphPropPredDataset(PygGraphPropPredDataset):
+    def __init__(self, name, root='dataset', transform=None, pre_transform=None, meta_dict=None, limit=0):
+        super().__init__(name, root, transform, pre_transform, meta_dict)
+        self.limit = limit
+
+    def download(self):
+        url = self.meta_info['url']
+        path = download_url(url, self.original_root)
+        extract_zip(path, self.original_root)
+        os.unlink(path)
+        shutil.rmtree(self.root)
+        shutil.move(osp.join(self.original_root, self.download_name), self.root)
+
+    def get_idx_split(self, split_type=None):
+        def limit(tensor):
+            return tensor[:self.limit] if self.limit else tensor
+
+        idx_split = super().get_idx_split(split_type)
+        return {key: limit(value) for key, value in idx_split.items()}
