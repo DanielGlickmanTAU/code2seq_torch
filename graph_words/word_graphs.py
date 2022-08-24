@@ -191,7 +191,7 @@ class WordsCombinationGraphDataset(Dataset):
                 for node in atom.nodes:
                     atom.nodes[node]['y'] = 1
 
-    def set_color_if_any_nodes_have_same_shape(self, atoms_in_row):
+    def set_color_if_any_nodes_have_same_shape(self, atoms_in_row, **kwargs):
         for i in range(1, len(atoms_in_row)):
             for j in range(0, i):
                 a1 = atoms_in_row[i]
@@ -202,6 +202,15 @@ class WordsCombinationGraphDataset(Dataset):
                         a1.nodes[node]['y'] = 1
                     for node in a2.nodes:
                         a2.nodes[node]['y'] = 1
+
+    def set_histogram(self, atoms_in_row, **kwargs):
+        assert len(atoms_in_row[0]) == 1, 'must be grid'
+        colors = [atom.nodes[0]['x'] for atom in atoms_in_row]
+        for dot_graph in atoms_in_row:
+            atom = dot_graph.nodes[0]
+            atom_color = atom['x']
+            histogram = colors.count(atom_color) - 1
+            atom['y'] += histogram
 
     def __init__(self, color_mode, word_graphs, num_samples, words_per_row, num_rows=None, num_colors=2, edge_p=1.,
                  only_color=False, unique_atoms_per_example=False, unique_colors_per_example=False,
@@ -324,12 +333,16 @@ class WordsCombinationGraphDataset(Dataset):
                         self.set_color_if_all_nodes_have_same_shape(atoms_in_row, only_color)
                     elif row_color_mode == 'or':
                         self.set_color_if_any_nodes_have_same_shape(atoms_in_row)
+                    elif row_color_mode == 'histogram':
+                        self.set_histogram(atoms_in_row)
                 for j in range(words_per_row):
                     atoms_in_col = [words_in_grid[i][j] for i in range(num_rows)]
                     if row_color_mode == 'and':
                         self.set_color_if_all_nodes_have_same_shape(atoms_in_col, only_color)
                     elif row_color_mode == 'or':
                         self.set_color_if_any_nodes_have_same_shape(atoms_in_col)
+                    elif row_color_mode == 'histogram':
+                        self.set_histogram(atoms_in_col)
 
             if color_mode == 'global':
                 for row in words_in_grid:
