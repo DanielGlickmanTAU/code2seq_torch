@@ -9,7 +9,7 @@ from ogb.io.read_graph_pyg import read_graph_pyg
 
 
 class PygGraphPropPredDataset(InMemoryDataset):
-    def __init__(self, name, root = 'dataset', transform=None, pre_transform = None, meta_dict = None):
+    def __init__(self, name, root='dataset', transform=None, pre_transform=None, meta_dict=None):
         '''
             - name (str): name of the dataset
             - root (str): root directory to store the dataset folder
@@ -17,13 +17,13 @@ class PygGraphPropPredDataset(InMemoryDataset):
 
             - meta_dict: dictionary that stores all the meta-information about data. Default is None, 
                     but when something is passed, it uses its information. Useful for debugging for external contributers.
-        ''' 
+        '''
 
-        self.name = name ## original name, e.g., ogbg-molhiv
-        
+        self.name = name  ## original name, e.g., ogbg-molhiv
+
         if meta_dict is None:
-            self.dir_name = '_'.join(name.split('-')) 
-            
+            self.dir_name = '_'.join(name.split('-'))
+
             # check if previously-downloaded folder exists.
             # If so, use that one.
             if osp.exists(osp.join(root, self.dir_name + '_pyg')):
@@ -31,31 +31,32 @@ class PygGraphPropPredDataset(InMemoryDataset):
 
             self.original_root = root
             self.root = osp.join(root, self.dir_name)
-            
-            master = pd.read_csv(os.path.join(os.path.dirname(__file__), 'master.csv'), index_col = 0)
+
+            master = pd.read_csv(os.path.join(os.path.dirname(__file__), 'master.csv'), index_col=0)
             if not self.name in master:
                 error_mssg = 'Invalid dataset name {}.\n'.format(self.name)
                 error_mssg += 'Available datasets are as follows:\n'
                 error_mssg += '\n'.join(master.keys())
                 raise ValueError(error_mssg)
             self.meta_info = master[self.name]
-            
+
         else:
             self.dir_name = meta_dict['dir_path']
             self.original_root = ''
             self.root = meta_dict['dir_path']
             self.meta_info = meta_dict
-        
+
         # check version
         # First check whether the dataset has been already downloaded or not.
         # If so, check whether the dataset version is the newest or not.
         # If the dataset is not the newest version, notify this to the user. 
-        if osp.isdir(self.root) and (not osp.exists(osp.join(self.root, 'RELEASE_v' + str(self.meta_info['version']) + '.txt'))):
+        if osp.isdir(self.root) and (
+                not osp.exists(osp.join(self.root, 'RELEASE_v' + str(self.meta_info['version']) + '.txt'))):
             print(self.name + ' has been updated.')
             if input('Will you update the dataset now? (y/N)\n').lower() == 'y':
                 shutil.rmtree(self.root)
 
-        self.download_name = self.meta_info['download_name'] ## name of downloaded file, e.g., tox21
+        self.download_name = self.meta_info['download_name']  ## name of downloaded file, e.g., tox21
 
         self.num_tasks = int(self.meta_info['num tasks'])
         self.eval_metric = self.meta_info['eval metric']
@@ -64,24 +65,26 @@ class PygGraphPropPredDataset(InMemoryDataset):
         self.binary = self.meta_info['binary'] == 'True'
 
         super(PygGraphPropPredDataset, self).__init__(self.root, transform, pre_transform)
-
+        if not osp.exists(self.processed_paths[0]):
+            self.process()
         self.data, self.slices = torch.load(self.processed_paths[0])
 
-    def get_idx_split(self, split_type = None):
+    def get_idx_split(self, split_type=None):
         if split_type is None:
             split_type = self.meta_info['split']
-            
+
         path = osp.join(self.root, 'split', split_type)
 
         # short-cut if split_dict.pt exists
         if os.path.isfile(os.path.join(path, 'split_dict.pt')):
             return torch.load(os.path.join(path, 'split_dict.pt'))
 
-        train_idx = pd.read_csv(osp.join(path, 'train.csv.gz'), compression='gzip', header = None).values.T[0]
-        valid_idx = pd.read_csv(osp.join(path, 'valid.csv.gz'), compression='gzip', header = None).values.T[0]
-        test_idx = pd.read_csv(osp.join(path, 'test.csv.gz'), compression='gzip', header = None).values.T[0]
+        train_idx = pd.read_csv(osp.join(path, 'train.csv.gz'), compression='gzip', header=None).values.T[0]
+        valid_idx = pd.read_csv(osp.join(path, 'valid.csv.gz'), compression='gzip', header=None).values.T[0]
+        test_idx = pd.read_csv(osp.join(path, 'test.csv.gz'), compression='gzip', header=None).values.T[0]
 
-        return {'train': torch.tensor(train_idx, dtype = torch.long), 'valid': torch.tensor(valid_idx, dtype = torch.long), 'test': torch.tensor(test_idx, dtype = torch.long)}
+        return {'train': torch.tensor(train_idx, dtype=torch.long), 'valid': torch.tensor(valid_idx, dtype=torch.long),
+                'test': torch.tensor(test_idx, dtype=torch.long)}
 
     @property
     def num_classes(self):
@@ -131,10 +134,13 @@ class PygGraphPropPredDataset(InMemoryDataset):
         else:
             additional_edge_files = self.meta_info['additional edge files'].split(',')
 
-        data_list = read_graph_pyg(self.raw_dir, add_inverse_edge = add_inverse_edge, additional_node_files = additional_node_files, additional_edge_files = additional_edge_files, binary=self.binary)
+        data_list = read_graph_pyg(self.raw_dir, add_inverse_edge=add_inverse_edge,
+                                   additional_node_files=additional_node_files,
+                                   additional_edge_files=additional_edge_files, binary=self.binary)
 
         if self.task_type == 'subtoken prediction':
-            graph_label_notparsed = pd.read_csv(osp.join(self.raw_dir, 'graph-label.csv.gz'), compression='gzip', header = None).values
+            graph_label_notparsed = pd.read_csv(osp.join(self.raw_dir, 'graph-label.csv.gz'), compression='gzip',
+                                                header=None).values
             graph_label = [str(graph_label_notparsed[i][0]).split(' ') for i in range(len(graph_label_notparsed))]
 
             for i, g in enumerate(data_list):
@@ -144,18 +150,19 @@ class PygGraphPropPredDataset(InMemoryDataset):
             if self.binary:
                 graph_label = np.load(osp.join(self.raw_dir, 'graph-label.npz'))['graph_label']
             else:
-                graph_label = pd.read_csv(osp.join(self.raw_dir, 'graph-label.csv.gz'), compression='gzip', header = None).values
+                graph_label = pd.read_csv(osp.join(self.raw_dir, 'graph-label.csv.gz'), compression='gzip',
+                                          header=None).values
 
             has_nan = np.isnan(graph_label).any()
 
             for i, g in enumerate(data_list):
                 if 'classification' in self.task_type:
                     if has_nan:
-                        g.y = torch.from_numpy(graph_label[i]).view(1,-1).to(torch.float32)
+                        g.y = torch.from_numpy(graph_label[i]).view(1, -1).to(torch.float32)
                     else:
-                        g.y = torch.from_numpy(graph_label[i]).view(1,-1).to(torch.long)
+                        g.y = torch.from_numpy(graph_label[i]).view(1, -1).to(torch.long)
                 else:
-                    g.y = torch.from_numpy(graph_label[i]).view(1,-1).to(torch.float32)
+                    g.y = torch.from_numpy(graph_label[i]).view(1, -1).to(torch.float32)
 
         if self.pre_transform is not None:
             data_list = [self.pre_transform(data) for data in data_list]
@@ -179,7 +186,7 @@ if __name__ == '__main__':
     # print(pyg_dataset[split_index['valid']])
     # print(pyg_dataset[split_index['test']])
 
-    pyg_dataset = PygGraphPropPredDataset(name = 'ogbg-code2')
+    pyg_dataset = PygGraphPropPredDataset(name='ogbg-code2')
     print(pyg_dataset.num_classes)
     split_index = pyg_dataset.get_idx_split()
     print(pyg_dataset[0])
@@ -199,4 +206,3 @@ if __name__ == '__main__':
     #     print(len(batch.y))
 
     #     exit(-1)
-
