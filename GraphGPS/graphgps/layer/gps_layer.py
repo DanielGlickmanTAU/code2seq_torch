@@ -14,6 +14,7 @@ from graphgps.layer.gatedgcn_layer import GatedGCNLayer
 from graphgps.layer.gine_conv_layer import GINEConvESLapPE, GINEConvLayer
 from graphgps.layer.graph_attention.ContentMultiHeadAttention import ContentMultiheadAttention
 from graphgps.layer.graph_attention.positional.nagasaki import Nagasaki
+from graphgps.layer.performer_layer import SelfAttention
 
 
 class GPSLayer(nn.Module):
