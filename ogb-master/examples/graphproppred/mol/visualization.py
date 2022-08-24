@@ -81,6 +81,7 @@ def draw_pyramid(data: torch_geometric.data.Data, color_with: Union[str, torch.T
     alpha = None
     if isinstance(color_with, str):
         if color_with == 'x':
+            assert data.x.squeeze().dim() == 1, f'need dim 1 but got {data.x.dim()}. visualize before inserting to network.'
             colors = data.x
             color_map = ['gray'] + basic_color_map
         elif color_with == 'y':
