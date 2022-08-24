@@ -1455,5 +1455,14 @@ The diffusion distance/pattern will always be the same, and in that way nagasaki
  - option 2: decouple diffusion distance from using gnns.
 
 
+
+https://wandb.ai/daniel-ai/triangles_or_task/table
+gps is doing better on 5x5 than on 4x4!
+probably this is because of the ratio of positive examples.
+if this is true, supports the claim that gps is examples hungry.
+GNN is doing worse on 5x5.
+
+How does GPS with RWSE do so good? Maybe by mixing with GNNS
+
 ------------------  ---------------
 test just projecting diag 
