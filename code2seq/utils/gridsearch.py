@@ -11,7 +11,7 @@ class ListArgument:
 
 def gridsearch(default_params: Dict, params_to_grid_search: Union[Dict[object, List], List[Dict[object, List]]]) -> \
         List[Dict]:
-    if isinstance(params_to_grid_search, List):
+    if isinstance(params_to_grid_search, List) and len(params_to_grid_search) > 0:
         return sum([gridsearch(default_params, d) for d in params_to_grid_search], [])
 
     def prod(params_to_grid_search):

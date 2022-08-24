@@ -61,6 +61,7 @@ def run_on_slurm(job_name, params, no_flag_param='', slurm=True, gpu=True, sleep
         return job_id
 
     else:
-
-        os.system(f"nohup sh -c ' {command} > res_{time.time()}.txt '&")
+        res_file = f'res_{time.time()}.txt'
+        print(f'saving to {res_file}')
+        os.system(f"nohup sh -c ' {command} > {res_file} 2>&1 &'&")
     # os.system('chmod 700 slurm.py')
