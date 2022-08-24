@@ -153,7 +153,7 @@ class Evaluator:
             y_true, y_pred = self._parse_and_check_input(input_dict)
             return accuracy_coloring_f1(y_true, y_pred)
             # return {'F1': accuracy_coloring_f1(y_true, y_pred)}
-        elif self.eval_metric == 'f1':
+        elif self.eval_metric.lower() == 'f1':
             seq_ref, seq_pred = self._parse_and_check_input(input_dict)
             return self._eval_F1(seq_ref, seq_pred)
         else:
