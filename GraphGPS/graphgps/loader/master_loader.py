@@ -325,8 +325,9 @@ def preformat_OGB_Graph(dataset_dir, name):
 
     # override download dialog because it asks for user input which gets stuck on slurm
     class DownloadPygGraphPropPredDataset(PygGraphPropPredDataset):
-        def __init__(self, name, root='dataset', transform=None, pre_transform=None, meta_dict=None):
+        def __init__(self, name, root='dataset', transform=None, pre_transform=None, meta_dict=None, limit=0):
             super().__init__(name, root, transform, pre_transform, meta_dict)
+            self.limit = limit
 
         def download(self):
             url = self.meta_info['url']
@@ -336,8 +337,17 @@ def preformat_OGB_Graph(dataset_dir, name):
             shutil.rmtree(self.root)
             shutil.move(osp.join(self.original_root, self.download_name), self.root)
 
-    dataset = DownloadPygGraphPropPredDataset(name=name, root=dataset_dir)
+        def get_idx_split(self, split_type=None):
+            def limit(tensor):
+                return tensor[:self.limit] if self.limit else tensor
+
+            idx_split = super().get_idx_split(split_type)
+            return {key: limit(value) for key, value in idx_split.items()}
+
+    dataset = DownloadPygGraphPropPredDataset(name=name, root=dataset_dir, limit=cfg.max_examples)
+    # dataset = DownloadPygGraphPropPredDataset(name=name, root=dataset_dir)
     s_dict = dataset.get_idx_split()
+
     dataset.split_idxs = [s_dict[s] for s in ['train', 'valid', 'test']]
 
     if name == 'ogbg-ppa':
