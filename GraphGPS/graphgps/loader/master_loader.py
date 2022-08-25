@@ -497,7 +497,7 @@ def join_dataset_splits(datasets):
 # override download dialog because it asks for user input which gets stuck on slurm
 class DownloadPygGraphPropPredDataset(PygGraphPropPredDataset):
     def __init__(self, name, root='dataset', transform=None, pre_transform=None, meta_dict=None, limit=0):
-        super().__init__(name, root, transform, pre_transform, meta_dict)
+        super(DownloadPygGraphPropPredDataset, self).__init__(name, root, transform, pre_transform, meta_dict)
         self.limit = limit
 
     def download(self):
@@ -510,7 +510,10 @@ class DownloadPygGraphPropPredDataset(PygGraphPropPredDataset):
 
     def get_idx_split(self, split_type=None):
         def limit(tensor):
-            return tensor[:self.limit] if self.limit else tensor
+            if self.limit:
+                tensor = tensor[tensor < self.limit]
+                assert len(tensor) > 0
+            return tensor
 
         idx_split = super().get_idx_split(split_type)
         return {key: limit(value) for key, value in idx_split.items()}
