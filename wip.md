@@ -1471,3 +1471,7 @@ GPS attention types:
 Molpcba : transformer
 Ppa : performer
 Code: performer
+
+
+
+loading code2 trained model works

@@ -6,29 +6,22 @@ from code2seq.utils.gridsearch import gridsearch, ListArgument
 from code2seq.utils.slurm import run_on_slurm
 import os
 
-batch_acc = 16
+batch_acc = 2
 params_for_exp = {
 
 }
 params = {
-    '--cfg': 'configs/GPS/ogbg-molpcba-GPS+RWSE.yaml',
+    '--cfg': 'configs/GPS/ogbg-ppa-GPS.yaml',
 }
 
 # no specific params, just take from cfg file, since we restore original exp
 params_for_grid_search = {
-    'train.batch_size': int(512 / batch_acc),
-    'optim.batch_accumulation': batch_acc,
-
-    # make it GIN only
-    # 'gt.n_layers_gnn_only': [100],
-    # 'gt.layer_type': 'GIN+Transformer',
-
 }
 
 os.chdir('..')
 job_name = '''main.py'''
 ids = []
 for p in gridsearch(params, params_for_grid_search):
-    id = run_on_slurm(job_name, params={}, no_flag_param=p, sleep=False)
+    id = run_on_slurm(job_name, params={}, no_flag_param=p, slurm=False, sleep=False)
     ids.append(id)
 print(f'submited {len(gridsearch(params, params_for_grid_search))} jobs')

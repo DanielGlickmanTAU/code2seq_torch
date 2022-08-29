@@ -24,3 +24,7 @@ notice to use the right parameters to load model, can take that from wandb overv
 ## visualize embeddings:
 random projects the colors into 3 dim(r,g,b)
 visualization.draw_pyramid(batch[graph_index], color_with=graph_pos_enc,color_mode='project')
+
+
+### disable gpu:
+after main#auto_select_device do: cfg.device = 'cpu'

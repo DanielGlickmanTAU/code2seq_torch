@@ -26,25 +26,37 @@ params_for_exp = {
     'gnn.dim_inner': 32,
     # 'gt.layers': [10],
     # 'gt.n_layers_gnn_only': [6],
-    'optim.early_stop_patience': 10,
+    # 'optim.early_stop_patience': 10,
     'nagasaki.edge_model_type': ['bn-mlp'],
+    # 'nagasaki.edge_reduction': ['bn-mlp', 'linear'],
 
-    'nagasaki.ffn_layers': [1],
     'nagasaki.learn_edges_weight': [True],
     # 'nagasaki.two_diffusion': [True, False],
 
     # 'nagasaki.two_diffusion': [True],
-    'gt.dropout': 0.1,
-    'gt.attn_dropout': 0.1,
-    'nagasaki.steps': '[1, 2, 3, 4, 5]',
+    'gt.dropout': 0.,
+    'gt.attn_dropout': 0.,
+    'nagasaki.steps': '[1, 2, 3, 4, 5,6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17]',
 
-    # 'nagasaki.kernel': ['sigmoid', 'exp', 'softmax'],
-    # 'nagasaki.nhead': 2
+    # 'nagasaki.kernel': ['sigmoid',
+    # 'exp', 'softmax'],
+    'nagasaki.edge_reduction': ['bn-mlp', 'mlp','linear'],
+
+    # 'nagasaki.kernel': ['sigmoid', 'softmax', 'exp'],
+    # DO NOT SET TO EXP...
+    # 'nagasaki.kernel': ['sigmoid', 'softmax'],
+    'nagasaki.kernel': ['sigmoid'],
+    # DO NOT SET TO 1... 2 is better
+    'nagasaki.ffn_layers': [2, 3],
+    'nagasaki.ffn_hidden_multiplier': [2],
+    # 'nagasaki.kernel': ['sigmoid', 'exp'],
+    # 'nagasaki.nhead': 2,
+    'optim.early_stop_patience': 50
 
 }
 
 params = {
-    '--cfg': 'tests/configs/graph/row-coloring-laplace.yaml',
+    '--cfg': 'tests/configs/graph/color-histogram.yaml',
 
     '--num_rows': 10,
     # '--num_rows': 12,
@@ -54,9 +66,7 @@ params = {
     '--num_unique_atoms': 1,
     '--num_unique_colors': 20,
 
-    '--row_color_mode': 'or',
-    # '--max_examples':100
-    '--deterministic_edges': True,
+    '--row_color_mode': 'histogram',
 
 }
 
@@ -74,7 +84,10 @@ params_for_grid_search = [
     # baseline_config.get_content_transformer_config(total_layers=10, gnn_layers=5),
     # baseline_config.get_nagasaki_config(total_layers=8, gnn_layers=5, far_away=True),
     # baseline_config.get_nagasaki_config(total_layers=8, gnn_layers=3)
-    # baseline_config.get_nagasaki_config(total_layers=2, gnn_layers=1),
+    # baseline_config.get_nagasaki_config(total_layers=3, gnn_layers=1),
+    # baseline_config.get_nagasaki_config(total_layers=4, gnn_layers=1),
+    baseline_config.get_nagasaki_config(total_layers=3, gnn_layers=0),
+    # baseline_config.get_nagasaki_config(total_layers=6, gnn_layers=1),
 
 ]
 
@@ -88,7 +101,7 @@ job_name = '''main.py'''
 ids = []
 for p in gridsearch(params, params_for_grid_search):
     # id = run_on_slurm(job_name, params={}, no_flag_param=p, slurm=True, sleep=False)
-    id = run_on_slurm(job_name, params={}, no_flag_param=p, slurm=False, sleep=False)
+    id = run_on_slurm(job_name, params={}, no_flag_param=p)
     ids.append(id)
 print(f'submited {len(gridsearch(params, params_for_grid_search))} jobs')
 # while True:
