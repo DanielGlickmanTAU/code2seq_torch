@@ -187,7 +187,8 @@ def get_nagasaki_config(total_layers=4, gnn_layers=2, far_away=False):
     return {
         # 'optim.base_lr': [0.00003, 0.00005],
         'nagasaki.steps': '[1, 2, 3, 4, 5, 6, 7, 8, 9, 10,11,12,13,14,15,16,17,18, 19, 20]' if far_away else '[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]',
-        'gt.layer_type': 'CustomGatedGCN+Nagasaki',
+        'gt.layer_type': 'CustomGatedGCN+Nagasaki' if gnn_layers else 'None+Nagasaki',
+        'gt.use_gnn': True if gnn_layers else False,
         'gt.layers': [total_layers],
         'gt.n_heads': [2],
         # 'gt.n_layers_gnn_only': [6, 10],
