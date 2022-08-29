@@ -56,10 +56,10 @@ def log_loaded_dataset(dataset, format, name):
         else:
             logging.info(f"  num classes: {dataset.num_classes}")
             try:
-                y_sample = dataset.data.y[:2000]
+                y_sample = dataset.data.y[:1000]
                 if not y_sample.isnan().any():
                     logging.info(
-                        f'class distribution(first 2k nodes only): {torch.stack([x[0] for x in zip(y_sample.unique(return_counts=True))])}')
+                        f'class distribution(first 1k nodes only): {torch.stack([x[0] for x in zip(y_sample.unique(return_counts=True))])}')
             except Exception:
                 pass
     elif hasattr(dataset.data, 'train_edge_label') or hasattr(dataset.data, 'edge_label'):
