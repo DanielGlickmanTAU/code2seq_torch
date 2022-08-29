@@ -183,8 +183,6 @@ if __name__ == '__main__':
         loggers = create_logger()
 
         model = create_model()
-        if cfg.load_checkpoint_from_dir:
-            load_model(model, checkpoint_dir=cfg.load_checkpoint_from_dir)
 
         if cfg.train.finetune:
             model = init_model_from_pretrained(model, cfg.train.finetune,
@@ -192,7 +190,8 @@ if __name__ == '__main__':
         optimizer = create_optimizer(model.parameters(),
                                      new_optimizer_config(cfg))
         scheduler = create_scheduler(optimizer, new_scheduler_config(cfg))
-
+        if cfg.load_checkpoint_from_dir:
+            load_model(model, checkpoint_dir=cfg.load_checkpoint_from_dir)
 
         # Print model info
         logging.info(model)
