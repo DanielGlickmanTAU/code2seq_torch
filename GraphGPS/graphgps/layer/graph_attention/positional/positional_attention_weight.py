@@ -213,6 +213,18 @@ class Diffuser(nn.Module):
 
 
 class EdgeReducer(torch_geometric.nn.conv.MessagePassing):
+    def __init__(self, in_dim, hidden_dim, dim_out, dropout, norm_output=False, **kwargs):
+        super().__init__(**kwargs)
+
+        self.A = torch_geometric.nn.Linear(in_dim, hidden_dim, bias=True)
+        self.C = torch_geometric.nn.Linear(in_dim, hidden_dim, bias=True)
+        self.edge_out_proj = torch_geometric.nn.Linear(hidden_dim, dim_out, bias=True)
+
+        self.bn = nn.BatchNorm1d(hidden_dim)
+        self.norm_output = norm_output
+        if norm_output:
+            self.bn_out = nn.BatchNorm1d(dim_out)
+        self.dropout = dropout
 
     def forward(self, batch):
         x, e, edge_index = batch.x, batch.edge_attr, batch.edge_index
@@ -226,19 +238,6 @@ class EdgeReducer(torch_geometric.nn.conv.MessagePassing):
                            )
 
         return e
-
-    def __init__(self, in_dim, hidden_dim, dim_out, dropout, norm_output=False, **kwargs):
-        super().__init__(**kwargs)
-
-        self.A = torch_geometric.nn.Linear(in_dim, hidden_dim, bias=True)
-        self.C = torch_geometric.nn.Linear(in_dim, hidden_dim, bias=True)
-        self.edge_out_proj = torch_geometric.nn.Linear(hidden_dim, dim_out, bias=True)
-
-        self.bn = nn.BatchNorm1d(hidden_dim)
-        self.norm_output = norm_output
-        if norm_output:
-            self.bn_out = nn.BatchNorm1d(dim_out)
-        self.dropout = dropout
 
     def message(self, Ax_i, Ax_j, Ce):
         e_ij = Ax_i + Ax_j + Ce
@@ -256,7 +255,7 @@ class EdgeReducer(torch_geometric.nn.conv.MessagePassing):
 
 
 # returns if 1./0 if (*real*) edge is inside shape
-#useage:
+# useage:
 # shape_edges = FakeReducer()(batch)
 # shape_edges_full = to_dense_adj(batch.edge_index, batch.batch, shape_edges).squeeze(-1)
 # # add self loops
