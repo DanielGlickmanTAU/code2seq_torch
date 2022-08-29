@@ -1375,21 +1375,19 @@ Testing triangles, trying to reduce to one point
    ![img_8.png](img_8.png)
 
 ### 12/8
+
 huge difference between grid with row size 3 and 4 in GNN.
 https://wandb.ai/daniel-ai/color_per_row/table?workspace=user-danielglickman
-node distribution with row size 3:1835,  165
-row size 4: 1980,   20
+node distribution with row size 3:1835, 165
+row size 4: 1980, 20
 with 3 gnn gets:0.99
 with 4 gnn gets:0.08
 
 maybe it is data leak...?
 
-
 there is under reaching, because 6 gnn layers only get 0.5 f1
 
 try make prob of adj in row 0.5
-
-
 
 https://wandb.ai/daniel-ai/color_per_row_good_prob/table?workspace=user-danielglickman
 RWSE is significant
@@ -1398,8 +1396,6 @@ RWSE is significant
 GIN is working bad on the task!! much worse than GatedGCN.
 https://wandb.ai/daniel-ai/atom_set_10_good_prob/table?workspace=user-danielglickman
 
-
-
 RWSE is significant.(detects shapes fast)
 GatedGCN is very good at filtering things
 Solving AND problems with gatedGCN is easier.
@@ -1407,54 +1403,53 @@ Solving AND problems with gatedGCN is easier.
 With dot grid I was good because I only had to measure the diffustion distance.
 With Shapes it is different.
 
-It is more fitting for transformer(histograms counting), because "words" are not adjacent.. like transformer vs convlustion/lstm
-
+It is more fitting for transformer(histograms counting), because "words" are not adjacent.. like transformer vs
+convlustion/lstm
 
 Now I need to think of a way to mix diffustions..
 
-
 ### 13/8
+
 2 on 4 with or row is harder..
 gnn results is here ...https://wandb.ai/daniel-ai/atom_set_10_good_prob/table?workspace=user-danielglickman
 
-
 ### 16/8
-batch.edge_index().size() ==(to_dense_adj(batch.edge_index, batch.batch,batch.edge_attr)[mask].sum(-1) !=0).sum()
 
+batch.edge_index().size() ==(to_dense_adj(batch.edge_index, batch.batch,batch.edge_attr)[mask].sum(-1) !=0).sum()
 
 right now , the mask is 1d. that means that when selecting edges, it will select all real nodes.
 but real nodes will look at *all* nodes(including padding)
 I want stacks[mask] to be same size as batch.edge_index
 need nxn mask.. mask.unsqueeze(1).expand(-1,n,-1)... mask[~mask[:,0]] = False/True
 
-
 Now as for adding cls node
-If you want to do it before reducing edges(in diffusion, so we calculate the score of per node.. and it takes part of diffusion),
+If you want to do it before reducing edges(in diffusion, so we calculate the score of per node.. and it takes part of
+diffusion),
 then need to modify batch.x(add the node) and batch.edge_index, batch.edge_attr.
-The problem is that batch contains many isolated graphs(pyg batching). 
-The easiest way to add would be to  
+The problem is that batch contains many isolated graphs(pyg batching).
+The easiest way to add would be to
+
 1) convert it to dense edge(b,n,n,e)
 2) append edge: 1) add column(b,n,n+1,e). 2) set last column[mask] = edge_embedding
 2) append node: 1) add row(b,n,n+1,e). 2) set last row[mask] = edge2_embedding
 
-
-
-
-
 ### 22/8
-Right now, each location in the grid is occupied by a random shape, and shapes are connected by an edge between a randomly selected node in each shape.
+
+Right now, each location in the grid is occupied by a random shape, and shapes are connected by an edge between a
+randomly selected node in each shape.
 I fail to solve, or do better than GPS on this problem.
-I am thinking of moving to a constant graph structure, e.g only triangle that are connected in a determinstic way(always same node selected).
+I am thinking of moving to a constant graph structure, e.g only triangle that are connected in a determinstic way(always
+same node selected).
 The reasoning, is that I would not need a flexible way of jumping between shapes.
-The diffusion distance/pattern will always be the same, and in that way nagasaki could memorize it, the same way it did for dot grid. 
+The diffusion distance/pattern will always be the same, and in that way nagasaki could memorize it, the same way it did
+for dot grid.
 
 + This is simple, and I think has a good chance of improving over GPS etc on REAL benchmarks.
 
-* How do I explain starting with gnns? with shapes, they were used to detect shapes. Now that will not be needed. 
- - option 1: select 2 shapes per example, mlp may still be able to memorize patterns if there are not too many.
- - option 2: decouple diffusion distance from using gnns.
+* How do I explain starting with gnns? with shapes, they were used to detect shapes. Now that will not be needed.
 
-
+- option 1: select 2 shapes per example, mlp may still be able to memorize patterns if there are not too many.
+- option 2: decouple diffusion distance from using gnns.
 
 https://wandb.ai/daniel-ai/triangles_or_task/table
 gps is doing better on 5x5 than on 4x4!
@@ -1465,4 +1460,14 @@ GNN is doing worse on 5x5.
 How does GPS with RWSE do so good? Maybe by mixing with GNNS
 
 ------------------  ---------------
-test just projecting diag 
+test just projecting diag
+
+### 29.8
+
+if trying to load histogram weights with --max_examples is small,
+can not work, because number of unique classes is small, and model out dim is different.
+
+GPS attention types:
+Molpcba : transformer
+Ppa : performer
+Code: performer

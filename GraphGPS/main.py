@@ -130,6 +130,7 @@ def load_model(model, checkpoint_dir='runs'):
     p = cfg.run_dir
     cfg.run_dir = checkpoint_dir
     ckpt = load_ckpt(model, optimizer, scheduler)
+    assert ckpt > 0
     print(f'loaded save model from dir {checkpoint_dir} epoch {ckpt}')
     cfg.run_dir = p
 
@@ -182,6 +183,8 @@ if __name__ == '__main__':
         loggers = create_logger()
 
         model = create_model()
+        if cfg.load_checkpoint_from_dir:
+            load_model(model, checkpoint_dir=cfg.load_checkpoint_from_dir)
 
         if cfg.train.finetune:
             model = init_model_from_pretrained(model, cfg.train.finetune,
@@ -190,8 +193,7 @@ if __name__ == '__main__':
                                      new_optimizer_config(cfg))
         scheduler = create_scheduler(optimizer, new_scheduler_config(cfg))
 
-        if cfg.load_checkpoint_from_dir:
-            load_model(model, checkpoint_dir=cfg.load_checkpoint_from_dir)
+
         # Print model info
         logging.info(model)
         logging.info(cfg)
