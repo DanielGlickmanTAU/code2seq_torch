@@ -130,7 +130,7 @@ def load_model(model, checkpoint_dir='runs'):
     p = cfg.run_dir
     cfg.run_dir = checkpoint_dir
     ckpt = load_ckpt(model, optimizer, scheduler)
-    assert ckpt > 0
+    assert ckpt > 0, 'did not find latest checkpoint'
     print(f'loaded save model from dir {checkpoint_dir} epoch {ckpt}')
     cfg.run_dir = p
 
