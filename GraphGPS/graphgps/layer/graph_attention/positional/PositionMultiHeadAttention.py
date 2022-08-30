@@ -52,9 +52,7 @@ class PositionMultiHeadAttention(Module):
         else:
             self.bias_k = self.bias_v = None
 
-        self.positional_bias = AdjStackAttentionWeights(edge_dim, dim_out=num_heads, ffn=edge_reduction,
-                                                        hidden_dim=edge_dim * 1,
-                                                        ffn_layers=0)
+        self._pos_attention = PositionAttention(edge_dim=edge_dim, num_heads=num_heads, edge_reduction=edge_reduction)
         self.normalizer = AttentionWeightNormalizer(gating=self.gating)
 
         self._reset_parameters()
@@ -75,15 +73,12 @@ class PositionMultiHeadAttention(Module):
         if self.batch_first:
             value = value.transpose(1, 0)
 
-        value = linear(value, self.in_proj_weight, self.in_proj_bias)
-
-        attention_weights = self.positional_bias(stacks=adj_stack, mask=attn_mask)
-        b, n1, n2, heads = attention_weights.shape
-        assert heads == self.num_heads
-        attention_weights = attention_weights.reshape(b * self.num_heads, n1, n1)
+        attention_weights = self._pos_attention(adj_stack, attn_mask)
         # (n,batch,d)
         attn_mask = pygraph_utils.dense_mask_to_attn_mask(attn_mask)
         attn_mask = ~attn_mask
+
+        value = linear(value, self.in_proj_weight, self.in_proj_bias)
 
         attn_mask = pygraph_utils.reshape_attention_mask_to_multihead(attn_mask, self.num_heads)
         attn_output, attn_output_weights = multi_head_positional_attention(
@@ -99,3 +94,23 @@ class PositionMultiHeadAttention(Module):
             return attn_output.transpose(1, 0), attn_output_weights
         else:
             return attn_output, attn_output_weights
+
+
+class PositionAttention(Module):
+    __constants__ = ['batch_first']
+    bias_k: Optional[torch.Tensor]
+    bias_v: Optional[torch.Tensor]
+
+    def __init__(self, num_heads, edge_dim, edge_reduction='bn-mlp') -> None:
+        self.num_heads = num_heads
+        super(PositionAttention, self).__init__()
+        self.positional_bias = AdjStackAttentionWeights(edge_dim, dim_out=num_heads, ffn=edge_reduction,
+                                                        hidden_dim=edge_dim * 1,
+                                                        ffn_layers=0)
+
+    def forward(self, adj_stack, attn_mask):
+        attention_weights = self.positional_bias(stacks=adj_stack, mask=attn_mask)
+        b, n1, n2, heads = attention_weights.shape
+        assert heads == self.num_heads
+        attention_weights = attention_weights.reshape(b * self.num_heads, n1, n1)
+        return attention_weights

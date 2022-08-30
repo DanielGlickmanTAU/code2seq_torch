@@ -76,7 +76,7 @@ class AdjStack(torch.nn.Module):
             assert adj.dim() == 4
             adj = adj.permute(0, 3, 1, 2)
         else:
-            adj = to_dense_adj(batch.edge_index, batch.batch)
+            adj = to_dense_adj(batch.edge_index, batch.batch).unsqueeze(1)
 
         if self.normalize:
             adj = self.to_P_matrix(adj)

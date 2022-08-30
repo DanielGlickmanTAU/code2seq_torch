@@ -96,14 +96,14 @@ class GPSModel(torch.nn.Module):
                 else:  # i>= n_layers_gnn_only
                     layer_gnn_type = 'None'
                 # done with gnns, starting transformers
-                if i == n_layers_gnn_only:
-                    if cfg.dataset.transformer_node_encoder_name:
-                        transformer_position_encoder = FeatureEncoder(dim_in, cfg.dataset.transformer_node_encoder_name,
-                                                                      None, contract=True)
-                        layers.append(transformer_position_encoder)
+            if i == n_layers_gnn_only:
+                # encodes between gnns and global model
+                if cfg.dataset.transformer_node_encoder_name:
+                    layers.append(FeatureEncoder(dim_in, cfg.dataset.transformer_node_encoder_name,
+                                                 None, contract=True))
 
-                    if global_model_type == 'Nagasaki':
-                        layers.append(Diffuser(dim_in, cfg.nagasaki))
+                if global_model_type == 'Nagasaki':
+                    layers.append(Diffuser(dim_in, cfg.nagasaki))
 
             gps_layer = GPSLayer(dim_h=cfg.gt.dim_hidden, local_gnn_type=layer_gnn_type,
                                  global_model_type=layer_global_model, num_heads=cfg.gt.n_heads,
