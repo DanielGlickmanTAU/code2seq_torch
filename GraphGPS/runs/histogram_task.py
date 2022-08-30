@@ -8,48 +8,36 @@ import sys
 
 params_for_exp = {
     'optim.base_lr': [0.0004],
-    # 'gt.layers': [5, 10],
-    # 'gt.n_layers_gnn_only': 1,
-    # 'posenc_LapPE.enable': False,
-    # 'dataset.node_encoder_name': "TypeDictNode+RWSE",
-    # 'dataset.node_encoder_name': "TypeDictNode",
-    # 'posenc_SignNet.enable': False,
-    # 'posenc_RWSE.enable': True,
     'posenc_RWSE.kernel.times_func': "range(1, 21)",
     'posenc_RWSE.model': "Linear",
     'posenc_RWSE.dim_pe': 24,
     'posenc_RWSE.raw_norm_type': "BatchNorm",
 
     'dataset.only_color': False,
-    # 'dataset.transformer_node_encoder_name': 'SignNet',
+
     'gt.dim_hidden': 32,
     'gnn.dim_inner': 32,
-    # 'gt.layers': [10],
-    # 'gt.n_layers_gnn_only': [6],
-    # 'optim.early_stop_patience': 10,
+
     'nagasaki.edge_model_type': ['bn-mlp'],
-    # 'nagasaki.edge_reduction': ['bn-mlp', 'linear'],
+
 
     'nagasaki.learn_edges_weight': [True],
-    # 'nagasaki.two_diffusion': [True, False],
 
-    # 'nagasaki.two_diffusion': [True],
     'gt.dropout': 0.,
     'gt.attn_dropout': 0.,
     'nagasaki.steps': '[1, 2, 3, 4, 5,6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17]',
 
-    # 'nagasaki.kernel': ['sigmoid',
-    # 'exp', 'softmax'],
+
     'nagasaki.edge_reduction': ['bn-mlp', 'mlp','linear'],
 
-    # 'nagasaki.kernel': ['sigmoid', 'softmax', 'exp'],
+
     # DO NOT SET TO EXP...
     # 'nagasaki.kernel': ['sigmoid', 'softmax'],
     'nagasaki.kernel': ['sigmoid'],
     # DO NOT SET TO 1... 2 is better
     'nagasaki.ffn_layers': [2, 3],
     'nagasaki.ffn_hidden_multiplier': [2],
-    # 'nagasaki.kernel': ['sigmoid', 'exp'],
+
     # 'nagasaki.nhead': 2,
     'optim.early_stop_patience': 50
 
