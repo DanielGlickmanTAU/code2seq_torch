@@ -19,8 +19,9 @@ from torch_geometric.graphgym.config import (cfg, dump_cfg,
                                              makedirs_rm_exist)
 from torch_geometric.graphgym.loader import create_loader
 from torch_geometric.graphgym.logger import set_printing
-from torch_geometric.graphgym.optimizer import create_optimizer, \
-    create_scheduler, OptimizerConfig, SchedulerConfig
+from torch_geometric.graphgym.optim import create_optimizer, \
+    create_scheduler, OptimizerConfig
+from graphgps.optimizer.extra_optimizers import ExtendedSchedulerConfig
 from torch_geometric.graphgym.model_builder import create_model
 from torch_geometric.graphgym.train import train
 from torch_geometric.graphgym.utils.agg_runs import agg_runs
@@ -44,9 +45,13 @@ def new_optimizer_config(cfg):
 
 
 def new_scheduler_config(cfg):
-    return SchedulerConfig(scheduler=cfg.optim.scheduler,
-                           steps=cfg.optim.steps, lr_decay=cfg.optim.lr_decay,
-                           max_epoch=cfg.optim.max_epoch)
+    return ExtendedSchedulerConfig(
+        scheduler=cfg.optim.scheduler,
+        steps=cfg.optim.steps, lr_decay=cfg.optim.lr_decay,
+        max_epoch=cfg.optim.max_epoch, reduce_factor=cfg.optim.reduce_factor,
+        schedule_patience=cfg.optim.schedule_patience, min_lr=cfg.optim.min_lr,
+        num_warmup_epochs=cfg.optim.num_warmup_epochs,
+        train_mode=cfg.train.mode, eval_period=cfg.train.eval_period)
 
 
 def custom_set_out_dir(cfg, cfg_fname, name_tag):
