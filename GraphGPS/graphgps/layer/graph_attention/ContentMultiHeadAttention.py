@@ -119,7 +119,7 @@ class ContentMultiheadAttention(torch.nn.Module):
                 self.dropout, self.out_proj.weight, self.out_proj.bias,
                 training=self.training,
                 key_padding_mask=key_padding_mask, need_weights=need_weights,
-                attn_mask=attn_mask, scale_by_sqrt_n=False, normalizer=self.normalizer)
+                attn_mask=attn_mask, normalizer=self.normalizer)
         if self.batch_first:
             return attn_output.transpose(1, 0), attn_output_weights
         else:

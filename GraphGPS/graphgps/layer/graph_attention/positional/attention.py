@@ -24,7 +24,7 @@ def multi_head_positional_attention(
         need_weights: bool = True,
         attn_mask: Optional[Tensor] = None,
         use_separate_proj_weight: bool = False,
-        scale_by_sqrt_n: bool = False,
+
 ) -> Tuple[Tensor, Optional[Tensor]]:
     # set up shape vars
     tgt_len, bsz, embed_dim = value.shape
@@ -36,9 +36,7 @@ def multi_head_positional_attention(
     "expect attention weights to be of shape (batch *num_head,tgt_len,tgt_len)"
     assert attention_weights.shape == (bsz * num_heads, src_len, src_len)
     attn_mask = prep_attention_mask(attn_mask, bsz, num_heads, src_len, tgt_len)
-    # assert attn_mask.shape == attention_weights.shape
-    if scale_by_sqrt_n:
-        attention_weights = _scale(attention_weights)
+
 
     # (batch*num_head, n , d/head)
     v = pygraph_utils.reshape_to_multihead(value, num_heads)

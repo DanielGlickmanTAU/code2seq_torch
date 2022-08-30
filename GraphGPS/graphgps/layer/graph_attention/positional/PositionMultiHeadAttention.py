@@ -31,7 +31,6 @@ class PositionMultiHeadAttention(Module):
         assert self._qkv_same_embed_dim
 
         self.gating: bool = False
-        self.scale_positional_attention = False
         self.num_heads = num_heads
         self.dropout = dropout
         self.batch_first = batch_first
@@ -79,7 +78,8 @@ class PositionMultiHeadAttention(Module):
         value = linear(value, self.in_proj_weight, self.in_proj_bias)
 
         attention_weights = self.positional_bias(stacks=adj_stack, mask=attn_mask)
-        b, heads, n1, n2 = attention_weights.shape
+        b, n1, n2, heads = attention_weights.shape
+        assert heads == self.num_heads
         attention_weights = attention_weights.reshape(b * self.num_heads, n1, n1)
         # (n,batch,d)
         attn_mask = pygraph_utils.dense_mask_to_attn_mask(attn_mask)
@@ -93,7 +93,7 @@ class PositionMultiHeadAttention(Module):
 
             training=self.training,
             key_padding_mask=key_padding_mask, need_weights=need_weights,
-            attn_mask=attn_mask, scale_by_sqrt_n=self.scale_positional_attention, normalizer=self.normalizer)
+            attn_mask=attn_mask, normalizer=self.normalizer)
 
         if self.batch_first:
             return attn_output.transpose(1, 0), attn_output_weights
