@@ -195,7 +195,7 @@ def get_nagasaki_config(total_layers=4, gnn_layers=2, far_away=False, rwse=True)
         'gt.n_layers_gnn_only': [gnn_layers],
         'posenc_LapPE.enable': [False],
         'posenc_LapPE.layers': [0],
-        'dataset.node_encoder_name': 'TypeDictNode+RWSE' if rwse else False,
+        'dataset.node_encoder_name': 'TypeDictNode+RWSE' if rwse else 'TypeDictNode',
         'posenc_SignNet.enable': False,
         'posenc_SignNet.post_layers': 2,
 
