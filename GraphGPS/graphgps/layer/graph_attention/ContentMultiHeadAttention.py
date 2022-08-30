@@ -70,6 +70,9 @@ class ContentMultiheadAttention(torch.nn.Module):
 
         self._reset_parameters()
 
+        if not self._qkv_same_embed_dim:
+            raise Exception('should not happen')
+
     def _reset_parameters(self):
         if self._qkv_same_embed_dim:
             xavier_uniform_(self.in_proj_weight)
@@ -92,35 +95,31 @@ class ContentMultiheadAttention(torch.nn.Module):
         if self.batch_first:
             query, key, value = [x.transpose(1, 0) for x in (query, key, value)]
 
-        if not self._qkv_same_embed_dim:
-            raise Exception('should not happen')
-        else:
-            tgt_len, bsz, embed_dim = value.shape
-            head_dim = embed_dim // self.num_heads
+        q, k, v = _in_projection_packed(query, key, value, self.in_proj_weight, self.in_proj_bias)
+        attn = self._compute_attn(k, q, value)
 
-            q, k, v = _in_projection_packed(query, key, value, self.in_proj_weight, self.in_proj_bias)
-            q = q.contiguous().view(tgt_len, bsz * self.num_heads, head_dim).transpose(0, 1)
-            k = k.contiguous().view(k.shape[0], bsz * self.num_heads, head_dim).transpose(0, 1)
-
-            B, Nt, E = q.shape
-
-            q = q / math.sqrt(E)
-            # (B, Nt, E) x (B, E, Ns) -> (B, Nt, Ns)
-            attn = torch.bmm(q, k.transpose(-2, -1))
-            assert not attn.isinf().any(), attn
-            assert not attn.isnan().any(), attn
-
-
-
-            attn_mask = pygraph_utils.reshape_attention_mask_to_multihead(attn_mask, self.num_heads)
-            attn_output, attn_output_weights = multi_head_positional_attention(
-                v, attn, self.embed_dim, self.num_heads,
-                self.bias_k, self.bias_v,
-                self.dropout, self.out_proj.weight, self.out_proj.bias,
-                training=self.training,
-                key_padding_mask=key_padding_mask, need_weights=need_weights,
-                attn_mask=attn_mask, normalizer=self.normalizer)
+        attn_mask = pygraph_utils.reshape_attention_mask_to_multihead(attn_mask, self.num_heads)
+        attn_output, attn_output_weights = multi_head_positional_attention(
+            v, attn, self.embed_dim, self.num_heads,
+            self.bias_k, self.bias_v,
+            self.dropout, self.out_proj.weight, self.out_proj.bias,
+            training=self.training,
+            key_padding_mask=key_padding_mask, need_weights=need_weights,
+            attn_mask=attn_mask, normalizer=self.normalizer)
         if self.batch_first:
             return attn_output.transpose(1, 0), attn_output_weights
         else:
             return attn_output, attn_output_weights
+
+    def _compute_attn(self, k, q, value):
+        tgt_len, bsz, embed_dim = value.shape
+        head_dim = embed_dim // self.num_heads
+        q = q.contiguous().view(tgt_len, bsz * self.num_heads, head_dim).transpose(0, 1)
+        k = k.contiguous().view(k.shape[0], bsz * self.num_heads, head_dim).transpose(0, 1)
+        B, Nt, E = q.shape
+        q = q / math.sqrt(E)
+        # (B, Nt, E) x (B, E, Ns) -> (B, Nt, Ns)
+        attn = torch.bmm(q, k.transpose(-2, -1))
+        assert not attn.isinf().any(), attn
+        assert not attn.isnan().any(), attn
+        return attn
