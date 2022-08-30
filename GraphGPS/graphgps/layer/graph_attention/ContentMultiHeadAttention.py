@@ -24,7 +24,7 @@ class ContentMultiheadAttention(torch.nn.Module):
     def __init__(self, embed_dim, num_heads, dropout=0., bias=True, add_bias_kv=False,
                  add_zero_attn=False,
                  kdim=None, vdim=None, batch_first=False, device=None, dtype=None, use_distance_bias=False,
-                 num_adj_stacks=0, gating=False) -> None:
+                 ) -> None:
 
         factory_kwargs = {'device': device, 'dtype': dtype}
         super(ContentMultiheadAttention, self).__init__()
@@ -37,7 +37,6 @@ class ContentMultiheadAttention(torch.nn.Module):
         self.dropout = dropout
         self.batch_first = batch_first
         self.head_dim = embed_dim // num_heads
-        self.gating = gating
         assert self.head_dim * num_heads == self.embed_dim, "embed_dim must be divisible by num_heads"
 
         if self._qkv_same_embed_dim is False:
@@ -66,10 +65,8 @@ class ContentMultiheadAttention(torch.nn.Module):
         self.add_zero_attn = add_zero_attn
 
         self.use_distance_bias = use_distance_bias
-        # if use_distance_bias:
-        #     self.positional_bias = AdjStackAttentionWeights(args, num_adj_stacks, num_heads)
 
-        self.normalizer = AttentionWeightNormalizer(gating=self.gating)
+        self.normalizer = AttentionWeightNormalizer(gating=False)
 
         self._reset_parameters()
 
@@ -90,7 +87,7 @@ class ContentMultiheadAttention(torch.nn.Module):
             xavier_normal_(self.bias_v)
 
     def forward(self, query: Tensor, key: Tensor, value: Tensor, key_padding_mask: Optional[Tensor] = None,
-                need_weights: bool = True, attn_mask: Optional[Tensor] = None, adj_stack: Optional[Tensor] = None) -> \
+                need_weights: bool = True, attn_mask: Optional[Tensor] = None) -> \
             Tuple[Tensor, Optional[Tensor]]:
         if self.batch_first:
             query, key, value = [x.transpose(1, 0) for x in (query, key, value)]
@@ -106,16 +103,14 @@ class ContentMultiheadAttention(torch.nn.Module):
             k = k.contiguous().view(k.shape[0], bsz * self.num_heads, head_dim).transpose(0, 1)
 
             B, Nt, E = q.shape
-            if self.gating:
-                print('diving by sqrt when gating.. not sure we want this')
+
             q = q / math.sqrt(E)
             # (B, Nt, E) x (B, E, Ns) -> (B, Nt, Ns)
             attn = torch.bmm(q, k.transpose(-2, -1))
             assert not attn.isinf().any(), attn
             assert not attn.isnan().any(), attn
 
-            # if self.use_distance_bias:
-            #     attn = attn + self._positional_bias_f(adj_stack)
+
 
             attn_mask = pygraph_utils.reshape_attention_mask_to_multihead(attn_mask, self.num_heads)
             attn_output, attn_output_weights = multi_head_positional_attention(
