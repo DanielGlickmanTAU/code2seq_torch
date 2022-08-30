@@ -129,10 +129,3 @@ class ContentMultiheadAttention(torch.nn.Module):
             return attn_output.transpose(1, 0), attn_output_weights
         else:
             return attn_output, attn_output_weights
-
-    def _positional_bias_f(self, adj_stack):
-        distance_bias = self.positional_bias(adj_stack)
-        # collapse togeter first(batch) and second(head) dim
-        distance_bias = distance_bias.reshape(distance_bias.shape[0] * distance_bias.shape[1],
-                                              distance_bias.shape[-1], distance_bias.shape[-1])
-        return distance_bias
