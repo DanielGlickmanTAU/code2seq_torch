@@ -183,7 +183,7 @@ def get_STRONG_RSWE_gnn_transformer_signnet_AFTERGNN_deepset_config():
     }
 
 
-def get_nagasaki_config(total_layers=4, gnn_layers=2, far_away=False):
+def get_nagasaki_config(total_layers=4, gnn_layers=2, far_away=False, rwse=True):
     return {
         # 'optim.base_lr': [0.00003, 0.00005],
         'nagasaki.steps': '[1, 2, 3, 4, 5, 6, 7, 8, 9, 10,11,12,13,14,15,16,17,18, 19, 20]' if far_away else '[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]',
@@ -195,11 +195,11 @@ def get_nagasaki_config(total_layers=4, gnn_layers=2, far_away=False):
         'gt.n_layers_gnn_only': [gnn_layers],
         'posenc_LapPE.enable': [False],
         'posenc_LapPE.layers': [0],
-        'dataset.node_encoder_name': 'TypeDictNode+RWSE',
+        'dataset.node_encoder_name': 'TypeDictNode+RWSE' if rwse else False,
         'posenc_SignNet.enable': False,
         'posenc_SignNet.post_layers': 2,
 
-        'posenc_RWSE.enable': True,
+        'posenc_RWSE.enable': rwse,
         'posenc_RWSE.kernel.times_func': 'range(1, 21)',
         'posenc_RWSE.model': 'Linear',
         'posenc_RWSE.dim_pe': 24,
