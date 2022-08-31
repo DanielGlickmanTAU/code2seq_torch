@@ -157,7 +157,7 @@ def train_flow(cfg):
                                  new_optimizer_config(cfg))
     scheduler = create_scheduler(optimizer, new_scheduler_config(cfg))
     if cfg.load_checkpoint_from_dir:
-        load_model(model, checkpoint_dir=cfg.load_checkpoint_from_dir, optimizer, scheduler)
+        load_model(model, cfg.load_checkpoint_from_dir, optimizer, scheduler)
     # Print model info
     logging.info(model)
     logging.info(cfg)
