@@ -130,7 +130,7 @@ def cfg_assertions(cfg):
         cfg.dataset['node_encoder_name'] = cfg.dataset['node_encoder_name'].replace('+LapPE', '')
 
 
-def load_model(model, checkpoint_dir='runs'):
+def load_model(model, checkpoint_dir, optimizer, scheduler):
     p = cfg.run_dir
     cfg.run_dir = checkpoint_dir
     ckpt = load_ckpt(model, optimizer, scheduler)
@@ -157,7 +157,7 @@ def train_flow(cfg):
                                  new_optimizer_config(cfg))
     scheduler = create_scheduler(optimizer, new_scheduler_config(cfg))
     if cfg.load_checkpoint_from_dir:
-        load_model(model, checkpoint_dir=cfg.load_checkpoint_from_dir)
+        load_model(model, checkpoint_dir=cfg.load_checkpoint_from_dir, optimizer, scheduler)
     # Print model info
     logging.info(model)
     logging.info(cfg)
@@ -173,7 +173,6 @@ def train_flow(cfg):
         res = train_dict[cfg.train.mode](loggers, loaders, model, optimizer,
                                          scheduler)
         return res
-
 
 
 def main():
