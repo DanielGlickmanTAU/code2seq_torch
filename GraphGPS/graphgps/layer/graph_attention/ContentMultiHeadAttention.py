@@ -121,11 +121,11 @@ class ContentAttention(torch.nn.Module):
 
     def forward(self, query, key, value):
         q, k, v = _in_projection_packed(query, key, value, self.in_proj_weight, self.in_proj_bias)
-        attn = self._compute_attn(k, q, value)
+        attn = self._compute_attn(k, q)
         return attn, v
 
-    def _compute_attn(self, k, q, value):
-        tgt_len, bsz, embed_dim = value.shape
+    def _compute_attn(self, k, q):
+        tgt_len, bsz, embed_dim = k.shape
         head_dim = embed_dim // self.num_heads
         q = q.contiguous().view(tgt_len, bsz * self.num_heads, head_dim).transpose(0, 1)
         k = k.contiguous().view(k.shape[0], bsz * self.num_heads, head_dim).transpose(0, 1)
