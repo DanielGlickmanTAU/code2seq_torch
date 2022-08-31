@@ -30,7 +30,6 @@ class PositionMultiHeadAttention(Module):
         self._qkv_same_embed_dim = self.kdim == embed_dim and self.vdim == embed_dim
         assert self._qkv_same_embed_dim
 
-        self.gating: bool = False
         self.num_heads = num_heads
         self.dropout = dropout
         self.batch_first = batch_first
@@ -53,7 +52,7 @@ class PositionMultiHeadAttention(Module):
             self.bias_k = self.bias_v = None
 
         self._pos_attention = PositionAttention(edge_dim=edge_dim, num_heads=num_heads, edge_reduction=edge_reduction)
-        self.normalizer = AttentionWeightNormalizer(gating=self.gating)
+        self.normalizer = AttentionWeightNormalizer()
 
         self._reset_parameters()
 
