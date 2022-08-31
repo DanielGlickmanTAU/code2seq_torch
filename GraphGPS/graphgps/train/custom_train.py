@@ -228,7 +228,8 @@ def custom_train(loggers, loaders, model, optimizer, scheduler):
                                      f"gamma={gtl.attention.gamma.item()}")
     logging.info(f"Avg time per epoch: {np.mean(full_epoch_times):.2f}s")
     logging.info(f"Total train loop time: {np.sum(full_epoch_times) / 3600:.2f}h")
-    upload_model_to_wandb(cur_epoch, run)
+    if cfg.wandb.use:
+        upload_model_to_wandb(cur_epoch, run)
     for logger in loggers:
         logger.close()
     if cfg.train.ckpt_clean:
