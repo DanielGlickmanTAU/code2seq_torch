@@ -17,6 +17,7 @@ def set_cfg_nagasaki(cfg):
     cfg.nagasaki.kernel = 'sigmoid'
     cfg.nagasaki.bn_out = False
     cfg.nagasaki.nhead = 1
+    cfg.nagasaki.merge_attention = None
 
 
 register_config('cfg_nagasaki', set_cfg_nagasaki)
