@@ -1,8 +1,8 @@
 import time
+from code2seq.utils import compute
 
 from torch_geometric.graphgym import load_ckpt
 
-from code2seq.utils import compute
 
 compute.get_torch()
 import datetime
@@ -141,7 +141,6 @@ def load_model(model, checkpoint_dir='runs'):
 
 
 def train_flow(cfg):
-    custom_set_run_dir(cfg, f'{start_time}_{run_id}')
     set_printing()
     cfg.dataset.split_index = split_index
     cfg.seed = seed
@@ -210,6 +209,7 @@ if __name__ == '__main__':
     start_time = time.time()
     for run_id, seed, split_index in zip(*run_loop_settings()):
         # Set configurations for each run
+        custom_set_run_dir(cfg, f'{start_time}_{run_id}')
         train_flow(cfg)
     # Aggregate results from different seeds
     # agg_runs(cfg.out_dir, cfg.metric_best)
