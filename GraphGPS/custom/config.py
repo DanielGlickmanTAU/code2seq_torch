@@ -39,6 +39,8 @@ def parse_args():
 
     parser.add_argument('--profiler', type=bool_, default=False)
 
+    parser.add_argument('--ogb_eval', type=bool_, default=False)
+
     parser.add_argument('opts', help='See graphgym/config.py for all options',
                         default=None, nargs=argparse.REMAINDER)
     return parser.parse_args()

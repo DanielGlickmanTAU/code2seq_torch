@@ -6,6 +6,7 @@ Evaluation functions from OGB.
 https://github.com/snap-stanford/ogb/blob/master/ogb/graphproppred/evaluate.py
 """
 
+
 def eval_rocauc(y_true, y_pred):
     '''
         compute ROC-AUC averaged across tasks
@@ -73,7 +74,8 @@ def eval_acc(y_true, y_pred):
     for i in range(y_true.shape[1]):
         is_labeled = y_true[:, i] == y_true[:, i]
         correct = y_true[is_labeled, i] == y_pred[is_labeled, i]
-        acc_list.append(float(np.sum(correct)) / len(correct))
+        if len(correct):
+            acc_list.append(float(np.sum(correct)) / len(correct))
 
     return {'acc': sum(acc_list) / len(acc_list)}
 

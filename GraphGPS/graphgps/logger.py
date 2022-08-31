@@ -97,6 +97,17 @@ class CustomLogger(Logger):
         true, pred_score = torch.cat(self._true), torch.cat(self._pred)
         reformat = lambda x: round(float(x), cfg.round)
 
+        if cfg.ogb_eval:
+            true = true.cpu().numpy()
+            pred_score = pred_score.cpu().numpy()
+            return {
+                'accuracy': reformat(metrics_ogb.eval_acc(
+                    true, (pred_score > 0.).astype(int))['acc']),
+                'ap': reformat(metrics_ogb.eval_ap(true, pred_score)['ap']),
+                'auc': reformat(
+                    metrics_ogb.eval_rocauc(true, pred_score)['rocauc']),
+            }
+
         # Send to GPU to speed up TorchMetrics if possible.
         true = true.to(torch.device(cfg.device))
         pred_score = pred_score.to(torch.device(cfg.device))
