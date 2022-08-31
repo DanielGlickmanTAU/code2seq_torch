@@ -177,6 +177,10 @@ def _append_params():
 if __name__ == '__main__':
     # os.chdir('..')
     _append_params()
+    # sys.argv.append('nagasaki.merge_attention')
+    # sys.argv.append('plus')
+
     a = main()
     print(a)
-    assert 'test_accuracy: 0.38' in a
+    assert 'test_accuracy: 0.38' in a or 'test_accuracy: 0.39' in a
+    assert 'train_accuracy: 0.44' in a or 'train_accuracy: 0.45' in a
