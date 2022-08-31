@@ -240,6 +240,7 @@ def custom_train(loggers, loaders, model, optimizer, scheduler):
         run = None
 
     logging.info('Task done, results saved in {}'.format(cfg.run_dir))
+    return best_train, best_test
 
 
 def upload_model_to_wandb(cur_epoch, run):

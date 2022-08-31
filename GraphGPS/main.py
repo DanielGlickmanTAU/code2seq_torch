@@ -1,8 +1,7 @@
 import time
-from code2seq.utils import compute
 
 from torch_geometric.graphgym import load_ckpt
-
+from code2seq.utils import compute
 
 compute.get_torch()
 import datetime
@@ -141,16 +140,11 @@ def load_model(model, checkpoint_dir='runs'):
 
 
 def train_flow(cfg):
-    set_printing()
-    cfg.dataset.split_index = split_index
-    cfg.seed = seed
-    cfg.run_id = run_id
     seed_everything(cfg.seed)
     auto_select_device()
     if cfg.train.finetune:
         cfg = load_pretrained_model_cfg(cfg)
-    logging.info(f"[*] Run ID {run_id}: seed={cfg.seed}, "
-                 f"split_index={cfg.dataset.split_index}")
+
     logging.info(f"    Starting now: {datetime.datetime.now()}")
     # Set machine learning pipeline
     loaders = create_loader()
@@ -176,16 +170,18 @@ def train_flow(cfg):
                             "default train.mode, set it to `custom`")
         train(loggers, loaders, model, optimizer, scheduler)
     else:
-        train_dict[cfg.train.mode](loggers, loaders, model, optimizer,
-                                   scheduler)
+        res = train_dict[cfg.train.mode](loggers, loaders, model, optimizer,
+                                         scheduler)
+        return res
 
 
-if __name__ == '__main__':
+
+def main():
+    global args, value, keys, cfg
     # Load cmd line args
     args = parse_args()
     # Load config file
     set_cfg(cfg)
-
     load_cfg(cfg, args)
     for key, value in args.__dict__.items():
         try:
@@ -198,10 +194,7 @@ if __name__ == '__main__':
             print(f'overwrite {key}:{value}')
         except Exception:
             print(f'fail to overwrite {key}:{value}')
-
     cfg_assertions(cfg)
-
-
     # Set Pytorch environment
     torch.set_num_threads(cfg.num_threads)
     cfg.device = str(compute.get_device())
@@ -210,10 +203,22 @@ if __name__ == '__main__':
     for run_id, seed, split_index in zip(*run_loop_settings()):
         # Set configurations for each run
         custom_set_run_dir(cfg, f'{start_time}_{run_id}')
-        train_flow(cfg)
+        set_printing()
+        cfg.dataset.split_index = split_index
+        cfg.seed = seed
+        cfg.run_id = run_id
+        logging.info(f"[*] Run ID {run_id}: seed={cfg.seed}, "
+                     f"split_index={cfg.dataset.split_index}")
+
+        res = train_flow(cfg)
     # Aggregate results from different seeds
     # agg_runs(cfg.out_dir, cfg.metric_best)
     # When being launched in batch mode, mark a yaml as done
     if args.mark_done:
         os.rename(args.cfg_file, '{}_done'.format(args.cfg_file))
     logging.info(f"[*] All done: {datetime.datetime.now()}")
+    return res
+
+
+if __name__ == '__main__':
+    main()
