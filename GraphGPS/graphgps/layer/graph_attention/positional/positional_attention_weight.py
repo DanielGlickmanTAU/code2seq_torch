@@ -8,6 +8,7 @@ from examples.graphproppred.mol.pygraph_utils import get_dense_x_and_mask
 
 from examples.graphproppred.mol import pygraph_utils
 from graphgps.layer.graph_attention.positional import positional_utils
+from torch.profiler import record_function
 
 
 class AdjStackAttentionWeights(torch.nn.Module):
@@ -42,6 +43,7 @@ class AdjStackAttentionWeights(torch.nn.Module):
     # stacks shape is (batch,n,n,num_adj_stacks)
     # mask shape is (batch,n).
     # returns (batch,n,n,num_heads)
+    @record_function('AdjStackAttentionWeights')
     def forward(self, stacks: torch.Tensor, mask):
         b, n, n1, num_stacks = stacks.shape
         assert num_stacks == self.num_adj_stacks
@@ -63,6 +65,7 @@ class AdjStack(torch.nn.Module):
         self.nhead = nhead
         assert len(self.steps) == len(set(self.steps)), f'duplicate power in {self.steps}'
 
+    @record_function('adj_stack')
     def forward(self, batch, mask, edge_weights=None):
         if edge_weights is not None:
             # edge_weights = edge_weights.squeeze(-1)
@@ -226,6 +229,7 @@ class EdgeReducer(torch_geometric.nn.conv.MessagePassing):
             self.bn_out = nn.BatchNorm1d(dim_out)
         self.dropout = dropout
 
+    @record_function('edge_reducer')
     def forward(self, batch):
         x, e, edge_index = batch.x, batch.edge_attr, batch.edge_index
         if e is None:
