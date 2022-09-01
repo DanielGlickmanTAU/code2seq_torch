@@ -26,7 +26,8 @@ def _profile(model, batch):
         ProfilerActivity.CPU, ProfilerActivity.CUDA], record_shapes=True, profile_memory=True, with_stack=True) as prof:
         with record_function("model_inference"):
             ret = model(batch)
-    print(prof.key_averages().table(sort_by="cuda_time_total", row_limit=10))
+    # print(prof.key_averages().table(sort_by="cuda_time_total", row_limit=10))
+    print(prof.key_averages().table(sort_by="cuda_memory_usage", row_limit=10))
     # prof.export_chrome_trace("trace.json")
     # res = run.save('trace.json, policy='now')
     # when want to decorate specific functions, do with torch.autograd.profiler.record_function("label-z")
