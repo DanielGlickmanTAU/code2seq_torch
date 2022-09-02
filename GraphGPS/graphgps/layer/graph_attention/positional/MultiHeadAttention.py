@@ -7,6 +7,7 @@ from torch.nn.functional import linear
 from torch.nn.init import xavier_uniform_, constant_, xavier_normal_
 from torch.nn.modules.linear import NonDynamicallyQuantizableLinear
 
+from graphgps.layer.graph_attention.ContentMultiHeadAttention import ContentAttention
 from graphgps.layer.graph_attention.positional.attention import multi_head_positional_attention
 from examples.graphproppred.mol import pygraph_utils
 from graphgps.layer.graph_attention.positional.AttentionWeightNormalizer import AttentionWeightNormalizer
