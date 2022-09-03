@@ -147,8 +147,12 @@ def custom_train(loggers, loaders, model, optimizer, scheduler):
     perf = [[] for _ in range(num_splits)]
     for cur_epoch in range(start_epoch, cfg.optim.max_epoch):
         start_time = time.perf_counter()
-        train_epoch(loggers[0], loaders[0], model, optimizer, scheduler,
-                    cfg.optim.batch_accumulation)
+        if cfg.inference_only:
+            eval_epoch(loggers[0], loaders[0], model,
+                       split=split_names[0])
+        else:
+            train_epoch(loggers[0], loaders[0], model, optimizer, scheduler,
+                        cfg.optim.batch_accumulation)
         perf[0].append(loggers[0].write_epoch(cur_epoch))
 
         if is_eval_epoch(cur_epoch):
