@@ -184,15 +184,11 @@ def get_STRONG_RSWE_gnn_transformer_signnet_AFTERGNN_deepset_config():
 
 
 def get_nagasaki_config(total_layers=4, gnn_layers=2, far_away=False, rwse=True):
-    return {
+    d = get_nagasaki_basic_config(total_layers=total_layers, gnn_layers=gnn_layers, far_away=far_away)
+    d.update({
         # 'optim.base_lr': [0.00003, 0.00005],
-        'nagasaki.steps': '[1, 2, 3, 4, 5, 6, 7, 8, 9, 10,11,12,13,14,15,16,17,18, 19, 20]' if far_away else '[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]',
-        'gt.layer_type': 'CustomGatedGCN+Nagasaki' if gnn_layers else 'None+Nagasaki',
-        'gt.use_gnn': True if gnn_layers else False,
-        'gt.layers': [total_layers],
         'gt.n_heads': [2],
         # 'gt.n_layers_gnn_only': [6, 10],
-        'gt.n_layers_gnn_only': [gnn_layers],
         'posenc_LapPE.enable': [False],
         'posenc_LapPE.layers': [0],
         'dataset.node_encoder_name': 'TypeDictNode+RWSE' if rwse else 'TypeDictNode',
@@ -206,6 +202,17 @@ def get_nagasaki_config(total_layers=4, gnn_layers=2, far_away=False, rwse=True)
         'posenc_RWSE.raw_norm_type': "BatchNorm",
 
         # 'dataset.transformer_node_encoder_name': 'SignNet'
+    })
+    return d
+
+
+def get_nagasaki_basic_config(total_layers=4, gnn_layers=2, far_away=False):
+    return {
+        'nagasaki.steps': '[1, 2, 3, 4, 5, 6, 7, 8, 9, 10,11,12,13,14,15,16,17,18, 19, 20]' if far_away else '[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]',
+        'gt.layer_type': 'CustomGatedGCN+Nagasaki' if gnn_layers else 'None+Nagasaki',
+        'gt.use_gnn': True if gnn_layers else False,
+        'gt.layers': [total_layers],
+        'gt.n_layers_gnn_only': [gnn_layers],
     }
 
 
