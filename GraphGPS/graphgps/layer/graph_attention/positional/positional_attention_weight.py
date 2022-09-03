@@ -184,7 +184,7 @@ class Diffuser(nn.Module):
 
         self.kernel = nagasaki_config.kernel
         self.two_diffusion = nagasaki_config.two_diffusion
-        assert self.two_diffusion is False,'not supported for now'
+        assert self.two_diffusion is False, 'not supported for now'
 
         if nagasaki_config.two_diffusion:
             self.hidden_reducer = MultiHeadAdjStackWeight(
@@ -197,18 +197,13 @@ class Diffuser(nn.Module):
 
     def forward(self, batch):
         _, mask = get_dense_x_and_mask(batch.x, batch.batch)
-        batch.mask = mask
 
-        weighted_edges = None
-        if self.edge_reducer:
-            weighted_edges = self.edge_reducer(batch)
-
+        weighted_edges = self.edge_reducer(batch) if self.edge_reducer else None
         stacks = self.adj_stacker(batch, mask, weighted_edges)
-
         edges = self.edge_mlp(stacks, mask)
 
+        batch.mask = mask
         batch.edges = edges
-
         return batch
 
 
