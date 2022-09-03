@@ -154,12 +154,16 @@ class MultiHeadAdjStackWeight(nn.Module):
 class Diffuser(nn.Module):
     def __init__(self, dim_in, nagasaki_config):
         super().__init__()
+        self.nhead = nagasaki_config.nhead
+        self.kernel = nagasaki_config.kernel
+        self.two_diffusion = nagasaki_config.two_diffusion
+        assert self.two_diffusion is False, 'not supported for now'
+
         steps = nagasaki_config.steps
         if isinstance(steps, str):
             steps = list(eval(steps))
         num_stack = positional_utils.get_stacks_dim(nagasaki_config)
         edge_dim = positional_utils.get_edge_dim(nagasaki_config)
-        self.nhead = nagasaki_config.nhead
         if nagasaki_config.learn_edges_weight:
             self.edge_reducer = EdgeReducer(dim_in, hidden_dim=2 * dim_in, dim_out=self.nhead, dropout=0.,
                                             norm_output=nagasaki_config.bn_out)
@@ -175,18 +179,6 @@ class Diffuser(nn.Module):
                                                 edge_model_type=nagasaki_config.edge_model_type,
                                                 ffn_layers=nagasaki_config.ffn_layers,
                                                 reduce=False, nhead=self.nhead)
-        self.kernel = nagasaki_config.kernel
-        self.two_diffusion = nagasaki_config.two_diffusion
-        assert self.two_diffusion is False, 'not supported for now'
-
-        if nagasaki_config.two_diffusion:
-            self.hidden_reducer = MultiHeadAdjStackWeight(
-                input_dim=num_stack,
-                hidden_dim=edge_dim,
-                edge_model_type=nagasaki_config.edge_model_type,
-                ffn_layers=nagasaki_config.ffn_layers,
-                dim_out=self.nhead,
-                nhead=self.nhead, reduce=True)
 
     def forward(self, batch):
         _, mask = get_dense_x_and_mask(batch.x, batch.batch)
