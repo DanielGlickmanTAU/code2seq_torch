@@ -1,7 +1,5 @@
 import logging
-import os
 import os.path as osp
-import shutil
 import time
 from functools import partial
 
@@ -9,8 +7,6 @@ import numpy as np
 import torch
 import torch_geometric.transforms as T
 from numpy.random import default_rng
-
-from graphgps.loader.dataset.RowColoringDataset import RowColoringDataset
 from ogb.graphproppred import PygGraphPropPredDataset
 from torch_geometric.datasets import (GNNBenchmarkDataset, Planetoid, TUDataset,
                                       WikipediaNetwork, ZINC)
@@ -25,7 +21,6 @@ from graphgps.transform.posenc_stats import compute_posenc_stats
 from graphgps.transform.transforms import (pre_transform_in_memory,
                                            typecast_x, concat_x_and_pos,
                                            clip_graphs_to_size)
-from ogb.utils.url import decide_download, download_url, extract_zip
 
 
 def log_loaded_dataset(dataset, format, name):
@@ -55,13 +50,6 @@ def log_loaded_dataset(dataset, format, name):
             logging.info(f"  num classes: (appears to be a regression task)")
         else:
             logging.info(f"  num classes: {dataset.num_classes}")
-            try:
-                y_sample = dataset.data.y[:1000]
-                if not y_sample.isnan().any():
-                    logging.info(
-                        f'class distribution(first 1k nodes only): {torch.stack([x[0] for x in zip(y_sample.unique(return_counts=True))])}')
-            except Exception:
-                pass
     elif hasattr(dataset.data, 'train_edge_label') or hasattr(dataset.data, 'edge_label'):
         # Edge/link prediction task.
         if hasattr(dataset.data, 'train_edge_label'):
@@ -87,6 +75,7 @@ def log_loaded_dataset(dataset, format, name):
     #     )
 
 
+@register_loader('custom_master_loader')
 def load_dataset_master(format, name, dataset_dir):
     """
     Master loader that controls loading of all datasets, overshadowing execution
@@ -104,15 +93,7 @@ def load_dataset_master(format, name, dataset_dir):
     Returns:
         PyG dataset object with applied perturbation transforms and data splits
     """
-    if name == 'row-coloring':
-        dataset = RowColoringDataset()
-        dataset.name = name
-
-        split_dict = dataset.get_idx_split()
-        dataset.split_idxs = [split_dict['train'],
-                              split_dict['valid'],
-                              split_dict['test']]
-    elif format.startswith('PyG-'):
+    if format.startswith('PyG-'):
         pyg_dataset_id = format.split('-', 1)[1]
         dataset_dir = osp.join(dataset_dir, pyg_dataset_id)
 
@@ -155,13 +136,11 @@ def load_dataset_master(format, name, dataset_dir):
         elif name.startswith('ogbl-'):
             # GraphGym default loader.
             dataset = load_ogb(name, dataset_dir)
-
             # OGB link prediction datasets are binary classification tasks,
             # however the default loader creates float labels => convert to int.
             def convert_to_int(ds, prop):
                 tmp = getattr(ds.data, prop).int()
                 set_dataset_attr(ds, prop, tmp, len(tmp))
-
             convert_to_int(dataset, 'train_edge_label')
             convert_to_int(dataset, 'val_edge_label')
             convert_to_int(dataset, 'test_edge_label')
@@ -184,8 +163,6 @@ def load_dataset_master(format, name, dataset_dir):
                     pecfg.kernel.times = list(eval(pecfg.kernel.times_func))
                 logging.info(f"Parsed {pe_name} PE kernel times / steps: "
                              f"{pecfg.kernel.times}")
-    max_examples = cfg.max_examples
-
     if pe_enabled_list:
         start = time.perf_counter()
         logging.info(f"Precomputing Positional Encoding statistics: "
@@ -193,20 +170,12 @@ def load_dataset_master(format, name, dataset_dir):
         # Estimate directedness based on 10 graphs to save time.
         is_undirected = all(d.is_undirected() for d in dataset[:10])
         logging.info(f"  ...estimated to be undirected: {is_undirected}")
-        if hasattr(dataset, 'split_idxs'):
-            idxs_ = [split[:max_examples] for split in
-                     dataset.split_idxs] if max_examples else dataset.split_idxs
-            # relevant_indexes = sum(idxs_, [])
-            relevant_indexes = torch.cat(idxs_)
-        else:
-            relevant_indexes = range(len(dataset))
         pre_transform_in_memory(dataset,
                                 partial(compute_posenc_stats,
                                         pe_types=pe_enabled_list,
                                         is_undirected=is_undirected,
                                         cfg=cfg),
-                                show_progress=True,
-                                relevant_indexes=relevant_indexes
+                                show_progress=True
                                 )
         elapsed = time.perf_counter() - start
         timestr = time.strftime('%H:%M:%S', time.gmtime(elapsed)) \
@@ -215,10 +184,9 @@ def load_dataset_master(format, name, dataset_dir):
 
     # Set standard dataset train/val/test splits
     if hasattr(dataset, 'split_idxs'):
-        idxs_ = [split[:max_examples] for split in
-                 dataset.split_idxs] if max_examples else dataset.split_idxs
-        set_dataset_splits(dataset, idxs_)
+        set_dataset_splits(dataset, dataset.split_idxs)
         delattr(dataset, 'split_idxs')
+
     # Verify or generate dataset train/val/test splits
     prepare_splits(dataset)
 
@@ -228,9 +196,6 @@ def load_dataset_master(format, name, dataset_dir):
             dataset[dataset.data['train_graph_index']])
 
     return dataset
-
-
-register_loader('custom_master_loader', load_dataset_master)
 
 
 def compute_indegree_histogram(dataset):
@@ -324,11 +289,8 @@ def preformat_OGB_Graph(dataset_dir, name):
     Returns:
         PyG dataset object
     """
-
-    dataset = DownloadPygGraphPropPredDataset(name=name, root=dataset_dir, limit=cfg.max_examples)
-    # dataset = DownloadPygGraphPropPredDataset(name=name, root=dataset_dir)
+    dataset = PygGraphPropPredDataset(name=name, root=dataset_dir)
     s_dict = dataset.get_idx_split()
-
     dataset.split_idxs = [s_dict[s] for s in ['train', 'valid', 'test']]
 
     if name == 'ogbg-ppa':
@@ -338,7 +300,6 @@ def preformat_OGB_Graph(dataset_dir, name):
         def add_zeros(data):
             data.x = torch.zeros(data.num_nodes, dtype=torch.long)
             return data
-
         dataset.transform = add_zeros
     elif name == 'ogbg-code2':
         from graphgps.loader.ogbg_code2_utils import idx2vocab, \
@@ -348,7 +309,7 @@ def preformat_OGB_Graph(dataset_dir, name):
 
         seq_len_list = np.array([len(seq) for seq in dataset.data.y])
         logging.info(f"Target sequences less or equal to {max_seq_len} is "
-                     f"{np.sum(seq_len_list <= max_seq_len) / len(seq_len_list)}")
+            f"{np.sum(seq_len_list <= max_seq_len) / len(seq_len_list)}")
 
         # Building vocabulary for sequence prediction. Only use training data.
         vocab2idx, idx2vocab_local = get_vocab_mapping(
@@ -396,6 +357,7 @@ def preformat_OGB_PCQM4Mv2(dataset_dir, name):
         logging.error('ERROR: Failed to load PygPCQM4Mv2Dataset, '
                       'make sure RDKit is installed.')
         raise e
+
 
     dataset = PygPCQM4Mv2Dataset(root=dataset_dir)
     split_idx = dataset.get_idx_split()
@@ -492,28 +454,3 @@ def join_dataset_splits(datasets):
     datasets[0].split_idxs = split_idxs
 
     return datasets[0]
-
-
-# override download dialog because it asks for user input which gets stuck on slurm
-class DownloadPygGraphPropPredDataset(PygGraphPropPredDataset):
-    def __init__(self, name, root='dataset', transform=None, pre_transform=None, meta_dict=None, limit=0):
-        super(DownloadPygGraphPropPredDataset, self).__init__(name, root, transform, pre_transform, meta_dict)
-        self.limit = limit
-
-    def download(self):
-        url = self.meta_info['url']
-        path = download_url(url, self.original_root)
-        extract_zip(path, self.original_root)
-        os.unlink(path)
-        shutil.rmtree(self.root)
-        shutil.move(osp.join(self.original_root, self.download_name), self.root)
-
-    def get_idx_split(self, split_type=None):
-        def limit(tensor):
-            if self.limit:
-                tensor = tensor[tensor < self.limit]
-                assert len(tensor) > 0
-            return tensor
-
-        idx_split = super().get_idx_split(split_type)
-        return {key: limit(value) for key, value in idx_split.items()}
