@@ -175,13 +175,6 @@ class Diffuser(nn.Module):
                                                 edge_model_type=nagasaki_config.edge_model_type,
                                                 ffn_layers=nagasaki_config.ffn_layers,
                                                 reduce=False, nhead=self.nhead)
-        # AdjStackAttentionWeights(
-        # input_dim=num_stack,
-        # hidden_dim=edge_dim,
-        # dim_out=edge_dim,
-        # ffn=nagasaki_config.edge_model_type,
-        # ffn_layers=nagasaki_config.ffn_layers)
-
         self.kernel = nagasaki_config.kernel
         self.two_diffusion = nagasaki_config.two_diffusion
         assert self.two_diffusion is False, 'not supported for now'
