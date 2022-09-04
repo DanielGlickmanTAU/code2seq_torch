@@ -1475,3 +1475,11 @@ Code: performer
 
 
 loading code2 trained model works
+
+
+
+### 4/9
+for loading subset of dataset: 
+DOES NOT WORK:::!!
+dataset = DownloadPygGraphPropPredDataset(name=name, root=dataset_dir, limit=2000)
+    dataset = dataset[:2000]
