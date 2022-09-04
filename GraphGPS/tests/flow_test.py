@@ -102,7 +102,9 @@ def _append_params():
     sys.argv.append('--cfg')
     sys.argv.append('tests/configs/graph/color-histogram.yaml')
     sys.argv.append('--max_examples')
-    sys.argv.append('100')
+    sys.argv.append('200')
+    sys.argv.append('--row_sizes')
+    sys.argv.append('[8,9,10,11]')
     sys.argv.append('--num_rows')
     sys.argv.append('10')
     sys.argv.append('--words_per_row')
@@ -153,8 +155,9 @@ def _append_params():
     sys.argv.append('32')
     sys.argv.append('gnn.dim_inner')
     sys.argv.append('32')
-    sys.argv.append('optim.early_stop_patience')
-    sys.argv.append('30')
+    # sys.argv.append('optim.early_stop_patience')
+    sys.argv.append('optim.max_epoch')
+    sys.argv.append('50')
     sys.argv.append('nagasaki.edge_model_type')
     sys.argv.append('bn-mlp')
     sys.argv.append('nagasaki.edge_reduction')
@@ -180,7 +183,7 @@ if __name__ == '__main__':
     # sys.argv.append('nagasaki.merge_attention')
     # sys.argv.append('plus')
 
-    a = main()
-    print(a)
-    assert 'test_accuracy: 0.38' in a or 'test_accuracy: 0.39' in a
-    assert 'train_accuracy: 0.44' in a or 'train_accuracy: 0.45' in a
+    last_train, best_test = main()
+    print(last_train, best_test)
+    assert 0.19 <= best_test <= 0.2
+    assert 0.27 <= last_train <= 0.28

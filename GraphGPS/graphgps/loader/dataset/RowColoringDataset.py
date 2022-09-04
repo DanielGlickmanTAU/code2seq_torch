@@ -1,3 +1,4 @@
+import random
 import time
 
 import torch
@@ -67,6 +68,8 @@ class RowColoringDataset(InMemoryDataset):
                                               deterministic_edges=cfg.deterministic_edges
                                               )
             dataset = ds.dataset
+
+        random.shuffle(dataset)
         self.data, self.slices = self.collate(dataset)
         # in WOrdCombinationGraphDataset x gets values from 1 to num_colors(because of some issue with drawing the graph colors).. but here we want it to get values from 0 to num_colors-1
         self.data.x = self.data.x - self.data.x.min()

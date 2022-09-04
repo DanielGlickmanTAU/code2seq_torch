@@ -186,13 +186,15 @@ def custom_train(loggers, loaders, model, optimizer, scheduler):
                 best_epoch = getattr(np.array([vp[m] for vp in val_perf]),
                                      cfg.metric_agg)()
                 if m in perf[0][best_epoch]:
-                    best_train = f"train_{m}: {perf[0][best_epoch][m]:.4f}"
+                    best_train_metric = perf[0][best_epoch][m]
+                    best_train = f"train_{m}: {best_train_metric :.4f}"
                 else:
                     # Note: For some datasets it is too expensive to compute
                     # the main metric on the training set.
                     best_train = f"train_{m}: {0:.4f}"
                 best_val = f"val_{m}: {perf[1][best_epoch][m] :.4f}"
-                best_test = f"test_{m}: {perf[2][best_epoch][m]:.4f}"
+                best_test_metric = perf[2][best_epoch][m]
+                best_test = f"test_{m}: {best_test_metric :.4f}"
 
                 if cfg.wandb.use:
                     bstats = {"best/epoch": best_epoch}
@@ -245,7 +247,7 @@ def custom_train(loggers, loaders, model, optimizer, scheduler):
         run = None
 
     logging.info('Task done, results saved in {}'.format(cfg.run_dir))
-    return best_train, best_test
+    return perf[0][-1][m], best_test_metric
 
 
 def upload_model_to_wandb(cur_epoch, run):
