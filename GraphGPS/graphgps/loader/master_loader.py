@@ -7,6 +7,8 @@ import numpy as np
 import torch
 import torch_geometric.transforms as T
 from numpy.random import default_rng
+
+from graphgps.loader.dataset.RowColoringDataset import RowColoringDataset
 from ogb.graphproppred import PygGraphPropPredDataset
 from torch_geometric.datasets import (GNNBenchmarkDataset, Planetoid, TUDataset,
                                       WikipediaNetwork, ZINC)
@@ -45,11 +47,19 @@ def log_loaded_dataset(dataset, format, name):
         if isinstance(dataset.data.y, list):
             # A special case for ogbg-code2 dataset.
             logging.info(f"  num classes: n/a")
+
         elif dataset.data.y.numel() == dataset.data.y.size(0) and \
                 torch.is_floating_point(dataset.data.y):
             logging.info(f"  num classes: (appears to be a regression task)")
         else:
             logging.info(f"  num classes: {dataset.num_classes}")
+            try:
+                y_sample = dataset.data.y[:1000]
+                if not y_sample.isnan().any():
+                    logging.info(
+                        f'class distribution(first 1k nodes only): {torch.stack([x[0] for x in zip(y_sample.unique(return_counts=True))])}')
+            except Exception:
+                pass
     elif hasattr(dataset.data, 'train_edge_label') or hasattr(dataset.data, 'edge_label'):
         # Edge/link prediction task.
         if hasattr(dataset.data, 'train_edge_label'):
@@ -93,7 +103,15 @@ def load_dataset_master(format, name, dataset_dir):
     Returns:
         PyG dataset object with applied perturbation transforms and data splits
     """
-    if format.startswith('PyG-'):
+    if name == 'row-coloring':
+        dataset = RowColoringDataset()
+        dataset.name = name
+
+        split_dict = dataset.get_idx_split()
+        dataset.split_idxs = [split_dict['train'],
+                              split_dict['valid'],
+                              split_dict['test']]
+    elif format.startswith('PyG-'):
         pyg_dataset_id = format.split('-', 1)[1]
         dataset_dir = osp.join(dataset_dir, pyg_dataset_id)
 
