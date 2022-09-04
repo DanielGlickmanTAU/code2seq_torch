@@ -70,8 +70,10 @@ class AdjStack(torch.nn.Module):
         if edge_weights is not None:
             # edge_weights = edge_weights.squeeze(-1)
             if self.kernel:
-                edge_weights = torch.sigmoid(edge_weights) if self.kernel == 'sigmoid' else torch.exp(
-                    -(edge_weights ** 2)) if self.kernel == 'exp' else torch.exp(edge_weights)
+                edge_weights = torch.sigmoid(edge_weights) if self.kernel == 'sigmoid' \
+                    else torch.exp(-(edge_weights ** 2)) if self.kernel == 'exp' \
+                    else torch.exp(-(edge_weights ** 2) * 0.1) if self.kernel == 'exp-norm' \
+                    else torch.exp(edge_weights)
             if edge_weights.dim() == 2:
                 adj = to_dense_adj(batch.edge_index, batch.batch, edge_weights)
             else:
