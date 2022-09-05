@@ -26,7 +26,7 @@ def is_university_server():
 
 def get_cache_dir():
     if is_university_server():
-        return '/home/yandex/AMNLP2021/glickman1/cache/cache'
+        return '/specific/netapp5_wolf/wolf/turing/glickman/cache/cache'
     return None
 
 
