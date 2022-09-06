@@ -121,23 +121,8 @@ def custom_train(loggers, loaders, model, optimizer, scheduler):
         logging.info('Start from epoch {}'.format(start_epoch))
 
     if cfg.wandb.use:
-        try:
-            import wandb
-        except:
-            raise ImportError('WandB is not installed.')
-        if cfg.wandb.name == '':
-            wandb_name = make_wandb_name(cfg)
-        else:
-            wandb_name = cfg.wandb.name
-        try:
-            run = wandb.init(entity=cfg.wandb.entity, project=cfg.wandb.project,
-                             name=wandb_name)
-        except Exception:
-            wandb.login(key=get_wandb())
-            run = wandb.init(entity=cfg.wandb.entity, project=cfg.wandb.project,
-                             name=wandb_name)
-
-        run.config.update(cfg_to_dict(cfg))
+        run = init_wandb()
+        print(model)
 
     stop_crit = StoppingCriterion(patience=cfg.optim.early_stop_patience, higher_is_better='max' in cfg.metric_agg)
 
@@ -248,6 +233,26 @@ def custom_train(loggers, loaders, model, optimizer, scheduler):
 
     logging.info('Task done, results saved in {}'.format(cfg.run_dir))
     return perf[0][-1][m], best_test_metric
+
+
+def init_wandb():
+    try:
+        import wandb
+    except:
+        raise ImportError('WandB is not installed.')
+    if cfg.wandb.name == '':
+        wandb_name = make_wandb_name(cfg)
+    else:
+        wandb_name = cfg.wandb.name
+    try:
+        run = wandb.init(entity=cfg.wandb.entity, project=cfg.wandb.project,
+                         name=wandb_name)
+    except Exception:
+        wandb.login(key=get_wandb())
+        run = wandb.init(entity=cfg.wandb.entity, project=cfg.wandb.project,
+                         name=wandb_name)
+    run.config.update(cfg_to_dict(cfg))
+    return run
 
 
 def upload_model_to_wandb(cur_epoch, run):
