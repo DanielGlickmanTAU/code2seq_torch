@@ -83,8 +83,8 @@ class MultiHeadAttention(torch.nn.Module):
 
         if self.merge_attention:
             content_attention_weights, value = self.content_attention(value, value, value)
-            content_attention_weights = torch.clamp(content_attention_weights, min=-5, max=5)
-            position_attention_weights = torch.clamp(position_attention_weights, min=-5, max=5)
+            content_attention_weights = torch.clamp(content_attention_weights, min=-10, max=10)
+            position_attention_weights = torch.clamp(position_attention_weights, min=-10, max=10)
         else:
             content_attention_weights, value = None, linear(value, self.in_proj_weight, self.in_proj_bias)
 
