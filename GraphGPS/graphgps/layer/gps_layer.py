@@ -40,17 +40,14 @@ class GPSLayer(nn.Module):
             self.local_model = None
         elif local_gnn_type == 'GENConv':
             self.local_model = pygnn.GENConv(dim_h, dim_h)
-        elif local_gnn_type == 'GIN':
+        elif local_gnn_type == 'GINE':
             gin_nn = nn.Sequential(Linear_pyg(dim_h, dim_h),
                                    nn.ReLU(),
                                    Linear_pyg(dim_h, dim_h))
-            self.local_model = pygnn.GINConv(gin_nn)
-            # if self.equivstable_pe:  # Use specialised GINE layer for EquivStableLapPE.
-            #     self.local_model = GINEConvESLapPE(gin_nn)
-            # else:
-        elif local_gnn_type == 'GINE':
-            # self.local_model = pygnn.GINEConv(gin_nn) if local_gnn_type == 'GINE'
-            self.local_model = GINEConvLayer(dim_h, dim_h, dropout, True, dim_hidden=2 * dim_h)
+            if self.equivstable_pe:  # Use specialised GINE layer for EquivStableLapPE.
+                self.local_model = GINEConvESLapPE(gin_nn)
+            else:
+                self.local_model = pygnn.GINEConv(gin_nn)
         elif local_gnn_type == 'GAT':
             self.local_model = pygnn.GATConv(in_channels=dim_h,
                                              out_channels=dim_h // num_heads,
@@ -147,7 +144,7 @@ class GPSLayer(nn.Module):
         # Local MPNN with edge attributes.
         if self.local_model is not None:
             self.local_model: pygnn.conv.MessagePassing  # Typing hint.
-            if self.local_gnn_type == 'CustomGatedGCN' or self.local_gnn_type == 'GINE':
+            if self.local_gnn_type == 'CustomGatedGCN':
                 es_data = None
                 if self.equivstable_pe:
                     es_data = batch.pe_EquivStableLapPE
