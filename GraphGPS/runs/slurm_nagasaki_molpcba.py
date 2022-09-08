@@ -1,41 +1,40 @@
 import time
 
 import GraphGPS.runs.gps_baselines_config as baseline_config
+from GraphGPS.runs.gps_molpcba_config import get_hiroshima_config_molpcba
 from code2seq.utils.gridsearch import gridsearch, ListArgument
 from code2seq.utils.slurm import run_on_slurm
 import os
-import sys
 
-batch_acc = 4
+batch_acc = 8
 params = {
-    '--cfg': 'configs/GPS/ogbg-code2-GPS.yaml',
+    '--cfg': 'configs/GPS/ogbg-molpcba-GPS+RWSE.yaml',
+    '--ogb_eval': True,
 }
 
 params_for_exp = {
-    'train.batch_size': int(32 / batch_acc),
+    'train.batch_size': int(512 / batch_acc),
     'optim.batch_accumulation': batch_acc,
 
     'nagasaki.learn_edges_weight': [True],
 
-    # 'gt.dropout': [0.2, 0.5],
-    # 'gt.attn_dropout': [0.2, 0.5],
     'nagasaki.steps': '[1, 2, 3, 4, 5,6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17]',
     'nagasaki.edge_model_type': ['bn-mlp'],
     # 'nagasaki.edge_reduction': ['bn-mlp', 'linear'],
-    'nagasaki.edge_reduction': ['bn-mlp', 'linear'],
+    'nagasaki.edge_reduction': ['bn-mlp'],
 
-    # DO NOT SET TO EXP...
-    # 'nagasaki.kernel': ['sigmoid', 'softmax'],
-    'nagasaki.kernel': ['sigmoid'],
-    # DO NOT SET TO 1... 2 is better
-    'nagasaki.ffn_layers': [1, 2],
-    # 'nagasaki.merge_attention': ['plus', 'gate'],
-    'nagasaki.merge_attention': ['plus'],
-    'dataset.node_encoder_name': 'ASTNode+RWSE'
+    # 'nagasaki.kernel': ['sigmoid'],
+    'nagasaki.kernel': ['exp', 'softmax', 'exp-norm'],
+    # 'nagasaki.ffn_layers': [1, 2],
+    'nagasaki.ffn_layers': [1],
+    'nagasaki.merge_attention': ['plus', 'gate'],
+
 }
 
 params_for_grid_search = [
-    baseline_config.get_nagasaki_config(total_layers=6, gnn_layers=3, rwse=True),
+    baseline_config.get_nagasaki_basic_config(total_layers=6, gnn_layers=3),
+    baseline_config.get_nagasaki_basic_config(total_layers=6, gnn_layers=2),
+    baseline_config.get_nagasaki_basic_config(total_layers=6, gnn_layers=4),
 ]
 
 for p in params_for_grid_search:

@@ -6,25 +6,17 @@ from code2seq.utils.gridsearch import gridsearch, ListArgument
 from code2seq.utils.slurm import run_on_slurm
 import os
 
-batch_acc = 8
+batch_acc = 1
+
 params = {
-    '--cfg': 'configs/GPS/ogbg-molpcba-GPS+RWSE.yaml',
-    '--ogb_eval': True,
+    '--cfg': 'configs/GPS/zinc-GPS+RWSE.yaml',
+    'train.batch_size': int(32 / batch_acc),
+    'optim.batch_accumulation': batch_acc,
+    'optim.early_stop_patience': 999
 }
 
 # no specific params, just take from cfg file, since we restore original exp
 params_for_grid_search = {
-    'train.batch_size': int(512 / batch_acc),
-    'optim.batch_accumulation': batch_acc,
-
-    # make it GIN only
-    # 'gt.n_layers_gnn_only': [100, 0],
-    # 'model.type': ['custom_gnn', 'gnn'],
-    # 'gnn.layer_type': 'gatedgcnconv',
-    # 'gt.dropout': [0.2],
-    # 'gt.attn_dropout': [0.2],
-    # 'gnn.dropout': [0.2],
-    # 'gt.layer_type': 'GIN+Transformer',
 
 }
 

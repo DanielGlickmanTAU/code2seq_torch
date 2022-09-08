@@ -8,6 +8,66 @@ def get_gps_laplace_transformer_config():
     }
 
 
+def get_laplace_transformer_config():
+    return {
+        'gt.layers': [6],
+        'gt.n_layers_gnn_only': [0],
+        'gt.use_gnn': False,
+        'dataset.node_encoder_name': 'TypeDictNode',
+        'posenc_LapPE.model': ['DeepSet'],
+        'posenc_LapPE.layers': [3],
+        'posenc_LapPE.enable': True,
+        'posenc_SignNet.enable': False,
+        'posenc_RWSE.enable': False,
+    }
+
+
+def get_rwse_transformer_config():
+    return {
+        'gt.layers': [6],
+        'gt.n_layers_gnn_only': [0],
+        'gt.use_gnn': False,
+        'posenc_LapPE.enable': False,
+
+        'dataset.node_encoder_name': 'TypeDictNode+RWSE',
+        'posenc_RWSE.enable': True,
+        'posenc_RWSE.kernel.times_func': 'range(1, 21)',
+        'posenc_RWSE.model': 'Linear',
+        'posenc_RWSE.dim_pe': 24,
+        'posenc_RWSE.raw_norm_type': "BatchNorm"
+    }
+
+
+def get_vanilla_transformer_config():
+    return {
+        'gt.layers': [6],
+        'gt.n_layers_gnn_only': [0],
+        'gt.use_gnn': False,
+        'posenc_LapPE.enable': False,
+        'posenc_RWSE.enable': True,
+
+        'dataset.node_encoder_name': 'TypeDictNode',
+    }
+
+
+def get_signet_transformer_config():
+    return {
+        'gt.layers': [6],
+        'gt.n_layers_gnn_only': [0],
+        'gt.use_gnn': False,
+
+        'posenc_LapPE.enable': [False],
+        'posenc_LapPE.layers': [0],
+        'dataset.node_encoder_name': 'TypeDictNode+SignNet',
+        'posenc_SignNet.enable': True,
+        'posenc_SignNet.model': 'DeepSet',
+        'posenc_SignNet.dim_pe': 16,
+        'posenc_SignNet.layers': 3,
+        'posenc_SignNet.post_layers': 2,
+
+    }
+
+
 def get_gnn_transformer_laplace_transformer_config():
     return {
         'optim.base_lr': [0.00001, 0.00003],
@@ -15,6 +75,18 @@ def get_gnn_transformer_laplace_transformer_config():
         'gt.n_layers_gnn_only': [6, 10],
         'posenc_LapPE.model': ['Transformer'],
         'posenc_LapPE.layers': [3]
+    }
+
+
+def get_gnn_transformer_config(n_layers=6, n_gnn_layers=3):
+    return {
+        'gt.layers': [n_layers],
+        'dataset.node_encoder_name': 'TypeDictNode',
+        'gt.n_layers_gnn_only': [n_gnn_layers],
+        'posenc_LapPE.enable': False,
+        'posenc_SignNet.enable': False,
+        'posenc_RWSE.enable': False,
+
     }
 
 
@@ -219,7 +291,6 @@ def get_nagasaki_basic_config(total_layers=4, gnn_layers=2, far_away=False):
 def get_content_transformer_config(total_layers=4, gnn_layers=2, far_away=False):
     return {
         # 'optim.base_lr': [0.00003, 0.00005],
-        'nagasaki.steps': '[1, 2, 3, 4, 5, 6, 7, 8, 9, 10,11,12,13,14,15,16,17,18, 19, 20]' if far_away else '[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]',
         'gt.layer_type': 'CustomGatedGCN+Transformer',
         'gt.layers': [total_layers],
         'gt.n_heads': [2],
@@ -227,7 +298,7 @@ def get_content_transformer_config(total_layers=4, gnn_layers=2, far_away=False)
         'gt.n_layers_gnn_only': [gnn_layers],
         'posenc_LapPE.enable': [False],
         'posenc_LapPE.layers': [0],
-        'dataset.node_encoder_name': 'TypeDictNode+RWSE',
+        'dataset.node_encoder_name': 'TypeDictNode',
         'posenc_SignNet.enable': False,
         'posenc_SignNet.post_layers': 2,
 

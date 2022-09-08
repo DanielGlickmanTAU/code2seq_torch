@@ -20,23 +20,22 @@ params_for_exp = {
 
     'nagasaki.edge_model_type': ['bn-mlp'],
 
-
     'nagasaki.learn_edges_weight': [True],
 
-    'gt.dropout': 0.,
-    'gt.attn_dropout': 0.,
+    'gt.dropout': [0.2, 0.5],
+    'gt.attn_dropout': [0.2, 0.5],
     'nagasaki.steps': '[1, 2, 3, 4, 5,6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17]',
 
-
-    'nagasaki.edge_reduction': ['bn-mlp', 'mlp','linear'],
-
+    # 'nagasaki.edge_reduction': ['bn-mlp', 'linear'],
 
     # DO NOT SET TO EXP...
     # 'nagasaki.kernel': ['sigmoid', 'softmax'],
-    'nagasaki.kernel': ['sigmoid'],
+    # 'nagasaki.kernel': ['sigmoid'],
     # DO NOT SET TO 1... 2 is better
-    'nagasaki.ffn_layers': [2, 3],
-    'nagasaki.ffn_hidden_multiplier': [2],
+    'nagasaki.ffn_layers': [3],
+    # 'nagasaki.merge_attention': ['plus', 'gate'],
+    'nagasaki.merge_attention': ['gate'],
+    # 'nagasaki.ffn_hidden_multiplier': [2],
 
     # 'nagasaki.nhead': 2,
     'optim.early_stop_patience': 50
@@ -63,7 +62,8 @@ params_for_grid_search = [
     # baseline_config.get_RWSE_GNN_config(layers=12),
     # baseline_config.get_gps_signnet_deepset_config(n_layers=6),
     # baseline_config.get_gnn_transformer_laplace_transformer_config(),
-    # baseline_config.get_RWSE_gps_config(6),
+    baseline_config.get_RWSE_gps_config(6),
+    baseline_config.get_RWSE_gps_config(3),
     # baseline_config.get_gnn_transformer_signnet_deepset_config(),
     # baseline_config.get_RSWE_gnn_transformer_signnet_deepset_config(),
     # baseline_config.get_STRONG_RSWE_gnn_transformer_signnet_AFTERGNN_deepset_config(),
@@ -74,7 +74,9 @@ params_for_grid_search = [
     # baseline_config.get_nagasaki_config(total_layers=8, gnn_layers=3)
     # baseline_config.get_nagasaki_config(total_layers=3, gnn_layers=1),
     # baseline_config.get_nagasaki_config(total_layers=4, gnn_layers=1),
-    baseline_config.get_nagasaki_config(total_layers=3, gnn_layers=0),
+    # baseline_config.get_nagasaki_config(total_layers=3, gnn_layers=0),
+    # baseline_config.get_nagasaki_config(total_layers=1, gnn_layers=0),
+    # baseline_config.get_nagasaki_config(total_layers=3, gnn_layers=0,rwse=False),
     # baseline_config.get_nagasaki_config(total_layers=6, gnn_layers=1),
 
 ]
