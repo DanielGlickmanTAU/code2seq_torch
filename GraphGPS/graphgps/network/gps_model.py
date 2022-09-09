@@ -7,6 +7,7 @@ from torch_geometric.graphgym.models.layer import (new_layer_config,
 from torch_geometric.graphgym.register import register_network
 
 from graphgps.layer.gps_layer import GPSLayer
+from graphgps.layer.graph_attention.positional.cls import CLSNode, CLSHead
 from graphgps.layer.graph_attention.positional.positional_attention_weight import Diffuser
 
 
@@ -104,6 +105,8 @@ class GPSModel(torch.nn.Module):
 
                 if global_model_type == 'Nagasaki':
                     layers.append(Diffuser(dim_in, cfg.nagasaki))
+                if cfg.nagasaki.add_cls:
+                    layers.append(CLSNode(dim_in, cfg.nagasaki))
 
             gps_layer = GPSLayer(dim_h=cfg.gt.dim_hidden, local_gnn_type=layer_gnn_type,
                                  global_model_type=layer_global_model, num_heads=cfg.gt.n_heads,
@@ -114,9 +117,13 @@ class GPSModel(torch.nn.Module):
             gps_layer.layer_index = (i, n_gt_layers)
             layers.append(gps_layer)
         self.layers = torch.nn.Sequential(*layers)
-
-        GNNHead = register.head_dict[cfg.gnn.head]
-        self.post_mp = GNNHead(dim_in=cfg.gnn.dim_inner, dim_out=dim_out)
+        if cfg.nagasaki.add_cls:
+            GNNHead = register.head_dict[cfg.gnn.head]
+            gnn_head = GNNHead(dim_in=cfg.gnn.dim_inner, dim_out=dim_out)
+            self.cls_head = CLSHead(gnn_head, cfg.gnn.head)
+        else:
+            GNNHead = register.head_dict[cfg.gnn.head]
+            self.post_mp = GNNHead(dim_in=cfg.gnn.dim_inner, dim_out=dim_out)
 
     def forward(self, batch):
 
