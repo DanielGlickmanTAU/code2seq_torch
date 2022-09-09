@@ -149,6 +149,7 @@ class MultiHeadAdjStackWeight(nn.Module):
             reduced_edges = self.hidden_reducer_combiner(reduced_edges, mask)
         else:
             reduced_edges = torch.stack(reduced_edges, dim=-1)
+            # hidden_reducer projected them, now we sum. This is like concating then projecting.
             reduced_edges = torch.sum(reduced_edges, dim=-1)
         return reduced_edges
 
@@ -159,13 +160,14 @@ class Diffuser(nn.Module):
         self.nhead = nagasaki_config.nhead
         self.kernel = nagasaki_config.kernel
         self.two_diffusion = nagasaki_config.two_diffusion
+        self.edge_dim = positional_utils.get_edge_dim(nagasaki_config)
         assert self.two_diffusion is False, 'not supported for now'
 
         steps = nagasaki_config.steps
         if isinstance(steps, str):
             steps = list(eval(steps))
         num_stack = positional_utils.get_stacks_dim(nagasaki_config)
-        edge_dim = positional_utils.get_edge_dim(nagasaki_config)
+
         if nagasaki_config.learn_edges_weight:
             self.edge_reducer = EdgeReducer(dim_in, hidden_dim=2 * dim_in, dim_out=self.nhead, dropout=0.,
                                             norm_output=nagasaki_config.bn_out)
@@ -176,18 +178,27 @@ class Diffuser(nn.Module):
                                     normalize=nagasaki_config.normalize)
 
         self.edge_mlp = MultiHeadAdjStackWeight(input_dim=num_stack,
-                                                hidden_dim=edge_dim,
-                                                dim_out=edge_dim,
+                                                hidden_dim=self.edge_dim,
+                                                dim_out=self.edge_dim,
                                                 edge_model_type=nagasaki_config.edge_model_type,
                                                 ffn_layers=nagasaki_config.ffn_layers,
                                                 reduce=False, nhead=self.nhead)
+        self.positional_embedding = nagasaki_config.project_diagonal
+        if self.positional_embedding:
+            num_stacks = len(steps) + 1
+            self.positional_projection = nn.Sequential(
+                *[torch.nn.BatchNorm1d(num_stacks), torch.nn.Linear(num_stacks, dim_in), torch.nn.ReLU()])
 
     def forward(self, batch):
-        _, mask = get_dense_x_and_mask(batch.x, batch.batch)
-
+        x, mask = get_dense_x_and_mask(batch.x, batch.batch)
         weighted_edges = self.edge_reducer(batch) if self.edge_reducer else None
         stacks = self.adj_stacker(batch, mask, weighted_edges)
         edges = self.edge_mlp(stacks, mask)
+
+        if self.positional_embedding:
+            self_edge = stacks.squeeze()[torch.diag_embed(pygraph_utils.dense_mask_to_attn_mask(mask))]
+            pos_emb = self.positional_projection(self_edge)
+            batch.x = batch.x + pos_emb
 
         batch.mask = mask
         batch.edges = edges
