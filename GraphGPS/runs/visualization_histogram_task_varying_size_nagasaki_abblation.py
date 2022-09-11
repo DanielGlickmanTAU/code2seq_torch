@@ -7,13 +7,11 @@ import os
 import sys
 
 params_for_exp = {
+    # 'optim.base_lr': [0.0004, 0.0008],
     'optim.base_lr': [0.0008],
-    # 'seed': [1, 2, 3, 4, 5],
-    'seed': [4,5,6,7,8],
-    # 'optim.base_lr': [0.0004],
     'posenc_RWSE.kernel.times_func': "range(1, 21)",
     'posenc_RWSE.model': "Linear",
-    'posenc_RWSE.dim_pe': 24,
+    'posenc_RWSE.dim_pe': 10,
     'posenc_RWSE.raw_norm_type': "BatchNorm",
 
     'dataset.only_color': False,
@@ -26,21 +24,24 @@ params_for_exp = {
     'gt.attn_dropout': [0.0],
 
     # 'nagasaki.nhead': 2,
-    'optim.early_stop_patience': 100,
+    # 'optim.early_stop_patience': 50,
 
     'nagasaki.learn_edges_weight': [True],
 
-    'nagasaki.steps': '[1, 2, 3, 4, 5,6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17]',
+    'nagasaki.steps': '[1, 2, 3, 4, 5,6, 7, 8,9,10]',
     'nagasaki.edge_model_type': ['bn-mlp'],
     'nagasaki.edge_reduction': ['linear'],
+    'gt.n_heads': 2,
     # 'nagasaki.edge_reduction': ['bn-mlp'],
-
+    'nagasaki.ffn_hidden_multiplier': [2, 4],
     'nagasaki.kernel': ['softmax'],
 
-    'nagasaki.ffn_layers': [1],
-    # 'nagasaki.merge_attention': ['plus', 'gate'],
-    'nagasaki.merge_attention': ['plus', None],
-    'nagasaki.add_cls': [True, False]
+    'nagasaki.ffn_layers': [1, 2],
+    'nagasaki.merge_attention': ['plus'],
+    # 'nagasaki.merge_attention': ['plus'],
+    # 'nagasaki.add_cls': [False, True],
+    'nagasaki.add_cls': [False],
+    'optim.early_stop_patience': 300
     # 'nagasaki.add_cls': [True]
 
 }
@@ -48,14 +49,14 @@ params_for_exp = {
 params = {
     '--cfg': 'tests/configs/graph/color-histogram.yaml',
 
-    '--num_rows': 10,
-    '--row_sizes': '"[10,11,12,13]"',
+    '--num_rows': 5,
+    # '--row_sizes': '"[10,11,12,13]"',
     # '--num_rows': 12,
-    '--words_per_row': 10,
+    '--words_per_row': 5,
     # '--words_per_row': 2,
     '--atom_set': 8,
     '--num_unique_atoms': 1,
-    '--num_unique_colors': 20,
+    '--num_unique_colors': 10,
 
     '--row_color_mode': 'histogram',
 
@@ -68,7 +69,8 @@ params_for_grid_search = [
     # baseline_config.get_rwse_transformer_config(),
     # baseline_config.get_gnn_transformer_config(),
 
-    baseline_config.get_nagasaki_config(total_layers=4, gnn_layers=0),
+    # baseline_config.get_nagasaki_config(total_layers=2, gnn_layers=0),
+    baseline_config.get_nagasaki_config(total_layers=1, gnn_layers=0, rwse=False),
 
 ]
 

@@ -19,14 +19,17 @@ params_for_grid_search = {'nagasaki.learn_edges_weight': [True],
 
                           'nagasaki.steps': '[1, 2, 3, 4, 5,6, 7, 8, 9, 10]',
                           'nagasaki.edge_model_type': ['bn-mlp'],
-                          'nagasaki.edge_reduction': ['bn-mlp', 'linear'],
+                          'nagasaki.edge_reduction': ['linear'],
                           # 'nagasaki.edge_reduction': ['bn-mlp'],
 
-                          'nagasaki.kernel': ['sigmoid', 'exp-norm', 'softmax'],
+                          'nagasaki.kernel': ['sigmoid'],
 
-                          'nagasaki.ffn_layers': [1, 2],
-                          'nagasaki.merge_attention': ['plus', 'gate', None],
-                          'gt.layer_type': 'GINE+Nagasaki'}
+                          'nagasaki.ffn_layers': [2],
+                          'nagasaki.merge_attention': ['plus'],
+                          'gt.layer_type': 'GINE+Nagasaki',
+                          'nagasaki.add_cls': [True, False]
+
+                          }
 
 os.chdir('..')
 job_name = '''main.py'''

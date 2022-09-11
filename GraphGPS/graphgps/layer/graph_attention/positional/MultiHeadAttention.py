@@ -87,7 +87,9 @@ class MultiHeadAttention(torch.nn.Module):
             position_attention_weights = torch.clamp(position_attention_weights, min=-10, max=10)
         else:
             content_attention_weights, value = None, linear(value, self.in_proj_weight, self.in_proj_bias)
-
+        # from examples.graphproppred.mol import visualization
+        #
+        # visualization.draw_attention(self.hack[batch_index].graph, node_index, position_attention_weights.view(-1,self.num_heads,position_attention_weights.size(1),position_attention_weights.size(1))[batch_index][head_number])
         if self.merge_attention == 'plus':
             attention_weights = position_attention_weights + content_attention_weights
         elif self.merge_attention == 'gate':

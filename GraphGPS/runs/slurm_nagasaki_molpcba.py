@@ -24,17 +24,20 @@ params_for_exp = {
     'nagasaki.edge_reduction': ['bn-mlp'],
 
     # 'nagasaki.kernel': ['sigmoid'],
-    'nagasaki.kernel': ['exp', 'softmax', 'exp-norm'],
+    # 'nagasaki.kernel': ['exp', 'softmax', 'exp-norm'],
+    'nagasaki.kernel': ['sigmoid', 'exp-norm'],
     # 'nagasaki.ffn_layers': [1, 2],
     'nagasaki.ffn_layers': [1],
     'nagasaki.merge_attention': ['plus', 'gate'],
+    'nagasaki.add_cls': [True]
 
 }
 
 params_for_grid_search = [
-    baseline_config.get_nagasaki_basic_config(total_layers=6, gnn_layers=3),
-    baseline_config.get_nagasaki_basic_config(total_layers=6, gnn_layers=2),
+    # baseline_config.get_nagasaki_basic_config(total_layers=6, gnn_layers=3),
+    # baseline_config.get_nagasaki_basic_config(total_layers=6, gnn_layers=2),
     baseline_config.get_nagasaki_basic_config(total_layers=6, gnn_layers=4),
+    baseline_config.get_nagasaki_basic_config(total_layers=8, gnn_layers=4),
 ]
 
 for p in params_for_grid_search:
