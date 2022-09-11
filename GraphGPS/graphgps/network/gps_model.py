@@ -70,7 +70,6 @@ class GPSModel(torch.nn.Module):
             n_layers_gnn_only = cfg.gt['n_layers_gnn_only']
         else:
             n_layers_gnn_only = 0
-        use_gnn = cfg.gt['use_gnn']
 
         if cfg.gnn.layers_pre_mp > 0:
             self.pre_mp = GNNPreMP(
@@ -90,7 +89,7 @@ class GPSModel(torch.nn.Module):
         for i, _ in enumerate(range(n_gt_layers)):
             layer_gnn_type = local_gnn_type
             layer_global_model = global_model_type
-            if n_layers_gnn_only > 0 or not use_gnn:
+            if n_layers_gnn_only > 0:
                 # in the first n_layers_gnn_only layers, dont use global model
                 if i < n_layers_gnn_only:
                     layer_global_model = 'None'

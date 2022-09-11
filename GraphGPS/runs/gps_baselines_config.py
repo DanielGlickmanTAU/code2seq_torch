@@ -12,7 +12,7 @@ def get_laplace_transformer_config():
     return {
         'gt.layers': [6],
         'gt.n_layers_gnn_only': [0],
-        'gt.use_gnn': False,
+        'gt.layer_type': 'None+Transformer',
         'dataset.node_encoder_name': 'TypeDictNode',
         'posenc_LapPE.model': ['DeepSet'],
         'posenc_LapPE.layers': [3],
@@ -26,7 +26,8 @@ def get_rwse_transformer_config():
     return {
         'gt.layers': [6],
         'gt.n_layers_gnn_only': [0],
-        'gt.use_gnn': False,
+        'gt.layer_type': 'None+Transformer',
+
         'posenc_LapPE.enable': False,
 
         'dataset.node_encoder_name': 'TypeDictNode+RWSE',
@@ -42,7 +43,7 @@ def get_vanilla_transformer_config():
     return {
         'gt.layers': [6],
         'gt.n_layers_gnn_only': [0],
-        'gt.use_gnn': False,
+        'gt.layer_type': 'None+Transformer',
         'posenc_LapPE.enable': False,
         'posenc_RWSE.enable': True,
 
@@ -54,8 +55,7 @@ def get_signet_transformer_config():
     return {
         'gt.layers': [6],
         'gt.n_layers_gnn_only': [0],
-        'gt.use_gnn': False,
-
+        'gt.layer_type': 'None+Transformer',
         'posenc_LapPE.enable': [False],
         'posenc_LapPE.layers': [0],
         'dataset.node_encoder_name': 'TypeDictNode+SignNet',
@@ -282,7 +282,6 @@ def get_nagasaki_basic_config(total_layers=4, gnn_layers=2, far_away=False):
     return {
         'nagasaki.steps': '[1, 2, 3, 4, 5, 6, 7, 8, 9, 10,11,12,13,14,15,16,17,18, 19, 20]' if far_away else '[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]',
         'gt.layer_type': 'CustomGatedGCN+Nagasaki' if gnn_layers else 'None+Nagasaki',
-        'gt.use_gnn': True if gnn_layers else False,
         'gt.layers': [total_layers],
         'gt.n_layers_gnn_only': [gnn_layers],
     }

@@ -20,10 +20,6 @@ def set_cfg_gt(cfg):
 
     cfg.gt.n_layers_gnn_only = 0
 
-    #if false, will not interleave gps and attention layers. used when we want only attention layers.
-    cfg.gt.use_gnn = True
-
-
     # Number of attention heads in the Graph Transformer
     cfg.gt.n_heads = 8
 
@@ -75,7 +71,6 @@ def set_cfg_gt(cfg):
     cfg.gt.bigbird.block_size = 3
 
     cfg.gt.bigbird.layer_norm_eps = 1e-6
-
 
 
 register_config('cfg_gt', set_cfg_gt)
