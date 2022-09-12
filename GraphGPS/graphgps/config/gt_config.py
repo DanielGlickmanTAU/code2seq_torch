@@ -18,6 +18,8 @@ def set_cfg_gt(cfg):
     # Number of Transformer layers in the model
     cfg.gt.layers = 3
 
+    cfg.gt.ffn_multiplier = 2
+
     cfg.gt.n_layers_gnn_only = 0
 
     # Number of attention heads in the Graph Transformer

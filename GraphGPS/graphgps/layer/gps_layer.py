@@ -25,7 +25,7 @@ class GPSLayer(nn.Module):
                  local_gnn_type, global_model_type, num_heads,
                  pna_degrees=None, equivstable_pe=False, dropout=0.0,
                  attn_dropout=0.0, layer_norm=False, batch_norm=True,
-                 bigbird_cfg=None, nagasaki_config=None):
+                 bigbird_cfg=None, nagasaki_config=None, ffn_multiplier=2):
         super().__init__()
 
         self.dim_h = dim_h
@@ -125,8 +125,8 @@ class GPSLayer(nn.Module):
         # Feed Forward block.
         if self.self_attn is not None:
             self.activation = F.relu
-            self.ff_linear1 = nn.Linear(dim_h, dim_h * 2)
-            self.ff_linear2 = nn.Linear(dim_h * 2, dim_h)
+            self.ff_linear1 = nn.Linear(dim_h, dim_h * ffn_multiplier)
+            self.ff_linear2 = nn.Linear(dim_h * ffn_multiplier, dim_h)
             if self.layer_norm:
                 # self.norm2 = pygnn.norm.LayerNorm(dim_h)
                 self.norm2 = pygnn.norm.GraphNorm(dim_h)
