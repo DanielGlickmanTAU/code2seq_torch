@@ -94,10 +94,10 @@ class MultiHeadAttention(torch.nn.Module):
             attention_weights = position_attention_weights + content_attention_weights
         elif self.merge_attention == 'gate':
             attention_weights = torch.log(torch.sigmoid(position_attention_weights)) + content_attention_weights
-            print('sanity check')
-            exp_sigmoid = torch.exp(content_attention_weights) * torch.sigmoid(position_attention_weights)
-            assert (torch.softmax(attention_weights, dim=-1) - (exp_sigmoid) / (exp_sigmoid).sum(dim=-1,
-                                                                                                 keepdim=True)).max() < 1e-4
+            # print('sanity check')
+            # exp_sigmoid = torch.exp(content_attention_weights) * torch.sigmoid(position_attention_weights)
+            # assert (torch.softmax(attention_weights, dim=-1) - (exp_sigmoid) / (exp_sigmoid).sum(dim=-1,
+            #                                                                                      keepdim=True)).max() < 1e-4
         else:
             attention_weights = position_attention_weights
         # (n,batch,d)
