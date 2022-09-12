@@ -13,7 +13,7 @@ dataset:
   node_encoder_name: TypeDictNode+LapPE
   transformer_node_encoder_name: None
   node_encoder_bn: False
-  task: node
+  task: graph #leave it as graph, to avoid issues with graphgym.
   task_type: classification
   transductive: False
   split_mode: standard

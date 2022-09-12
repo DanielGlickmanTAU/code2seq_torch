@@ -117,9 +117,8 @@ class GPSModel(torch.nn.Module):
             layers.append(gps_layer)
         self.layers = torch.nn.Sequential(*layers)
         if cfg.nagasaki.add_cls:
-            GNNHead = register.head_dict[cfg.gnn.head]
-            gnn_head = GNNHead(dim_in=cfg.gnn.dim_inner, dim_out=dim_out)
-            self.cls_head = CLSHead(gnn_head, cfg.gnn.head)
+
+            self.cls_head = CLSHead(dim_in=cfg.gnn.dim_inner, dim_out=dim_out, task=cfg.dataset.task)
         else:
             GNNHead = register.head_dict[cfg.gnn.head]
             self.post_mp = GNNHead(dim_in=cfg.gnn.dim_inner, dim_out=dim_out)

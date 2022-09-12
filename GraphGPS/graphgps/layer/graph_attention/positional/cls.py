@@ -54,14 +54,16 @@ class CLSNode(nn.Module):
 
 
 class CLSHead(nn.Module):
-    def __init__(self, head, head_type):
+    def __init__(self, dim_in, dim_out, task):
         super(CLSHead, self).__init__()
-        self.head_type = head_type
-        self.post_mp = head
+        #only graph prediction is supported with cls right now
+        assert task in {'graph'}
+        self.task = task
+        self.pred_linear = nn.Linear(dim_in, dim_out)
 
     def forward(self, batch):
-        if self.head_type == 'graph':
+        if self.task == 'graph':
             x = batch.x[batch.cls_mask]
         else:  # node prediction
             x = batch.x[~batch.cls_mask]
-        return self.post_mp.layer_post_mp(x), batch.y
+        return self.pred_linear(x), batch.y
