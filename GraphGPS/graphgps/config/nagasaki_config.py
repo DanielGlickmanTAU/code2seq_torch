@@ -12,6 +12,7 @@ def set_cfg_nagasaki(cfg):
 
     cfg.nagasaki.edge_reduction = 'bn-mlp'
     cfg.nagasaki.learn_edges_weight = False
+    cfg.nagasaki.symmetric_edge_reduce = False
     cfg.nagasaki.two_diffusion = False
     cfg.nagasaki.normalize = True
     cfg.nagasaki.kernel = 'sigmoid'

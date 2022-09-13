@@ -170,7 +170,7 @@ class Diffuser(nn.Module):
 
         if nagasaki_config.learn_edges_weight:
             self.edge_reducer = EdgeReducer(dim_in, hidden_dim=2 * dim_in, dim_out=self.nhead, dropout=0.,
-                                            norm_output=nagasaki_config.bn_out)
+                                            symmetric=nagasaki_config.symmetric_edge_reduce)
         else:
             self.edge_reducer = None
 
@@ -206,17 +206,17 @@ class Diffuser(nn.Module):
 
 
 class EdgeReducer(torch_geometric.nn.conv.MessagePassing):
-    def __init__(self, in_dim, hidden_dim, dim_out, dropout, norm_output=False, **kwargs):
-        super().__init__(**kwargs)
+    def __init__(self, in_dim, hidden_dim, dim_out, dropout, symmetric):
+        super().__init__()
 
+        self.symmetric = symmetric
         self.A = torch_geometric.nn.Linear(in_dim, hidden_dim, bias=True)
+        if not self.symmetric:
+            self.B = torch_geometric.nn.Linear(in_dim, hidden_dim, bias=True)
         self.C = torch_geometric.nn.Linear(in_dim, hidden_dim, bias=True)
         self.edge_out_proj = torch_geometric.nn.Linear(hidden_dim, dim_out, bias=True)
 
         self.bn = nn.BatchNorm1d(hidden_dim)
-        self.norm_output = norm_output
-        if norm_output:
-            self.bn_out = nn.BatchNorm1d(dim_out)
         self.dropout = dropout
 
     @record_function('edge_reducer')
@@ -225,23 +225,21 @@ class EdgeReducer(torch_geometric.nn.conv.MessagePassing):
         if e is None:
             e = torch.zeros(edge_index.shape[-1], x.shape[-1], device=x.device)
 
-        # symetric distance, map i and j the same
         Ax = self.A(x)
+        Bx = Ax if self.symmetric else self.B(x)
         Ce = self.C(e)
 
         e = self.propagate(edge_index,
                            Ce=Ce,
-                           e=e, Ax=Ax,
+                           e=e, Ax=Ax, Bx=Bx
                            )
 
         return e
 
-    def message(self, Ax_i, Ax_j, Ce):
-        e_ij = Ax_i + Ax_j + Ce
+    def message(self, Ax_i, Bx_j, Ce):
+        e_ij = Ax_i + Bx_j + Ce
         e_ij = torch.nn.functional.relu(self.bn(e_ij))
         e_ij = self.edge_out_proj(e_ij)
-        if self.norm_output:
-            e_ij = torch.nn.functional.relu(self.bn_out(e_ij))
 
         sigma_ij = e_ij
         # sigma_ij = torch.sigmoid(e_ij)
