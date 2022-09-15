@@ -1,3 +1,4 @@
+import math
 from typing import Optional, Tuple
 
 import torch
@@ -21,7 +22,7 @@ class MultiHeadAttention(torch.nn.Module):
 
     def __init__(self, embed_dim, num_heads, edge_dim, dropout=0., bias=True, add_bias_kv=False,
                  kdim=None, vdim=None, batch_first=False, device=None, dtype=None,
-                 edge_reduction='bn-mlp', merge_attention=None
+                 edge_reduction='bn-mlp', merge_attention=None, scale=False
                  ) -> None:
         factory_kwargs = {'device': device, 'dtype': dtype}
         super(MultiHeadAttention, self).__init__()
@@ -54,7 +55,8 @@ class MultiHeadAttention(torch.nn.Module):
         else:
             self.bias_k = self.bias_v = None
 
-        self._pos_attention = PositionAttention(edge_dim=edge_dim, num_heads=num_heads, edge_reduction=edge_reduction)
+        self._pos_attention = PositionAttention(edge_dim=edge_dim, num_heads=num_heads, edge_reduction=edge_reduction,
+                                                scale=scale)
         self.content_attention = ContentAttention(embed_dim, num_heads, bias=True, kdim=None, vdim=None, device=None,
                                                   dtype=None) if merge_attention else None
         self.normalizer = AttentionWeightNormalizer(False)
@@ -88,7 +90,6 @@ class MultiHeadAttention(torch.nn.Module):
         else:
             content_attention_weights, value = None, linear(value, self.in_proj_weight, self.in_proj_bias)
         # from examples.graphproppred.mol import visualization
-        #
         # visualization.draw_attention(self.hack[batch_index].graph, node_index, position_attention_weights.view(-1,self.num_heads,position_attention_weights.size(1),position_attention_weights.size(1))[batch_index][head_number])
         if self.merge_attention == 'plus':
             attention_weights = position_attention_weights + content_attention_weights
@@ -124,8 +125,10 @@ class PositionAttention(Module):
     bias_k: Optional[torch.Tensor]
     bias_v: Optional[torch.Tensor]
 
-    def __init__(self, num_heads, edge_dim, edge_reduction='bn-mlp') -> None:
+    def __init__(self, num_heads, edge_dim, edge_reduction='bn-mlp', scale=False) -> None:
+        self.scale = scale
         self.num_heads = num_heads
+        self.edge_dim = edge_dim
         super(PositionAttention, self).__init__()
         self.positional_bias = AdjStackAttentionWeights(edge_dim, dim_out=num_heads, ffn=edge_reduction,
                                                         hidden_dim=edge_dim * 1,
@@ -136,4 +139,6 @@ class PositionAttention(Module):
         b, n1, n2, heads = attention_weights.shape
         assert heads == self.num_heads
         attention_weights = attention_weights.reshape(b * self.num_heads, n1, n1)
+        if self.scale:
+            attention_weights = attention_weights / math.sqrt(self.edge_dim)
         return attention_weights
