@@ -32,14 +32,25 @@ class OGBCodeGraphHead(nn.Module):
     def _apply_index(self, batch):
         return batch.pred_list, {'y_arr': batch.y_arr, 'y': batch.y}
 
-    def forward(self, batch):
-        graph_emb = self.pooling_fun(batch.x, batch.batch)
+    def _apply_index(self, batch):
+        return batch.pred_list, {'y_arr': batch.y_arr, 'y': batch.y}
 
+    def forward(self, batch):
+        if 'cls_mask' in batch and cfg.nagasaki.add_cls:
+            graph_emb = batch.x[batch.cls_mask]
+        else:
+            graph_emb = self.pooling_fun(batch.x, batch.batch)
+        try:
+            return self.predict(batch, graph_emb)
+        except Exception:
+            print('wrong shape...')
+            return self.predict(batch, graph_emb.squeeze())
+
+    def predict(self, batch, graph_emb):
         pred_list = []
         for i in range(self.max_seq_len):
             pred_list.append(self.graph_pred_linear_list[i](graph_emb))
         batch.pred_list = pred_list
-
         pred, label = self._apply_index(batch)
         return pred, label
 
