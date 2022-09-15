@@ -73,7 +73,8 @@ class AdjStack(torch.nn.Module):
                 edge_weights = torch.sigmoid(edge_weights) if self.kernel == 'sigmoid' \
                     else torch.exp(-(edge_weights ** 2)) if self.kernel == 'exp' \
                     else torch.exp(-(edge_weights ** 2) * 0.1) if self.kernel == 'exp-norm' \
-                    else torch.exp(edge_weights)
+                    else torch.exp(edge_weights - max(edge_weights)) if self.kernel == 'softmax' \
+                    else None
             if edge_weights.dim() == 2:
                 adj = to_dense_adj(batch.edge_index, batch.batch, edge_weights)
             else:
