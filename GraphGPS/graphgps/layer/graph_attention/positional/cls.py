@@ -13,22 +13,26 @@ class CLSNode(nn.Module):
         self.cls_edge = nn.Parameter(torch.randn([1, 1, 1, self.edge_dim], requires_grad=True))
 
     def forward(self, batch):
-        x, mask = get_dense_x_and_mask(batch.x, batch.batch)
-        edges = batch.edges
+        num_graphs = len(batch.ptr) - 1
+        if 'mask' in batch and 'edges' in batch:
+            mask = batch.mask
+            edges = batch.edges
 
-        num_graphs = x.size(0)
-        # cls_batch = self.cls.to(x).expand(num_graphs, -1, -1)
-        # x = torch.cat([x, cls_batch], dim=1)
-        cls_edge_batch = self.cls_edge.to(x).expand(num_graphs, -1, -1, -1)
-        # make all existing real nodes look at cls.
-        real_nodes_mask = mask[:, 0]
-        mask = torch.cat([mask, real_nodes_mask.unsqueeze(2)], dim=2)
-        # make cls look at all existing real nodes
-        real_nodes_mask = mask[:, 0]
-        mask = torch.cat([mask, real_nodes_mask.unsqueeze(1)], dim=1)
+            # cls_batch = self.cls.to(x).expand(num_graphs, -1, -1)
+            # x = torch.cat([x, cls_batch], dim=1)
+            cls_edge_batch = self.cls_edge.to(edges).expand(num_graphs, -1, -1, -1)
+            # make all existing real nodes look at cls.
+            real_nodes_mask = mask[:, 0]
+            mask = torch.cat([mask, real_nodes_mask.unsqueeze(2)], dim=2)
+            # make cls look at all existing real nodes
+            real_nodes_mask = mask[:, 0]
+            mask = torch.cat([mask, real_nodes_mask.unsqueeze(1)], dim=1)
 
-        edges = torch.cat([edges, cls_edge_batch.expand(-1, -1, edges.size(2), -1)], dim=1)
-        edges = torch.cat([edges, cls_edge_batch.expand(-1, edges.size(1), -1, -1)], dim=2)
+            edges = torch.cat([edges, cls_edge_batch.expand(-1, -1, edges.size(2), -1)], dim=1)
+            edges = torch.cat([edges, cls_edge_batch.expand(-1, edges.size(1), -1, -1)], dim=2)
+
+            batch.mask = mask
+            batch.edges = edges
 
         cls = self.cls.to(batch.x).squeeze()
         new_x = []
@@ -47,8 +51,6 @@ class CLSNode(nn.Module):
         batch.batch = torch.sort(
             torch.cat([batch.batch, torch.arange(0, batch.num_graphs, device=batch.x.device)])).values
         batch.ptr = batch.ptr + torch.arange(0, batch.num_graphs + 1, device=batch.x.device)
-        batch.mask = mask
-        batch.edges = edges
 
         return batch
 
@@ -56,7 +58,7 @@ class CLSNode(nn.Module):
 class CLSHead(nn.Module):
     def __init__(self, dim_in, dim_out, task):
         super(CLSHead, self).__init__()
-        #only graph prediction is supported with cls right now
+        # only graph prediction is supported with cls right now
         assert task in {'graph'}
         self.task = task
         self.pred_linear = nn.Linear(dim_in, dim_out)
