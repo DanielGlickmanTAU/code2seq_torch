@@ -349,8 +349,8 @@ def preformat_OGB_Graph(dataset_dir, name):
              lambda data: encode_y_to_arr(data, vocab2idx, max_seq_len)])
 
         # Subset graphs to a maximum size (number of nodes) limit.
-        # pre_transform_in_memory(dataset, partial(clip_graphs_to_size,
-        #                                          size_limit=1000))
+        pre_transform_in_memory(dataset, partial(clip_graphs_to_size,
+                                                 size_limit=1000))
 
     return dataset
 
