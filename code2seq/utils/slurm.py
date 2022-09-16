@@ -14,7 +14,7 @@ def get_partition_and_time_limit():
     num_jobs_in_student_batch = os.popen('squeue | grep glick | grep studentba | wc -l').read()
     num_jobs_in_student_batch = int(num_jobs_in_student_batch) if num_jobs_in_student_batch else 0
     # if 'studentb' in os.popen('squeue | grep glickman').read():
-    num_jobs_that_can_run_on_studentbatch_at_one_time = 20
+    num_jobs_that_can_run_on_studentbatch_at_one_time = 10
     if num_jobs_in_student_batch > num_jobs_that_can_run_on_studentbatch_at_one_time:
         return 'studentkillable', 'infinite'
 
@@ -58,10 +58,10 @@ def run_on_slurm(job_name, params, no_flag_param='', slurm=None, gpu=True, sleep
         open(f'./slurm_id_{job_id}_outfile_{job_name}', 'w').write(slurm_script)
 
         if sleep:
-            if isinstance(sleep, int):
-                time.sleep(random.randint(0, sleep))
-            else:
+            if isinstance(sleep, bool):
                 time.sleep(random.randint(0, 15))
+            else:
+                time.sleep(random.randint(0, sleep))
         else:
             time.sleep(1)
         return job_id
