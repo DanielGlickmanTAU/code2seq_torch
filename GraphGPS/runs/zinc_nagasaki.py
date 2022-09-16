@@ -16,18 +16,21 @@ params = {
 }
 
 params_for_grid_search = {'nagasaki.learn_edges_weight': [True],
-
+                          # 'seed': [3, 4, 5, 6, 7, 8, 9, 10],
+                          'seed': [0, 4],
                           'nagasaki.steps': '[1, 2, 3, 4, 5,6, 7, 8, 9, 10]',
                           'nagasaki.edge_model_type': ['bn-mlp'],
                           'nagasaki.edge_reduction': ['linear'],
-                          # 'nagasaki.edge_reduction': ['bn-mlp'],
 
-                          'nagasaki.kernel': ['sigmoid'],
-
+                          ('nagasaki.kernel', 'nagasaki.merge_attention'): [('sigmoid', 'gate')],
+                          'dataset.node_encoder_name': 'TypeDictNode',
+                          'posenc_RWSE.enable': False,
                           'nagasaki.ffn_layers': [2],
-                          'nagasaki.merge_attention': ['plus'],
                           'gt.layer_type': 'GINE+Nagasaki',
-                          'nagasaki.add_cls': [True, False]
+                          # 'nagasaki.add_cls': [True, False],
+                          'nagasaki.add_cls': [False],
+                          'nagasaki.project_diagonal': [True],
+                          'nagasaki.symmetric_edge_reduce': [True]
 
                           }
 
