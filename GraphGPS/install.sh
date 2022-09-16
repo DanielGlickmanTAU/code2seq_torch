@@ -8,18 +8,29 @@ do not use sudo conda....
 #conda config --add channels https://repo.anaconda.com/pkgs/main/noarch
 #conda config --add channels https://repo.anaconda.com/pkgs/r/linux-64
 #conda config --add channels https://repo.anaconda.com/pkgs/r/noarch
+
+#on aws: sudo chmod -R 777 /opt/conda
+
+
 yes | conda create -n graphgps_new python=3.9
 yes | conda activate graphgps_new
-yes | conda install pytorch=1.10 torchvision torchaudio -c pytorch -c nvidia
-yes | conda install pyg=2.0.4 -c pyg -c conda-forge
-yes | conda install openbabel fsspec rdkit -c conda-forge
+
+pip3 install torch==1.10.1+cu113 torchvision==0.11.2+cu113 torchaudio===0.10.1+cu113 -f https://download.pytorch.org/whl/cu113/torch_stable.html
+
+pip3 install torch-scatter -f https://data.pyg.org/whl/torch-1.10.1+$cu113.html
+pip3 install torch-sparse -f https://data.pyg.org/whl/torch-1.10.1+$cu113.html
+pip3 install torch-geometric
 yes | pip install torchmetrics
 yes | pip install performer-pytorch
 yes | pip install ogb
 yes | pip install tensorboardX
 yes | pip install wandb
+
+#solves some bug in tensorboardX
+pip install setuptools==59.5.0
+
+yes | conda install openbabel fsspec rdkit -c conda-forge
 yes | conda clean --all
 
-WARNING: The script shortuuid is installed in '/home/ubuntu/.local/bin' which is not on PATH.
 
-WARNING conda.gateways.disk.delete:unlink_or_rename_to_trash(143): Could not remove or rename /opt/conda/envs/pytorch/conda-meta/numpy-1.21.3-py38he2449b9_0.json.  Please remove this file manually (you may need to reboot to free file handles)
+
