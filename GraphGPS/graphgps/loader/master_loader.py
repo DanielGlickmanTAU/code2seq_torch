@@ -85,7 +85,7 @@ def log_loaded_dataset(dataset, format, name):
     #     )
 
 
-@register_loader('custom_master_loader')
+# @register_loader('custom_master_loader')
 def load_dataset_master(format, name, dataset_dir):
     """
     Master loader that controls loading of all datasets, overshadowing execution
@@ -154,11 +154,13 @@ def load_dataset_master(format, name, dataset_dir):
         elif name.startswith('ogbl-'):
             # GraphGym default loader.
             dataset = load_ogb(name, dataset_dir)
+
             # OGB link prediction datasets are binary classification tasks,
             # however the default loader creates float labels => convert to int.
             def convert_to_int(ds, prop):
                 tmp = getattr(ds.data, prop).int()
                 set_dataset_attr(ds, prop, tmp, len(tmp))
+
             convert_to_int(dataset, 'train_edge_label')
             convert_to_int(dataset, 'val_edge_label')
             convert_to_int(dataset, 'test_edge_label')
@@ -214,6 +216,9 @@ def load_dataset_master(format, name, dataset_dir):
             dataset[dataset.data['train_graph_index']])
 
     return dataset
+
+
+register_loader('custom_master_loader', load_dataset_master)
 
 
 def compute_indegree_histogram(dataset):
@@ -318,6 +323,7 @@ def preformat_OGB_Graph(dataset_dir, name):
         def add_zeros(data):
             data.x = torch.zeros(data.num_nodes, dtype=torch.long)
             return data
+
         dataset.transform = add_zeros
     elif name == 'ogbg-code2':
         from graphgps.loader.ogbg_code2_utils import idx2vocab, \
@@ -327,7 +333,7 @@ def preformat_OGB_Graph(dataset_dir, name):
 
         seq_len_list = np.array([len(seq) for seq in dataset.data.y])
         logging.info(f"Target sequences less or equal to {max_seq_len} is "
-            f"{np.sum(seq_len_list <= max_seq_len) / len(seq_len_list)}")
+                     f"{np.sum(seq_len_list <= max_seq_len) / len(seq_len_list)}")
 
         # Building vocabulary for sequence prediction. Only use training data.
         vocab2idx, idx2vocab_local = get_vocab_mapping(
@@ -343,8 +349,8 @@ def preformat_OGB_Graph(dataset_dir, name):
              lambda data: encode_y_to_arr(data, vocab2idx, max_seq_len)])
 
         # Subset graphs to a maximum size (number of nodes) limit.
-        pre_transform_in_memory(dataset, partial(clip_graphs_to_size,
-                                                 size_limit=1000))
+        # pre_transform_in_memory(dataset, partial(clip_graphs_to_size,
+        #                                          size_limit=1000))
 
     return dataset
 
@@ -375,7 +381,6 @@ def preformat_OGB_PCQM4Mv2(dataset_dir, name):
         logging.error('ERROR: Failed to load PygPCQM4Mv2Dataset, '
                       'make sure RDKit is installed.')
         raise e
-
 
     dataset = PygPCQM4Mv2Dataset(root=dataset_dir)
     split_idx = dataset.get_idx_split()
