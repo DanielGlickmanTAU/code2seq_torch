@@ -8,8 +8,8 @@ from torchmetrics.functional import (
     accuracy,
     average_precision,
     confusion_matrix,
-    f1_score,
-    fbeta_score,
+    f1,
+    fbeta,
     precision_recall_curve,
     precision,
     recall,
@@ -24,12 +24,12 @@ EPS = 1e-5
 
 class Thresholder:
     def __init__(
-            self,
-            threshold: float,
-            operator: str = "greater",
-            th_on_preds: bool = True,
-            th_on_target: bool = False,
-            target_to_int: bool = False,
+        self,
+        threshold: float,
+        operator: str = "greater",
+        th_on_preds: bool = True,
+        th_on_target: bool = False,
+        target_to_int: bool = False,
     ):
 
         # Basic params
@@ -125,6 +125,7 @@ def pearsonr(preds: torch.Tensor, target: torch.Tensor,
 
 
 def _get_rank(values):
+
     arange = torch.arange(values.shape[0],
                           dtype=values.dtype, device=values.device)
 
@@ -174,8 +175,8 @@ METRICS_CLASSIFICATION = {
     "averageprecision": average_precision,
     "auroc": auroc,
     "confusionmatrix": confusion_matrix,
-    "f1": f1_score,
-    "fbeta": fbeta_score,
+    "f1": f1,
+    "fbeta": fbeta,
     "precisionrecallcurve": precision_recall_curve,
     "precision": precision,
     "recall": recall,
@@ -199,11 +200,11 @@ class MetricWrapper:
     """
 
     def __init__(
-            self,
-            metric: Union[str, Callable],
-            threshold_kwargs: Optional[Dict[str, Any]] = None,
-            target_nan_mask: Optional[Union[str, int]] = None,
-            **kwargs,
+        self,
+        metric: Union[str, Callable],
+        threshold_kwargs: Optional[Dict[str, Any]] = None,
+        target_nan_mask: Optional[Union[str, int]] = None,
+        **kwargs,
     ):
         r"""
         Parameters
