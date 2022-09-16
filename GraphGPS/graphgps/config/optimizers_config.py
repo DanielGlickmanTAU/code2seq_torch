@@ -10,6 +10,8 @@ def extended_optim_cfg(cfg):
     # Requires `custom` training loop, set `train.mode: custom`
     cfg.optim.batch_accumulation = 1
 
+    cfg.train.mode = 'custom'
+
     # ReduceLROnPlateau: Factor by which the learning rate will be reduced
     cfg.optim.reduce_factor = 0.1
 
