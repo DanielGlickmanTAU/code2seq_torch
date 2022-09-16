@@ -21,6 +21,7 @@ def set_cfg_nagasaki(cfg):
     cfg.nagasaki.merge_attention = None
     cfg.nagasaki.add_cls = False
     cfg.nagasaki.project_diagonal = False
+    cfg.nagasaki.scale_attention = False
 
 
 register_config('cfg_nagasaki', set_cfg_nagasaki)
