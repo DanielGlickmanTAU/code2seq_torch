@@ -115,6 +115,9 @@ def show_matrix(stacks, cmap=None, text=None):
 
 
 def draw_attention(graph, source_node, attention_matrix, with_labels=True):
+    if isinstance(graph, torch_geometric.data.Data):
+        graph = torch_geometric.utils.convert.to_networkx(graph)
+        graph.positions = None
     nx_id_to_tensor_index = {x: i for i, x in enumerate(graph.nodes())}
     tensor_id_to_nx_index = {i: x for i, x in enumerate(graph.nodes())}
     assert attention_matrix.dim() == 2 and attention_matrix.shape[0] == attention_matrix.shape[1]
