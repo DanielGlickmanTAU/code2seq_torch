@@ -40,7 +40,11 @@ class OGBCodeGraphHead(nn.Module):
             graph_emb = batch.x[batch.cls_mask]
         else:
             graph_emb = self.pooling_fun(batch.x, batch.batch)
+        try:
             return self.predict(batch, graph_emb)
+        except Exception:
+            print('wrong shape...')
+            return self.predict(batch, graph_emb.squeeze())
 
     def predict(self, batch, graph_emb):
         pred_list = []
