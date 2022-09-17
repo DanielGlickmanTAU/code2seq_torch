@@ -67,7 +67,8 @@ class PygGraphPropPredDataset(InMemoryDataset):
         super(PygGraphPropPredDataset, self).__init__(self.root, transform, pre_transform)
         try:
             self.data, self.slices = torch.load(self.processed_paths[0])
-        except:
+        except Exception as e:
+            print(f'failed loading {e}, trying again')
             self.process()
             self.data, self.slices = torch.load(self.processed_paths[0])
 
