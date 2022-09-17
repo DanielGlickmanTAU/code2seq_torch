@@ -106,17 +106,14 @@ class AdjStack(torch.nn.Module):
 
     def _calc_power(self, adj, steps):
         powers = []
-        if steps == list(range(min(steps), max(steps) + 1)):
-            # Efficient way if ksteps are a consecutive sequence (most of the time the case)
-            Pk = adj.clone().detach().matrix_power(min(steps))
+        assert steps == list(range(min(steps), max(steps) + 1)), f'only consecutive sequences of power, got {steps}'
+        # Efficient way if ksteps are a consecutive sequence (most of the time the case)
+        Pk = adj.clone().detach().matrix_power(min(steps))
+        powers.append(Pk)
+        for k in range(min(steps), max(steps)):
+            Pk = Pk @ adj
             powers.append(Pk)
-            for k in range(min(steps), max(steps)):
-                Pk = Pk @ adj
-                powers.append(Pk)
-        else:
-            for k in steps:
-                Pk = torch.diagonal(adj.matrix_power(k), dim1=-2, dim2=-1)
-                powers.append(Pk)
+
         return powers
 
 
