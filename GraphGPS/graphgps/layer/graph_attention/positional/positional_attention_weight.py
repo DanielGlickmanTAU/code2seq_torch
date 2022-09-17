@@ -197,7 +197,7 @@ class Diffuser(nn.Module):
         edges = self.edge_mlp(stacks, mask)
 
         if self.positional_embedding:
-            self_edge = stacks.squeeze()[torch.diag_embed(pygraph_utils.dense_mask_to_attn_mask(mask))]
+            self_edge = stacks.squeeze(1)[torch.diag_embed(pygraph_utils.dense_mask_to_attn_mask(mask))]
             pos_emb = self.positional_projection(self_edge)
             batch.x = batch.x + pos_emb
 
