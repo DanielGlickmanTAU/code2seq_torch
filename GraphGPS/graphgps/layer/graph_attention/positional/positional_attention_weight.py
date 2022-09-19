@@ -11,8 +11,16 @@ from graphgps.layer.graph_attention.positional import positional_utils
 from torch.profiler import record_function
 
 
-class AdjStackAttentionWeights(torch.nn.Module):
+class Residual(nn.Module):
+    def __init__(self, module):
+        super(Residual, self).__init__()
+        self.module = module
 
+    def forward(self, inputs):
+        return self.module(inputs) + inputs
+
+
+class AdjStackAttentionWeights(torch.nn.Module):
     def __init__(self, input_dim, dim_out, hidden_dim, ffn, ffn_layers=1):
         super(AdjStackAttentionWeights, self).__init__()
         self.num_adj_stacks = input_dim
@@ -32,7 +40,15 @@ class AdjStackAttentionWeights(torch.nn.Module):
                 layers.append(torch.nn.Linear(hidden_dim, hidden_dim))
                 layers.append(torch.nn.ReLU())
             layers.append(torch.nn.Linear(hidden_dim, dim_out))
+            self.weight = torch.nn.Sequential(*layers)
+        elif ffn == 'res-mlp':
+            layers = [torch.nn.BatchNorm1d(input_dim)]
+            for _ in range(ffn_layers):
+                linear_bn = [torch.nn.Linear(input_dim, input_dim), torch.nn.BatchNorm1d(input_dim)]
+                layers.append(Residual(torch.nn.Sequential(*linear_bn)))
+                layers.append(torch.nn.ReLU())
 
+            layers.append(torch.nn.Linear(input_dim, dim_out))
             self.weight = torch.nn.Sequential(*layers)
 
         elif ffn == 'linear':
