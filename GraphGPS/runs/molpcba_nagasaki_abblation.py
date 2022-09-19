@@ -14,12 +14,11 @@ params = {
     'train.batch_size': int(512 / batch_acc),
     'optim.batch_accumulation': batch_acc,
     'optim.early_stop_patience': 10,
-    'seed': [3, 4],
+    'seed': [1, 2],
 
     'nagasaki.steps': '[1, 2, 3, 4, 5,6, 7, 8, 9, 10,11,12,13,14,15]',
     'nagasaki.edge_model_type': ['bn-mlp'],
     'nagasaki.edge_reduction': ['bn-mlp'],
-
     'nagasaki.ffn_layers': [1],
 
     # we do not use regular rwpe, only learned.

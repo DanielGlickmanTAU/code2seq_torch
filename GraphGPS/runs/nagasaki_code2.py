@@ -6,9 +6,10 @@ from code2seq.utils.slurm import run_on_slurm
 import os
 import sys
 
-batch_acc = 2
+batch_acc = 8
 params = {
-    '--cfg': 'configs/GPS/ogbg-code2-sat.yaml',
+    # '--cfg': 'configs/GPS/ogbg-code2-sat.yaml',
+    '--cfg': 'configs/GPS/ogbg-code2-GPS.yaml',
 }
 
 params_for_exp = {
@@ -16,27 +17,38 @@ params_for_exp = {
     'optim.batch_accumulation': batch_acc,
 
     'nagasaki.learn_edges_weight': [True],
-    'nagasaki.steps': '[1, 2, 3, 4, 5,6, 7, 8, 9, 10]',
-    'nagasaki.edge_model_type': ['bn-mlp'],
+    'nagasaki.steps': '[1, 2, 3, 4, 5,6, 7, 8, 9, 10,11,12]',
+    # 'nagasaki.edge_model_type': ['bn-mlp'],
+    'nagasaki.edge_model_type': ['bn-mlp', 'res-mlp'],
     'nagasaki.edge_reduction': ['linear'],
 
     'dataset.node_encoder_name': 'ASTNode',
     'posenc_RWSE.enable': False,
 
-    ('nagasaki.kernel', 'nagasaki.merge_attention',): [('softmax', 'plus')],
-    'nagasaki.scale_attention': [True],
+    ('nagasaki.kernel', 'nagasaki.merge_attention',): [('sigmoid', 'gate')],
+    # ('nagasaki.kernel', 'nagasaki.merge_attention',): [('softmax', 'plus')],
+    # 'nagasaki.scale_attention': [True],
 
     # ('nagasaki.kernel', 'nagasaki.merge_attention'): [('sigmoid', 'gate')],
 
     'nagasaki.ffn_layers': [2],
-    'gt.ffn_multiplier': 4,
     'gt.layer_type': 'CustomGatedGCN+Nagasaki',
     # 'nagasaki.add_cls': [True, False],
-    'nagasaki.add_cls': [True],
+    'nagasaki.add_cls': [False],
+    # 'nagasaki.add_cls': [True],
+    # 'nagasaki.skip_cls_pooling': [True],
     'nagasaki.project_diagonal': [True],
     'nagasaki.symmetric_edge_reduce': [False],
 }
 
+params_for_grid_search = [
+    # baseline_config.get_nagasaki_basic_config(total_layers=6, gnn_layers=3),
+    # baseline_config.get_nagasaki_basic_config(total_layers=6, gnn_layers=2),
+    # baseline_config.get_nagasaki_basic_config(total_layers=7, gnn_layers=4),
+]
+#
+for p in params_for_grid_search:
+    p.update(params)
 os.chdir('..')
 job_name = '''main.py'''
 ids = []
