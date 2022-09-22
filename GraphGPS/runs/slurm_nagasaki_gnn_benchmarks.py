@@ -8,7 +8,7 @@ import os
 
 batch_acc = 1
 params = {
-    '--cfg':'configs/GPS/mnist-GPS.yaml',
+    '--cfg': 'configs/GPS/mnist-GPS.yaml',
     # '--cfg':'configs/GPS/cifar10-GPS.yaml',
     # '--cfg':'configs/GPS/pattern-GPS.yaml',
     # '--cfg':'configs/GPS/cluster-GPS.yaml',
@@ -33,7 +33,8 @@ params_for_exp = {
 
     ('nagasaki.kernel', 'nagasaki.merge_attention'): [('sigmoid', 'gate')],
 
-    # 'nagasaki.scale_attention': False,
+    # ('nagasaki.kernel', 'nagasaki.merge_attention'): [('softmax', 'plus')],
+    # 'nagasaki.scale_attention': True,
 
     'nagasaki.ffn_layers': [2],
     # 'nagasaki.add_cls': [True],
@@ -42,12 +43,14 @@ params_for_exp = {
     # 'nagasaki.add_cls': [False],
     'nagasaki.symmetric_edge_reduce': [False],
 
-    # 'posenc_RWSE.enable': False,
-    # 'posenc_LapPE.enable': False,
-
     'gt.layer_type': 'CustomGatedGCN+Nagasaki',
     'nagasaki.project_diagonal': [True],
 
+    'dataset.node_encoder_name': 'LinearNode',
+    # 'dataset.node_encoder': False,
+
+    'posenc_RWSE.enable': False,
+    'posenc_LapPE.enable': False,
 }
 
 os.chdir('..')

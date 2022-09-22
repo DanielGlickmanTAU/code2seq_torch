@@ -9,14 +9,16 @@ import sys
 batch_acc = 4
 params = {
     # '--cfg': 'configs/GPS/ogbg-code2-sat.yaml',
-    '--cfg': 'configs/GPS/ogbg-code2-GPS.yaml',
+    '--cfg': 'configs/GPS/ogbg-code2-ablation.yaml',
+    'optim.early_stop_patience': 10,
+    '--max_examples': 50_000
 }
 
 params_for_exp = {
     'train.batch_size': int(32 / batch_acc),
     'optim.batch_accumulation': batch_acc,
-    'seed': 3,
-    'gt.ffn_multiplier': 4,
+    'seed': 2,
+    'gt.ffn_multiplier': 2,
     # 'nagasaki.ffn_hidden_multiplier': 1,
 
     'nagasaki.learn_edges_weight': [True],
@@ -28,14 +30,14 @@ params_for_exp = {
     'dataset.node_encoder_name': 'ASTNode',
     'posenc_RWSE.enable': False,
 
-    ('nagasaki.kernel', 'nagasaki.merge_attention',): [('sigmoid', 'gate')],
+    # ('nagasaki.kernel', 'nagasaki.merge_attention',): [('sigmoid', 'gate')],
 
     # ('nagasaki.kernel', 'nagasaki.merge_attention',): [('softmax', 'plus')],
     # 'nagasaki.scale_attention': [True],
     # 'nagasaki.ffn_hidden_multiplier': [1],
 
     'nagasaki.ffn_layers': [2],
-    'gt.layer_type': 'CustomGatedGCN+Nagasaki',
+    'gt.layer_type': ['CustomGatedGCN+Nagasaki', 'CustomGatedGCN+Transformer'],
     # 'nagasaki.add_cls': [True, False],
     'nagasaki.add_cls': [False],
     # 'nagasaki.add_cls': [True],
@@ -44,14 +46,20 @@ params_for_exp = {
     'nagasaki.symmetric_edge_reduce': [False],
 }
 
+no_change = {}
 params_for_grid_search = [
-    # baseline_config.get_nagasaki_basic_config(total_layers=6, gnn_layers=3),
+    no_change,
+    # gnn->trans
+    # baseline_config.get_nagasaki_basic_config(total_layers=6, gnn_layers=3, far_away=True),
+    # transformer only
+    # baseline_config.get_nagasaki_basic_config(total_layers=6, gnn_layers=0, far_away=True),
     # baseline_config.get_nagasaki_basic_config(total_layers=6, gnn_layers=2),
     # baseline_config.get_nagasaki_basic_config(total_layers=7, gnn_layers=4),
 ]
-#
-for p in params_for_grid_search:
-    p.update(params)
+
+# params.update(baseline_config.get_nagasaki_basic_config(total_layers=6, gnn_layers=3, far_away=True))
+params.update(baseline_config.get_nagasaki_basic_config(total_layers=6, gnn_layers=0, far_away=True))
+
 os.chdir('..')
 job_name = '''main.py'''
 ids = []

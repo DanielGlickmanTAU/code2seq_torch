@@ -8,7 +8,8 @@ import os
 
 batch_acc = 4
 params = {
-    '--cfg': 'configs/GPS/pcqm-contact-Transformer.yaml',
+    # '--cfg': 'configs/GPS/pcqm-contact-Transformer.yaml',
+    '--cfg': 'configs/GPS/pcqm-contact-GPS.yaml',
     '--ogb_eval': True,
     'optim.early_stop_patience': 9999
 
@@ -31,9 +32,9 @@ params_for_exp = {
 
     # 'nagasaki.kernel': ['sigmoid'],
     # 'nagasaki.merge_attention': ['gate'],
-    # ('nagasaki.kernel', 'nagasaki.merge_attention'): [('sigmoid', 'gate')],
-    ('nagasaki.kernel', 'nagasaki.merge_attention'): [('softmax', 'plus')],
-    'nagasaki.scale_attention': True,
+    ('nagasaki.kernel', 'nagasaki.merge_attention'): [('sigmoid', 'gate')],
+    # ('nagasaki.kernel', 'nagasaki.merge_attention'): [('softmax', 'plus')],
+    # 'nagasaki.scale_attention': True,
 
     # 'nagasaki.kernel': ['softmax'],
     # 'nagasaki.merge_attention': ['plus'],
@@ -48,7 +49,7 @@ params_for_exp = {
     'posenc_RWSE.enable': False,
     'posenc_LapPE.enable': False,
 
-    'gt.layer_type': 'None+Nagasaki',
+    # 'gt.layer_type': 'None+Nagasaki',
     'nagasaki.project_diagonal': [True],
 
 }

@@ -17,7 +17,7 @@ params = {
 params_for_exp = {
     'train.batch_size': int(512 / batch_acc),
     'optim.batch_accumulation': batch_acc,
-    'seed': [4],
+    'seed': [1, 2],
     # seed 5, 6, 7, 8, 9, 10
 
     'nagasaki.learn_edges_weight': [True],
@@ -27,23 +27,23 @@ params_for_exp = {
     # 'nagasaki.steps': '[1, 2, 3, 4, 5]',
     # 'nagasaki.steps': '[1, 2, 3, 4, 5,6, 7, 8, 9, 10]',
     # 'nagasaki.edge_model_type': ['bn-mlp'],
-    'nagasaki.edge_model_type': ['res-mlp'],
+    # 'nagasaki.edge_model_type': ['res-mlp'],
+    'nagasaki.edge_model_type': ['res-net'],
     # 'nagasaki.edge_reduction': ['bn-mlp', 'linear'],
     # 'nagasaki.edge_reduction': ['bn-mlp'],
     'nagasaki.edge_reduction': ['linear'],
 
-    'nagasaki.kernel': ['sigmoid'],
-    'nagasaki.merge_attention': ['gate'],
+    # 'nagasaki.kernel': ['sigmoid'],
+    # 'nagasaki.merge_attention': ['gate'],
 
-    # 'nagasaki.kernel': ['exp-norm'],
-    # 'nagasaki.kernel': ['softmax'],
-    # 'nagasaki.merge_attention': ['plus'],
-    # 'nagasaki.scale_attention': False,
+    'nagasaki.kernel': ['softmax'],
+    'nagasaki.merge_attention': ['plus'],
+    'nagasaki.scale_attention': [True],
     # ('nagasaki.kernel', 'nagasaki.merge_attention'): [('sigmoid', 'gate')],
 
     # ('nagasaki.kernel', 'nagasaki.merge_attention'): [('softmax', 'plus')],
 
-    'nagasaki.ffn_layers': [2, 3],
+    'nagasaki.ffn_layers': [2],
     'nagasaki.add_cls': [False],
     # 'nagasaki.skip_cls_pooling': [True],
     # 'nagasaki.add_cls': [False],

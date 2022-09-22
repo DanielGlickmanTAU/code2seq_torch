@@ -156,11 +156,13 @@ def load_dataset_master(format, name, dataset_dir):
         elif name.startswith('ogbl-'):
             # GraphGym default loader.
             dataset = load_ogb(name, dataset_dir)
+
             # OGB link prediction datasets are binary classification tasks,
             # however the default loader creates float labels => convert to int.
             def convert_to_int(ds, prop):
                 tmp = getattr(ds.data, prop).int()
                 set_dataset_attr(ds, prop, tmp, len(tmp))
+
             convert_to_int(dataset, 'train_edge_label')
             convert_to_int(dataset, 'val_edge_label')
             convert_to_int(dataset, 'test_edge_label')
@@ -219,6 +221,7 @@ def load_dataset_master(format, name, dataset_dir):
 
     return dataset
 
+
 def preformat_PCQM4Mv2Contact(dataset_dir, name):
     """Load PCQM4Mv2-derived molecular contact link prediction dataset.
     Note: This dataset requires RDKit dependency!
@@ -246,6 +249,7 @@ def preformat_PCQM4Mv2Contact(dataset_dir, name):
     if cfg.dataset.resample_negative:
         dataset.transform = structured_neg_sampling_transform
     return dataset
+
 
 def preformat_Peptides(dataset_dir, name):
     """Load Peptides dataset, functional or structural.
@@ -372,6 +376,12 @@ def preformat_OGB_Graph(dataset_dir, name):
     """
     dataset = PygGraphPropPredDataset(name=name, root=dataset_dir)
     s_dict = dataset.get_idx_split()
+    if cfg.max_examples and 'code2' in name:
+        for split in s_dict:
+            split_indexes_ = s_dict[split]
+            s_dict[split] = split_indexes_[split_indexes_ < cfg.max_examples]
+        dataset = dataset[torch.cat([s_dict['train'], s_dict['valid'], s_dict['test']])]
+
     dataset.split_idxs = [s_dict[s] for s in ['train', 'valid', 'test']]
 
     if name == 'ogbg-ppa':
@@ -381,6 +391,7 @@ def preformat_OGB_Graph(dataset_dir, name):
         def add_zeros(data):
             data.x = torch.zeros(data.num_nodes, dtype=torch.long)
             return data
+
         dataset.transform = add_zeros
     elif name == 'ogbg-code2':
         from graphgps.loader.ogbg_code2_utils import idx2vocab, \
@@ -390,7 +401,7 @@ def preformat_OGB_Graph(dataset_dir, name):
 
         seq_len_list = np.array([len(seq) for seq in dataset.data.y])
         logging.info(f"Target sequences less or equal to {max_seq_len} is "
-            f"{np.sum(seq_len_list <= max_seq_len) / len(seq_len_list)}")
+                     f"{np.sum(seq_len_list <= max_seq_len) / len(seq_len_list)}")
 
         # Building vocabulary for sequence prediction. Only use training data.
         vocab2idx, idx2vocab_local = get_vocab_mapping(
@@ -438,7 +449,6 @@ def preformat_OGB_PCQM4Mv2(dataset_dir, name):
         logging.error('ERROR: Failed to load PygPCQM4Mv2Dataset, '
                       'make sure RDKit is installed.')
         raise e
-
 
     dataset = PygPCQM4Mv2Dataset(root=dataset_dir)
     split_idx = dataset.get_idx_split()

@@ -6,9 +6,9 @@ from code2seq.utils.gridsearch import gridsearch, ListArgument
 from code2seq.utils.slurm import run_on_slurm
 import os
 
-batch_acc = 1
+batch_acc = 2
 params = {
-    '--cfg': 'configs/GPS/pcqm4m-GPS+RWSE.yaml',this is small mode!!!
+    '--cfg': 'configs/GPS/pcqm4m-GPSmedium+RWSE.yaml',
     '--ogb_eval': True,
     'optim.early_stop_patience': 9999
 
@@ -29,10 +29,9 @@ params_for_exp = {
     # 'nagasaki.edge_reduction': ['bn-mlp', 'linear'],
     'nagasaki.edge_reduction': ['linear'],
 
-
     # 'nagasaki.ffn_layers': [1, 2],
     'nagasaki.ffn_layers': [2],
-    'nagasaki.add_cls': [True],
+    'nagasaki.add_cls': [False],
     'nagasaki.symmetric_edge_reduce': [False],
 
     ('nagasaki.kernel', 'nagasaki.merge_attention'): [('sigmoid', 'gate')],

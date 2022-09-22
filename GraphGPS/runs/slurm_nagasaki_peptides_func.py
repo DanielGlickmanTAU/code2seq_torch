@@ -8,7 +8,8 @@ import os
 
 batch_acc = 4
 params = {
-    '--cfg': 'configs/GPS/peptides-func-Transformer.yaml',
+    # '--cfg': 'configs/GPS/peptides-func-Transformer.yaml',
+    '--cfg': 'configs/GPS/peptides-func-GPS.yaml',
     '--ogb_eval': True,
     'optim.early_stop_patience': 9999
 
@@ -17,7 +18,7 @@ params = {
 params_for_exp = {
     'train.batch_size': int(128 / batch_acc),
     'optim.batch_accumulation': batch_acc,
-    'seed': [1],
+    'seed': [1,2],
     # seed 5, 6, 7, 8, 9, 10
 
     'nagasaki.learn_edges_weight': [True],
@@ -29,14 +30,16 @@ params_for_exp = {
     # 'nagasaki.edge_model_type': ['bn-mlp'],
     'nagasaki.edge_reduction': ['linear'],
 
-    ('nagasaki.kernel', 'nagasaki.merge_attention'): [('sigmoid', 'gate'), ('exp-norm', 'plus')],
+    ('nagasaki.kernel', 'nagasaki.merge_attention'): [('sigmoid', 'gate')],
+    # ('nagasaki.kernel', 'nagasaki.merge_attention'): [('softmax', 'plus')],
+    # 'nagasaki.scale_attention': True,
 
     # 'nagasaki.scale_attention': False,
 
     'nagasaki.ffn_layers': [2],
     # 'nagasaki.add_cls': [True],
     # 'nagasaki.skip_cls_pooling': [True],
-    'nagasaki.add_cls': [False, True],
+    'nagasaki.add_cls': [False],
     # 'nagasaki.add_cls': [False],
     'nagasaki.symmetric_edge_reduce': [False],
 
@@ -44,7 +47,7 @@ params_for_exp = {
     'posenc_RWSE.enable': False,
     'posenc_LapPE.enable': False,
 
-    'gt.layer_type': 'None+Nagasaki',
+    # 'gt.layer_type': 'None+Nagasaki',
     'nagasaki.project_diagonal': [True],
 
 }
