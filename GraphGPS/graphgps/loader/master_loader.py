@@ -376,7 +376,7 @@ def preformat_OGB_Graph(dataset_dir, name):
     """
     dataset = PygGraphPropPredDataset(name=name, root=dataset_dir)
     s_dict = dataset.get_idx_split()
-    if cfg.max_examples and 'code2' in name:
+    if cfg.max_examples:
         for split in s_dict:
             split_indexes_ = s_dict[split]
             s_dict[split] = split_indexes_[split_indexes_ < cfg.max_examples]
