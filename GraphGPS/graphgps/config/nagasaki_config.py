@@ -9,6 +9,7 @@ def set_cfg_nagasaki(cfg):
     cfg.nagasaki.edge_model_type = 'mlp'  # /linear/bn-l
     cfg.nagasaki.ffn_hidden_multiplier = 2
     cfg.nagasaki.ffn_layers = 1
+    cfg.nagasaki.edge_reducer_hidden_dim = 2
 
     cfg.nagasaki.edge_reduction = 'bn-mlp'
     cfg.nagasaki.learn_edges_weight = False

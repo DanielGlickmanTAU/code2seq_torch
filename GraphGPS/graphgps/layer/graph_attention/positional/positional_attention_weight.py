@@ -193,7 +193,8 @@ class Diffuser(nn.Module):
         num_stack = positional_utils.get_stacks_dim(nagasaki_config)
 
         if nagasaki_config.learn_edges_weight:
-            self.edge_reducer = EdgeReducer(dim_in, hidden_dim=2 * dim_in, dim_out=self.nhead, dropout=0.,
+            self.edge_reducer = EdgeReducer(dim_in, hidden_dim=nagasaki_config.edge_reducer_hidden_dim * dim_in,
+                                            dim_out=self.nhead, dropout=0.,
                                             symmetric=nagasaki_config.symmetric_edge_reduce)
         else:
             self.edge_reducer = None
