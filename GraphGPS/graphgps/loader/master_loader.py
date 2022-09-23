@@ -376,11 +376,11 @@ def preformat_OGB_Graph(dataset_dir, name):
     """
     dataset = PygGraphPropPredDataset(name=name, root=dataset_dir)
     s_dict = dataset.get_idx_split()
-    if cfg.max_examples:
-        s_dict['train'] = s_dict['train'][:cfg.max_examples]
-        s_dict['valid'] = s_dict['valid'][:int(cfg.max_examples * 0.1)]
-        s_dict['test'] = s_dict['test'][:int(cfg.max_examples * 0.1)]
-        dataset = dataset[torch.cat([s_dict['train'], s_dict['valid'], s_dict['test']])]
+    # if cfg.max_examples:
+    #     s_dict['train'] = s_dict['train'][:cfg.max_examples]
+    #     s_dict['valid'] = s_dict['valid'][:int(cfg.max_examples * 0.1)]
+    #     s_dict['test'] = s_dict['test'][:int(cfg.max_examples * 0.1)]
+    #     dataset = dataset[torch.cat([s_dict['train'], s_dict['valid'], s_dict['test']])]
 
     dataset.split_idxs = [s_dict[s] for s in ['train', 'valid', 'test']]
 
