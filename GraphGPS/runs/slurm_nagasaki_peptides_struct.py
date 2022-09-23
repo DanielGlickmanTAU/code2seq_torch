@@ -6,7 +6,8 @@ from code2seq.utils.gridsearch import gridsearch, ListArgument
 from code2seq.utils.slurm import run_on_slurm
 import os
 
-batch_acc = 4
+batch_acc = 8
+# batch_acc = 4
 params = {
     '--cfg': 'configs/GPS/peptides-struct-Transformer.yaml',
     # '--cfg': 'configs/GPS/peptides-struct-GPS.yaml',
@@ -18,13 +19,15 @@ params = {
 params_for_exp = {
     'train.batch_size': int(128 / batch_acc),
     'optim.batch_accumulation': batch_acc,
-    'seed': [1, 2],
+    # 'seed': [1],
+    'seed': [3],
     # seed 5, 6, 7, 8, 9, 10
 
     'nagasaki.learn_edges_weight': [True],
     # 'nagasaki.learn_edges_weight': [False],
 
-    'nagasaki.steps': '[1, 2, 3, 4, 5,6, 7, 8, 9, 10, 11, 12, 13, 14, 15,16,17,18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39]',
+    'nagasaki.steps': '[1, 2, 3, 4, 5,6, 7, 8, 9, 10, 11, 12, 13, 14, 15,16,17,18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30]',
+    # 'nagasaki.steps': '[1, 2, 3, 4, 5,6, 7, 8, 9, 10, 11, 12, 13, 14, 15,16,17,18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30,31,32,33,34,35,36,37,38,39,40]',
     # 'nagasaki.ffn_hidden_multiplier':
     # 'nagasaki.edge_model_type': ['bn-mlp'],
     'nagasaki.edge_model_type': ['res-mlp'],
@@ -51,8 +54,13 @@ params_for_exp = {
     'dataset.node_encoder_name': 'Atom',
     'posenc_RWSE.enable': False,
     'posenc_LapPE.enable': False,
-    # 'gt.layer_type': 'None+Nagasaki',
+    'gt.layer_type': 'None+Nagasaki',
     'nagasaki.project_diagonal': [True],
+
+    # 'gt.attn_dropout': [0., 0.2, 0.3],
+    'gt.attn_dropout': [0.3, 0.5],
+    'gt.dropout': [0.2, 0.3],
+    # 'optim.base_lr': [0.0003, 0.0002, 0.0001]
 
 }
 
