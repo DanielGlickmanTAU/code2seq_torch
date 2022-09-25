@@ -384,6 +384,11 @@ def preformat_OGB_Graph(dataset_dir, name):
 
     dataset.split_idxs = [s_dict[s] for s in ['train', 'valid', 'test']]
 
+    if cfg.max_examples == 100_000:
+        train_idx = s_dict['train']
+        valid_idx, train_idx, test_idx = train_idx[:80_000], train_idx[80_000:90_000], train_idx[90_000:100_000]
+        dataset.split_idxs = [train_idx, valid_idx, test_idx]
+
     if name == 'ogbg-ppa':
         # ogbg-ppa doesn't have any node features, therefore add zeros but do
         # so dynamically as a 'transform' and not as a cached 'pre-transform'
