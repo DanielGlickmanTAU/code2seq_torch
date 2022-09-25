@@ -18,13 +18,14 @@ params = {
 params_for_exp = {
     'train.batch_size': int(128 / batch_acc),
     'optim.batch_accumulation': batch_acc,
-    'seed': [1, 2, 3, 4],
+    'seed': [5, 6],
     # seed 5, 6, 7, 8, 9, 10
 
     'nagasaki.learn_edges_weight': [True],
     # 'nagasaki.learn_edges_weight': [False],
 
-    'nagasaki.steps': '[1, 2, 3, 4, 5,6, 7, 8, 9, 10, 11, 12, 13, 14, 15,16]',
+    # 'nagasaki.steps': '[1, 2, 3, 4, 5,6, 7, 8, 9, 10, 11, 12, 13, 14, 15,16]',
+    'nagasaki.steps': '[1, 2, 3, 4, 5,6, 7, 8, 9, 10]',
 
     # 'nagasaki.edge_model_type': ['bn-mlp'],
     'nagasaki.edge_model_type': ['res-mlp'],
@@ -42,6 +43,7 @@ params_for_exp = {
 
     'nagasaki.ffn_layers': [2],
     # only False works, it has different prediction head.
+    # 'nagasaki.add_cls': [True],
     'nagasaki.add_cls': [False],
     'nagasaki.symmetric_edge_reduce': [False],
 
@@ -51,11 +53,6 @@ params_for_exp = {
 
     'gt.layer_type': 'None+Nagasaki',
     'nagasaki.project_diagonal': [True],
-
-    'gt.attn_dropout': [0.3, 0.5],
-    'gt.dropout': [0.3, 0.5],
-    'optim.base_lr': [0.0003, 0.0002]
-
 }
 
 os.chdir('..')

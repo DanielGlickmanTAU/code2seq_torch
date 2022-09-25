@@ -11,7 +11,6 @@ params = {
     # '--cfg': 'configs/GPS/ogbg-code2-sat.yaml',
     '--cfg': 'configs/GPS/ogbg-code2-ablation.yaml',
     'optim.early_stop_patience': 10,
-    '--max_examples': 50_000
 }
 
 params_for_exp = {

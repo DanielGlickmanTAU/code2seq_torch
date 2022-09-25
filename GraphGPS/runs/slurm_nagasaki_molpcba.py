@@ -33,12 +33,12 @@ params_for_exp = {
     # 'nagasaki.edge_reduction': ['bn-mlp'],
     'nagasaki.edge_reduction': ['linear'],
 
-    # 'nagasaki.kernel': ['sigmoid'],
-    # 'nagasaki.merge_attention': ['gate'],
+    'nagasaki.kernel': ['sigmoid'],
+    'nagasaki.merge_attention': ['gate'],
 
-    'nagasaki.kernel': ['softmax'],
-    'nagasaki.merge_attention': ['plus'],
-    'nagasaki.scale_attention': [True],
+    # 'nagasaki.kernel': ['softmax'],
+    # 'nagasaki.merge_attention': ['plus'],
+    # 'nagasaki.scale_attention': [True],
     # ('nagasaki.kernel', 'nagasaki.merge_attention'): [('sigmoid', 'gate')],
 
     # ('nagasaki.kernel', 'nagasaki.merge_attention'): [('softmax', 'plus')],
@@ -50,8 +50,8 @@ params_for_exp = {
     'nagasaki.symmetric_edge_reduce': [False],
 
     # HANDLE THIS:
-    # 'gt.dropout': 0.1,
-    # 'gt.attn_dropout': 0.2,
+    # 'gt.dropout': 0.5,
+    # 'gt.attn_dropout': 0.3,
 
     'dataset.node_encoder_name': 'Atom',
     'posenc_RWSE.enable': False,

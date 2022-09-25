@@ -19,14 +19,14 @@ params_for_exp = {
     'train.batch_size': int(128 / batch_acc),
     'optim.batch_accumulation': batch_acc,
     # 'seed': [1],
-    'seed': [3, 4, 5],
+    'seed': [1,2],
     # seed 5, 6, 7, 8, 9, 10
 
     'nagasaki.learn_edges_weight': [True],
     # 'nagasaki.learn_edges_weight': [False],
 
-    # 'nagasaki.steps': '[1, 2, 3, 4, 5,6, 7, 8, 9, 10, 11, 12, 13, 14, 15,16]',
-    'nagasaki.steps': '[1, 2, 3, 4, 5,6, 7, 8, 9, 10, 11, 12, 13, 14, 15,16,17,18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30]',
+    'nagasaki.steps': '[1, 2, 3, 4, 5,6, 7, 8, 9, 10, 11, 12, 13, 14, 15,16]',
+    # 'nagasaki.steps': '[1, 2, 3, 4, 5,6, 7, 8, 9, 10, 11, 12, 13, 14, 15,16,17,18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30]',
 
     'nagasaki.edge_model_type': ['res-mlp'],
     # 'nagasaki.edge_model_type': ['bn-mlp'],
@@ -41,7 +41,7 @@ params_for_exp = {
     'nagasaki.ffn_layers': [2],
     # 'nagasaki.add_cls': [True],
     # 'nagasaki.skip_cls_pooling': [True],
-    'nagasaki.add_cls': [False],
+    'nagasaki.add_cls': [True],
     # 'nagasaki.add_cls': [False],
     'nagasaki.symmetric_edge_reduce': [False],
 

@@ -6,7 +6,7 @@ from code2seq.utils.gridsearch import gridsearch, ListArgument
 from code2seq.utils.slurm import run_on_slurm
 import os
 
-batch_acc = 2
+batch_acc = 1
 params = {
     '--cfg': 'configs/GPS/pcqm4m-GPSmedium+RWSE.yaml',
     '--ogb_eval': True,
@@ -17,7 +17,7 @@ params = {
 params_for_exp = {
     'train.batch_size': int(256 / batch_acc),
     'optim.batch_accumulation': batch_acc,
-    'seed': [1],
+    'seed': [2],
     'dataset.node_encoder_name': 'Atom',
     'posenc_RWSE.enable': False,
 

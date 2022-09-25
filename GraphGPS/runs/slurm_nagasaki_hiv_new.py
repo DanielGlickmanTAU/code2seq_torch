@@ -6,9 +6,9 @@ from code2seq.utils.gridsearch import gridsearch, ListArgument
 from code2seq.utils.slurm import run_on_slurm
 import os
 
-batch_acc = 8
+batch_acc = 1
 params = {
-    '--cfg': 'configs/GPS/ogbg-molpcba-GPS+RWSE.yaml',
+    '--cfg': 'configs/GPS/ogbg-molhiv-GPS+RWSE.yaml',
     '--ogb_eval': True,
     'optim.early_stop_patience': 9999
 
@@ -17,7 +17,7 @@ params = {
 params_for_exp = {
     'train.batch_size': int(32 / batch_acc),
     'optim.batch_accumulation': batch_acc,
-    'seed': [1],
+    'seed': [2],
     # seed 5, 6, 7, 8, 9, 10
 
     'nagasaki.learn_edges_weight': [True],
@@ -50,8 +50,9 @@ params_for_exp = {
     'nagasaki.symmetric_edge_reduce': [False],
 
     # HANDLE THIS:
-    # 'gt.dropout': 0.1,
-    # 'gt.attn_dropout': 0.2,
+    # 'gt.dropout': [0.05, 0.2],
+    # 'gt.attn_dropout': [0.125,0.25],
+    # 'gt.attn_dropout': [0.5, 0.3],
 
     'dataset.node_encoder_name': 'Atom',
     'posenc_RWSE.enable': False,
