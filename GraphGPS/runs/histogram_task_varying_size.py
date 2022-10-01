@@ -7,9 +7,9 @@ import os
 import sys
 
 params_for_exp = {
-    'optim.base_lr': [0.0003, 0.0004, 0.0008],
-    'seed': [6, 7, 8, 9, 10],
-    'wandb.project': 'temp',
+    'optim.base_lr': [0.0003],
+    'seed': [6, 7, 8, 9],
+    'wandb.project': 'histo_1d',
     'posenc_RWSE.kernel.times_func': "range(1, 21)",
     'posenc_RWSE.model': "Linear",
     'posenc_RWSE.dim_pe': 24,
@@ -33,10 +33,10 @@ params = {
 
     '--cfg': 'tests/configs/graph/color-histogram.yaml',
 
-    '--num_rows': 10,
-    '--row_sizes': '"[10,11,12,13]"',
+    '--num_rows': 1,
+    # '--row_sizes': '"[100]"',
     # '--num_rows': 12,
-    '--words_per_row': 10,
+    '--words_per_row': 100,
     # '--words_per_row': 2,
     '--atom_set': 8,
     '--num_unique_atoms': 1,
@@ -55,7 +55,8 @@ params_for_grid_search = [
 
     # baseline_config.get_signet_transformer_config(),
 
-    # baseline_config.get_vanilla_transformer_config()
+    baseline_config.get_vanilla_transformer_config(2),
+    baseline_config.get_vanilla_transformer_config(1),
 
     # green
     # baseline_config.get_rwse_transformer_config(),

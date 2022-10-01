@@ -37,8 +37,9 @@ model:
   edge_decoding: dot
   graph_pooling: mean
 gt:
-  layer_type: CustomGatedGCN+Performer
+  layer_type: CustomGatedGCN+Transformer
   layers: 4
+  n_layers_gnn_only: 2
   n_heads: 4
   dim_hidden: 128  # `gt.dim_hidden` must match `gnn.dim_inner`
   dropout: 0.2

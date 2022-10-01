@@ -39,9 +39,9 @@ def get_rwse_transformer_config():
     }
 
 
-def get_vanilla_transformer_config():
+def get_vanilla_transformer_config(n_layers=6):
     return {
-        'gt.layers': [6],
+        'gt.layers': [n_layers],
         'gt.n_layers_gnn_only': [0],
         'gt.layer_type': 'None+Transformer',
         'posenc_LapPE.enable': False,

@@ -6,23 +6,19 @@ from code2seq.utils.slurm import run_on_slurm
 import os
 import sys
 
-batch_acc = 2
+batch_acc = 4
 
 params_for_exp = {
-    '--cfg': [
-        # 'configs/GPS/ogbg-ppa-GPS-ablation.yaml',
-        # 'configs/GPS/ogbg-ppa-GraphTrans-ablation.yaml',
-        'configs/GPS/ogbg-ppa-Transformer-ablation.yaml'
-    ],
+    '--cfg': ['configs/GPS/ogbg-code2-GPS-ablation.yaml', 'configs/GPS/ogbg-code2-GraphTrans-ablation.yaml',
+              'configs/GPS/ogbg-code2-Transformer-ablation.yaml'],
     'optim.early_stop_patience': 9999,
-
-    # dropout: 0.1,
+    # '--max_examples': 100_000,
 
     'train.batch_size': int(32 / batch_acc),
     'optim.batch_accumulation': batch_acc,
-    'seed': [11],
+    'seed': [3],
 
-    'nagasaki.steps': '[1, 2, 3, 4, 5,6, 7, 8, 9, 10]',
+    'nagasaki.steps': '[1, 2, 3, 4, 5,6, 7, 8, 9, 10,11, 12, 13, 14, 15, 16, 17, 18, 19,20]',
     'nagasaki.edge_model_type': ['res-mlp'],
     'nagasaki.edge_reduction': ['linear'],
 
@@ -34,27 +30,21 @@ params_for_exp = {
 baseline = {}
 diffuser = {
     'gt.layer_type': 'CustomGatedGCN+Nagasaki',
+
     'nagasaki.learn_edges_weight': [True],
-    'nagasaki.project_diagonal': [True]
+    'nagasaki.project_diagonal': [True, False]
 }
 
 diffuser_not_learned = {
     'gt.layer_type': 'CustomGatedGCN+Nagasaki',
+
     'nagasaki.learn_edges_weight': [False],
     'nagasaki.project_diagonal': [True]
 }
 
-diffuser_no_projection = {
-    'gt.layer_type': 'CustomGatedGCN+Nagasaki',
-    'nagasaki.learn_edges_weight': [True],
-    'nagasaki.project_diagonal': [False]
-}
-
 params_for_grid_search = [
-    # baseline,
-    # diffuser
-    # , diffuser_not_learned
-    diffuser_no_projection
+    baseline, diffuser, diffuser_not_learned
+
 ]
 
 for p in params_for_grid_search:

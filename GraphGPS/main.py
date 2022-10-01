@@ -1,6 +1,7 @@
 import time
 
 from torch_geometric.graphgym import load_ckpt
+# from torch_geometric.graphgym import get_ckpt_epoch, get_ckpt_path
 from code2seq.utils import compute
 
 compute.get_torch()
@@ -131,6 +132,23 @@ def cfg_assertions(cfg):
 
 
 def load_model(model, checkpoint_dir, optimizer, scheduler):
+    # def load_ckpt(
+    #         model: torch.nn.Module,
+    #         optimizer,
+    #         scheduler,
+    #         epoch: int = -1,
+    # ) -> int:
+    #     r"""Loads the model checkpoint at a given epoch."""
+    #     epoch = get_ckpt_epoch(epoch)
+    #     path = get_ckpt_path(epoch)
+    #
+    #     # if not osp.exists(path):
+    #     #     return 0
+    #
+    #     ckpt = torch.load(path)
+    #     model.load_state_dict(ckpt['model_state'])
+    #     return epoch + 1
+
     p = cfg.run_dir
     cfg.run_dir = checkpoint_dir
     ckpt = load_ckpt(model, optimizer, scheduler)

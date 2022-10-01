@@ -17,7 +17,7 @@ params = {
 params_for_exp = {
     'train.batch_size': int(32 / batch_acc),
     'optim.batch_accumulation': batch_acc,
-    'seed': [3],
+    'seed': [5, 6, 7, 8, 9, 10],
 
     'nagasaki.learn_edges_weight': [True],
 
@@ -26,7 +26,6 @@ params_for_exp = {
     'nagasaki.edge_model_type': ['res-mlp'],
     # 'nagasaki.edge_reduction': ['bn-mlp', 'linear'],
     'nagasaki.edge_reduction': ['linear'],
-
 
     # 'nagasaki.ffn_layers': [1, 2],
     'nagasaki.ffn_layers': [2],

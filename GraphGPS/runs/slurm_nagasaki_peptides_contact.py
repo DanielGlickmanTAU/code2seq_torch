@@ -8,8 +8,8 @@ import os
 
 batch_acc = 2
 params = {
-    '--cfg': 'configs/GPS/pcqm-contact-Transformer.yaml',
-    # '--cfg': 'configs/GPS/pcqm-contact-GPS.yaml',
+    # '--cfg': 'configs/GPS/pcqm-contact-Transformer.yaml',
+    '--cfg': 'configs/GPS/pcqm-contact-GPS.yaml',
     '--ogb_eval': True,
     'optim.early_stop_patience': 9999
 
@@ -18,14 +18,14 @@ params = {
 params_for_exp = {
     'train.batch_size': int(128 / batch_acc),
     'optim.batch_accumulation': batch_acc,
-    'seed': [5, 6],
+    'seed': [6, 7],
     # seed 5, 6, 7, 8, 9, 10
 
     'nagasaki.learn_edges_weight': [True],
     # 'nagasaki.learn_edges_weight': [False],
 
-    # 'nagasaki.steps': '[1, 2, 3, 4, 5,6, 7, 8, 9, 10, 11, 12, 13, 14, 15,16]',
-    'nagasaki.steps': '[1, 2, 3, 4, 5,6, 7, 8, 9, 10]',
+    'nagasaki.steps': '[1, 2, 3, 4, 5,6, 7, 8, 9, 10, 11, 12, 13, 14, 15,16]',
+    # 'nagasaki.steps': '[1, 2, 3, 4, 5,6, 7, 8, 9, 10]',
 
     # 'nagasaki.edge_model_type': ['bn-mlp'],
     'nagasaki.edge_model_type': ['res-mlp'],
@@ -51,7 +51,9 @@ params_for_exp = {
     'posenc_RWSE.enable': False,
     'posenc_LapPE.enable': False,
 
-    'gt.layer_type': 'None+Nagasaki',
+    # 'gt.layer_type': 'None+Nagasaki',
+    'gt.layer_type': 'CustomGatedGCN+Nagasaki',
+    'nagasaki.edge_reducer_hidden_dim': 1,
     'nagasaki.project_diagonal': [True],
 }
 

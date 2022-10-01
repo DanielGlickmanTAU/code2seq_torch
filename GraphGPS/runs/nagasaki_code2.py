@@ -15,7 +15,7 @@ params = {
 params_for_exp = {
     'train.batch_size': int(32 / batch_acc),
     'optim.batch_accumulation': batch_acc,
-    'seed': 6,
+    'seed': [7, 8, 9, 10, 11, 12],
     'gt.ffn_multiplier': 4,
     # 'nagasaki.ffn_hidden_multiplier': 1,
 
