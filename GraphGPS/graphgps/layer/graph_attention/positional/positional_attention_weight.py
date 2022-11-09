@@ -96,7 +96,6 @@ class AdjStack(torch.nn.Module):
     @record_function('adj_stack')
     def forward(self, batch, mask, edge_weights=None):
         if edge_weights is not None:
-            # edge_weights = edge_weights.squeeze(-1)
             if self.kernel:
                 edge_weights = torch.sigmoid(edge_weights) if self.kernel == 'sigmoid' \
                     else torch.exp(-(edge_weights ** 2)) if self.kernel == 'exp' \
