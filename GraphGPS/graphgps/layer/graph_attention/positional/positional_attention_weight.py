@@ -83,6 +83,28 @@ class AdjStackAttentionWeights(torch.nn.Module):
         return adj_weights
 
 
+def to_P_matrix(A: torch.Tensor):
+    # sum over rows
+    D = A.sum(dim=-1, keepdim=True)
+    # if all entries are zero, we want to avoid dividing by zero.
+    # set it to any number, as the entries in A are 0 anyway so A/D will be 0
+    D[D == 0] = 1
+    return A / D
+
+
+def _calc_power(adj, steps):
+    powers = []
+    assert steps == list(range(min(steps), max(steps) + 1)), f'only consecutive sequences of power, got {steps}'
+    # Efficient way if ksteps are a consecutive sequence (most of the time the case)
+    Pk = adj.clone().detach().matrix_power(min(steps))
+    powers.append(Pk)
+    for k in range(min(steps), max(steps)):
+        Pk = Pk @ adj
+        powers.append(Pk)
+
+    return powers
+
+
 class AdjStack(torch.nn.Module):
 
     def __init__(self, steps: list, nhead=1, kernel=None, normalize: bool = True):
@@ -112,9 +134,9 @@ class AdjStack(torch.nn.Module):
             adj = to_dense_adj(batch.edge_index, batch.batch).unsqueeze(1)
 
         if self.normalize:
-            adj = self.to_P_matrix(adj)
+            adj = to_P_matrix(adj)
 
-        powers = self._calc_power(adj, self.steps)
+        powers = _calc_power(adj, self.steps)
 
         # if mask.dim() == 3:
         mask = pygraph_utils.dense_mask_to_attn_mask(mask)
@@ -122,26 +144,6 @@ class AdjStack(torch.nn.Module):
         powers.insert(0, self_adj)
         stacks = torch.stack(powers, dim=-1)
         return stacks
-
-    def to_P_matrix(self, A: torch.Tensor):
-        # sum over rows
-        D = A.sum(dim=-1, keepdim=True)
-        # if all entries are zero, we want to avoid dividing by zero.
-        # set it to any number, as the entries in A are 0 anyway so A/D will be 0
-        D[D == 0] = 1
-        return A / D
-
-    def _calc_power(self, adj, steps):
-        powers = []
-        assert steps == list(range(min(steps), max(steps) + 1)), f'only consecutive sequences of power, got {steps}'
-        # Efficient way if ksteps are a consecutive sequence (most of the time the case)
-        Pk = adj.clone().detach().matrix_power(min(steps))
-        powers.append(Pk)
-        for k in range(min(steps), max(steps)):
-            Pk = Pk @ adj
-            powers.append(Pk)
-
-        return powers
 
 
 class MultiHeadAdjStackWeight(nn.Module):
