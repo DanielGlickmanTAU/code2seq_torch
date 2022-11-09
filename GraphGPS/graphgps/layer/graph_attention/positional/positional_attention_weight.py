@@ -219,13 +219,9 @@ class Diffuser(nn.Module):
 
     def forward(self, batch):
         x, mask = get_dense_x_and_mask(batch.x, batch.batch)
-        if 'stacks' in batch and random() <= self.skip_stacking_ratio:
-            stacks = batch.stacks
-            print('skip stacking!!')
-        else:
-            weighted_edges = self.edge_reducer(batch) if self.edge_reducer else None
-            stacks = self.adj_stacker(batch, mask, weighted_edges)
-            setattr(batch, 'stacks', stacks)
+
+        weighted_edges = self.edge_reducer(batch) if self.edge_reducer else None
+        stacks = self.adj_stacker(batch, mask, weighted_edges)
         edges = self.edge_mlp(stacks, mask)
 
         if self.positional_embedding:
