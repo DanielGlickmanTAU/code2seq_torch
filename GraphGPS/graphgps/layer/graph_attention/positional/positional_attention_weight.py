@@ -1,3 +1,5 @@
+from random import random
+
 import torch
 import torch_geometric
 from torch import nn
@@ -198,6 +200,7 @@ class Diffuser(nn.Module):
                                             symmetric=nagasaki_config.symmetric_edge_reduce)
         else:
             self.edge_reducer = None
+        self.skip_stacking_ratio = nagasaki_config.skip_stacking_ratio
 
         self.adj_stacker = AdjStack(steps, nhead=nagasaki_config.nhead, kernel=nagasaki_config.kernel,
                                     normalize=nagasaki_config.normalize)
@@ -216,8 +219,13 @@ class Diffuser(nn.Module):
 
     def forward(self, batch):
         x, mask = get_dense_x_and_mask(batch.x, batch.batch)
-        weighted_edges = self.edge_reducer(batch) if self.edge_reducer else None
-        stacks = self.adj_stacker(batch, mask, weighted_edges)
+        if 'stacks' in batch and random() <= self.skip_stacking_ratio:
+            stacks = batch.stacks
+            print('skip stacking!!')
+        else:
+            weighted_edges = self.edge_reducer(batch) if self.edge_reducer else None
+            stacks = self.adj_stacker(batch, mask, weighted_edges)
+            setattr(batch, 'stacks', stacks)
         edges = self.edge_mlp(stacks, mask)
 
         if self.positional_embedding:

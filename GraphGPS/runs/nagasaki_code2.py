@@ -6,16 +6,17 @@ from code2seq.utils.slurm import run_on_slurm
 import os
 import sys
 
-batch_acc = 4
+batch_acc = 8
 params = {
     # '--cfg': 'configs/GPS/ogbg-code2-sat.yaml',
     '--cfg': 'configs/GPS/ogbg-code2-GPS.yaml',
+    'optim.max_epoch':40
 }
 
 params_for_exp = {
     'train.batch_size': int(32 / batch_acc),
     'optim.batch_accumulation': batch_acc,
-    'seed': [7, 8, 9, 10, 11, 12],
+    'seed': [7, 8, 9, 10, 1, 1],
     'gt.ffn_multiplier': 4,
     # 'nagasaki.ffn_hidden_multiplier': 1,
 

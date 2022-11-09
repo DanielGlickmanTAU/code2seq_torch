@@ -17,11 +17,12 @@ params = {
 params_for_exp = {
     'train.batch_size': int(512 / batch_acc),
     'optim.batch_accumulation': batch_acc,
-    'seed': [1, 2],
+    'seed': [1],
     # seed 5, 6, 7, 8, 9, 10
 
     'nagasaki.learn_edges_weight': [True],
     # 'nagasaki.learn_edges_weight': [False],
+    'nagasaki.skip_stacking_ratio': [0.5, 0.75, 0.9],
 
     'nagasaki.steps': '[1, 2, 3, 4, 5,6, 7, 8, 9, 10, 11, 12, 13, 14, 15,16]',
     # 'nagasaki.steps': '[1, 2, 3, 4, 5]',
