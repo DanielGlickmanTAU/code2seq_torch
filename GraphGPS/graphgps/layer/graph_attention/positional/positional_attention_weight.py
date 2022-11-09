@@ -146,6 +146,31 @@ class AdjStack(torch.nn.Module):
         return stacks
 
 
+class AdjStackGIN(torch.nn.Module):
+
+    def __init__(self, steps: list, nhead=1):
+        super().__init__()
+        self.steps = steps
+        self.nhead = nhead
+        assert len(self.steps) == len(set(self.steps)), f'duplicate power in {self.steps}'
+        self.eps = torch.nn.Parameter(torch.Tensor([0.]))
+
+    def forward(self, batch, mask, edge_weights=None):
+        assert edge_weights is None
+        adj = to_dense_adj(batch.edge_index, batch.batch).unsqueeze(1)
+
+        adj[mask.unsqueeze(1)] = (1 + self.eps)
+        adj = to_P_matrix(adj)
+
+        powers = _calc_power(adj, self.steps)
+
+        mask = pygraph_utils.dense_mask_to_attn_mask(mask)
+        self_adj = torch.diag_embed((mask).float()).unsqueeze(1).expand(-1, self.nhead, -1, -1)
+        powers.insert(0, self_adj)
+        stacks = torch.stack(powers, dim=-1)
+        return stacks
+
+
 class MultiHeadAdjStackWeight(nn.Module):
     def __init__(self, input_dim, hidden_dim, dim_out, edge_model_type, ffn_layers, nhead, reduce):
         super().__init__()
@@ -195,6 +220,8 @@ class Diffuser(nn.Module):
             steps = list(eval(steps))
         num_stack = positional_utils.get_stacks_dim(nagasaki_config)
 
+        if nagasaki_config.type == 'gin':
+            assert not nagasaki_config.learn_edges_weight, 'should not learn weights with gin right now'
         if nagasaki_config.learn_edges_weight:
             self.edge_reducer = EdgeReducer(dim_in, hidden_dim=nagasaki_config.edge_reducer_hidden_dim * dim_in,
                                             dim_out=self.nhead, dropout=0.,
@@ -204,7 +231,8 @@ class Diffuser(nn.Module):
         self.skip_stacking_ratio = nagasaki_config.skip_stacking_ratio
 
         self.adj_stacker = AdjStack(steps, nhead=nagasaki_config.nhead, kernel=nagasaki_config.kernel,
-                                    normalize=nagasaki_config.normalize)
+                                    normalize=nagasaki_config.normalize) if nagasaki_config.type != 'gin' else AdjStackGIN(
+            steps, nagasaki_config.nhead)
 
         self.edge_mlp = MultiHeadAdjStackWeight(input_dim=num_stack,
                                                 hidden_dim=self.edge_dim,

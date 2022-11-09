@@ -26,5 +26,7 @@ def set_cfg_nagasaki(cfg):
     cfg.nagasaki.scale_attention = False
     cfg.nagasaki.skip_cls_pooling = False
 
+    cfg.nagasaki.type = 'transformer'
+
 
 register_config('cfg_nagasaki', set_cfg_nagasaki)
