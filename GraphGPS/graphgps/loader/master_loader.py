@@ -73,8 +73,7 @@ def log_loaded_dataset(dataset, format, name):
             logging.info(f"  num edge classes: {len(torch.unique(labels))}")
 
     ## Show distribution of graph sizes.
-    # graph_sizes = [d.num_nodes if hasattr(d, 'num_nodes') else d.x.shape[0]
-    #                for d in dataset]
+    # graph_sizes = [d.num_nodes if hasattr(d, 'num_nodes') else d.x.shape[0] for d in dataset]
     # hist, bin_edges = np.histogram(np.array(graph_sizes), bins=10)
     # logging.info(f'   Graph size distribution:')
     # logging.info(f'     mean: {np.mean(graph_sizes)}')
