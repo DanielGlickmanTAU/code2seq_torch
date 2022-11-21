@@ -4,10 +4,8 @@ import torch
 class AttentionWeightNormalizer(torch.nn.Module):
     def __init__(self, gating):
         super().__init__()
-        if gating == 'sigmoid':
+        if gating:
             self.func = torch.nn.Sigmoid()
-        elif gating.lower() == 'relu':
-            self.func = torch.nn.ReLU()
         else:
             self.func = torch.nn.Softmax(dim=-1)
 

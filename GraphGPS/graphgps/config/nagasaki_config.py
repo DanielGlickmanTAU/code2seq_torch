@@ -27,7 +27,6 @@ def set_cfg_nagasaki(cfg):
     cfg.nagasaki.skip_cls_pooling = False
 
     cfg.nagasaki.type = 'transformer'
-    cfg.nagasaki.gating = ''
 
 
 register_config('cfg_nagasaki', set_cfg_nagasaki)
