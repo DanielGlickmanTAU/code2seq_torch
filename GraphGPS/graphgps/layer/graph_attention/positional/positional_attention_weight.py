@@ -33,6 +33,12 @@ class AdjStackAttentionWeights(torch.nn.Module):
                 torch.nn.Linear(input_dim, dim_out),
 
             )
+        elif ffn == 'linear-bn':
+            self.weight = torch.nn.Sequential(
+                torch.nn.Linear(input_dim, dim_out),
+                torch.nn.BatchNorm1d(dim_out),
+
+            )
         elif ffn == 'bn-mlp' or ffn == 'mlp':
             if ffn == 'mlp':
                 layers = [torch.nn.Linear(input_dim, hidden_dim), torch.nn.ReLU()]

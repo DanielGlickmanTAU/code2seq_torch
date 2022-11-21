@@ -12,7 +12,7 @@ class Nagasaki(torch.nn.Module):
         self.att = MultiHeadAttention(dim_h, num_heads, edge_dim=edge_dim, dropout=dropout,
                                       batch_first=True, edge_reduction=nagasaki_config.edge_reduction,
                                       merge_attention=nagasaki_config.merge_attention,
-                                      scale=nagasaki_config.scale_attention)
+                                      scale=nagasaki_config.scale_attention, gating=nagasaki_config.gating)
 
     def forward(self, batch, h, mask):
         assert mask.dim() == 3

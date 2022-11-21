@@ -22,7 +22,7 @@ class MultiHeadAttention(torch.nn.Module):
 
     def __init__(self, embed_dim, num_heads, edge_dim, dropout=0., bias=True, add_bias_kv=False,
                  kdim=None, vdim=None, batch_first=False, device=None, dtype=None,
-                 edge_reduction='bn-mlp', merge_attention=None, scale=False
+                 edge_reduction='bn-mlp', merge_attention=None, scale=False, gating=None
                  ) -> None:
         factory_kwargs = {'device': device, 'dtype': dtype}
         super(MultiHeadAttention, self).__init__()
@@ -59,7 +59,7 @@ class MultiHeadAttention(torch.nn.Module):
                                                 scale=scale)
         self.content_attention = ContentAttention(embed_dim, num_heads, bias=True, kdim=None, vdim=None, device=None,
                                                   dtype=None) if merge_attention else None
-        self.normalizer = AttentionWeightNormalizer(False)
+        self.normalizer = AttentionWeightNormalizer(gating=gating)
 
         self._reset_parameters()
 
