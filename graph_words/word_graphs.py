@@ -146,7 +146,7 @@ def get_atom_set(number):
         return [lambda: Dot()]
 
     if number == 9:
-        return [lambda: Cycle(3), lambda: Cycle(4), lambda: Tree_small(), lambda: ChordCycle()]
+        return [lambda: Cycle(3), lambda: Cycle(4), lambda: Tree_small(), lambda: ChordCycle(4)]
     if number == 10:
         return [lambda: Dot(), lambda: Cycle(3), lambda: Clique(4), lambda: Cycle(5), lambda: ChordCycle(5)]
     if number == 11:
@@ -204,13 +204,17 @@ class WordsCombinationGraphDataset(Dataset):
                         a2.nodes[node]['y'] = 1
 
     def set_histogram(self, atoms_in_row, **kwargs):
-        assert len(atoms_in_row[0]) == 1, 'must be grid'
-        colors = [atom.nodes[0]['x'] for atom in atoms_in_row]
-        for dot_graph in atoms_in_row:
-            atom = dot_graph.nodes[0]
-            atom_color = atom['x']
-            histogram = colors.count(atom_color) - 1
-            atom['y'] += histogram
+        def node_shape_and_color(node):
+            return f"{node['shape']}_{node['x']}"
+
+        # assert len(atoms_in_row[0]) == 1, 'must be grid'
+        # colors = [atom.nodes[0]['x'] for atom in atoms_in_row]
+        colors = [node_shape_and_color(atom.nodes[0]) for atom in atoms_in_row]
+        for row in atoms_in_row:
+            for id, atom in row.nodes(data=True):
+                atom_color = node_shape_and_color(atom)
+                histogram = colors.count(atom_color) - 1
+                atom['y'] += histogram
 
     def __init__(self, color_mode, word_graphs, num_samples, words_per_row, num_rows=None, num_colors=2, edge_p=1.,
                  only_color=False, unique_atoms_per_example=False, unique_colors_per_example=False,

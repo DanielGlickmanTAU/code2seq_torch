@@ -1488,3 +1488,8 @@ dataset = DownloadPygGraphPropPredDataset(name=name, root=dataset_dir, limit=200
 ### 9/11
 how to plot hist of graphs per batch
 plt.hist([x.item() for x in max(batch.ptr[1:] - batch.ptr[0:-1]) - (batch.ptr[1:] - batch.ptr[0:-1])],bins=10)
+
+
+
+### 21/11
+custom_gated_gcn edge dim is not 1, is it same as node dim.
