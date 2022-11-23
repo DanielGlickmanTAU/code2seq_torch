@@ -17,23 +17,18 @@ from graphgps.layer.graph_attention.positional.nagasaki import Nagasaki
 from graphgps.layer.performer_layer import SelfAttention
 
 
-class GPSLayer(nn.Module):
-    """Local MPNN + full graph attention x-former layer.
-    """
-
+class LocalModule(nn.Module):
     def __init__(self, dim_h,
-                 local_gnn_type, global_model_type, num_heads,
+                 local_gnn_type, num_heads,
                  pna_degrees=None, equivstable_pe=False, dropout=0.0,
-                 attn_dropout=0.0, layer_norm=False, batch_norm=True,
-                 bigbird_cfg=None, nagasaki_config=None, ffn_multiplier=2):
+                 layer_norm=False, batch_norm=True):
         super().__init__()
-
         self.dim_h = dim_h
         self.num_heads = num_heads
-        self.attn_dropout = attn_dropout
         self.layer_norm = layer_norm
         self.batch_norm = batch_norm
         self.equivstable_pe = equivstable_pe
+        self.local_gnn_type = local_gnn_type
 
         # Local message-passing model.
         if local_gnn_type == 'None':
@@ -76,7 +71,72 @@ class GPSLayer(nn.Module):
                                              equivstable_pe=equivstable_pe)
         else:
             raise ValueError(f"Unsupported local GNN model: {local_gnn_type}")
+
+        if self.layer_norm:
+            self.norm1_local = pygnn.norm.GraphNorm(dim_h)
+        if self.batch_norm:
+            self.norm1_local = nn.BatchNorm1d(dim_h)
+        self.dropout_local = nn.Dropout(dropout)
+
+    def forward(self, batch):
+        h = batch.x
+        h_in1 = h  # for first residual connection
+
+        # Local MPNN with edge attributes.
+        if self.local_model is not None:
+            self.local_model: pygnn.conv.MessagePassing  # Typing hint.
+            if self.local_gnn_type == 'CustomGatedGCN':
+                es_data = None
+                if self.equivstable_pe:
+                    es_data = batch.pe_EquivStableLapPE
+                local_out = self.local_model(Batch(batch=batch,
+                                                   x=h,
+                                                   edge_index=batch.edge_index,
+                                                   edge_attr=batch.edge_attr,
+                                                   pe_EquivStableLapPE=es_data))
+                # GatedGCN does residual connection and dropout internally.
+                h_local = local_out.x
+                batch.edge_attr = local_out.edge_attr
+            else:
+                if self.equivstable_pe:
+                    h_local = self.local_model(h, batch.edge_index, batch.edge_attr,
+                                               batch.pe_EquivStableLapPE)
+                else:
+                    h_local = self.local_model(h, batch.edge_index, batch.edge_attr)
+                h_local = self.dropout_local(h_local)
+                h_local = h_in1 + h_local  # Residual connection.
+
+            if self.layer_norm:
+                h_local = self.norm1_local(h_local, batch.batch)
+            if self.batch_norm:
+                h_local = self.norm1_local(h_local)
+
+            return h_local
+
+
+class GPSLayer(nn.Module):
+    """Local MPNN + full graph attention x-former layer.
+    """
+
+    def __init__(self, dim_h,
+                 local_gnn_type, global_model_type, num_heads,
+                 pna_degrees=None, equivstable_pe=False, dropout=0.0,
+                 attn_dropout=0.0, layer_norm=False, batch_norm=True,
+                 bigbird_cfg=None, nagasaki_config=None, ffn_multiplier=2):
+        super().__init__()
+        self.dim_h = dim_h
+        self.num_heads = num_heads
+        self.attn_dropout = attn_dropout
+        self.layer_norm = layer_norm
+        self.batch_norm = batch_norm
+        self.equivstable_pe = equivstable_pe
+        self.local_model = None
+        if local_gnn_type and local_gnn_type != 'None':
+            self.local_model = LocalModule(dim_h, local_gnn_type, num_heads,
+                                           pna_degrees=pna_degrees, equivstable_pe=equivstable_pe, dropout=dropout,
+                                           layer_norm=layer_norm, batch_norm=batch_norm)
         self.local_gnn_type = local_gnn_type
+        self.nagasaki_config = nagasaki_config
 
         # Global attention transformer-style model.
         if global_model_type == 'None' or global_model_type is None:
@@ -106,20 +166,9 @@ class GPSLayer(nn.Module):
 
         # Normalization for MPNN and Self-Attention representations.
         if self.layer_norm:
-            # self.norm1_local = pygnn.norm.LayerNorm(dim_h)
-            # self.norm1_attn = pygnn.norm.LayerNorm(dim_h)
-            # if self.local_model:
-            self.norm1_local = pygnn.norm.GraphNorm(dim_h)
-            # if self.self_attn:
             self.norm1_attn = pygnn.norm.GraphNorm(dim_h)
-            # self.norm1_local = pygnn.norm.InstanceNorm(dim_h)
-            # self.norm1_attn = pygnn.norm.InstanceNorm(dim_h)
         if self.batch_norm:
-            # if self.local_model:
-            self.norm1_local = nn.BatchNorm1d(dim_h)
-            # if self.self_attn:
             self.norm1_attn = nn.BatchNorm1d(dim_h)
-        self.dropout_local = nn.Dropout(dropout)
         self.dropout_attn = nn.Dropout(dropout)
 
         # Feed Forward block.
@@ -137,38 +186,16 @@ class GPSLayer(nn.Module):
             self.ff_dropout2 = nn.Dropout(dropout)
 
     def forward(self, batch):
-        h = batch.x
+        if self.nagasaki_config.type == 'vid' and self.local_model is None:
+            h = batch.activation_history
+        else:
+            h = batch.x
         h_in1 = h  # for first residual connection
 
         h_out_list = []
         # Local MPNN with edge attributes.
         if self.local_model is not None:
-            self.local_model: pygnn.conv.MessagePassing  # Typing hint.
-            if self.local_gnn_type == 'CustomGatedGCN':
-                es_data = None
-                if self.equivstable_pe:
-                    es_data = batch.pe_EquivStableLapPE
-                local_out = self.local_model(Batch(batch=batch,
-                                                   x=h,
-                                                   edge_index=batch.edge_index,
-                                                   edge_attr=batch.edge_attr,
-                                                   pe_EquivStableLapPE=es_data))
-                # GatedGCN does residual connection and dropout internally.
-                h_local = local_out.x
-                batch.edge_attr = local_out.edge_attr
-            else:
-                if self.equivstable_pe:
-                    h_local = self.local_model(h, batch.edge_index, batch.edge_attr,
-                                               batch.pe_EquivStableLapPE)
-                else:
-                    h_local = self.local_model(h, batch.edge_index, batch.edge_attr)
-                h_local = self.dropout_local(h_local)
-                h_local = h_in1 + h_local  # Residual connection.
-
-            if self.layer_norm:
-                h_local = self.norm1_local(h_local, batch.batch)
-            if self.batch_norm:
-                h_local = self.norm1_local(h_local)
+            h_local = self.local_model(batch)
             h_out_list.append(h_local)
 
         # Multi-head attention.
@@ -216,6 +243,12 @@ class GPSLayer(nn.Module):
             h = h_out_list[0]
 
         batch.x = h
+        # if we are in vid mode and currently running only gnn
+        if self.nagasaki_config.type == 'vid' and self.local_model is not None:
+            assert self.self_attn is None, 'in vid mode do not mix gnn and attn'
+            if 'activation_history' not in batch:
+                batch.activation_history = []
+            batch.activation_history.append(h)
         return batch
 
     def _sa_block(self, x, attn_mask, key_padding_mask):

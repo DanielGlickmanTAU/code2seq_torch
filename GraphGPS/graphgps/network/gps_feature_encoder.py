@@ -1,3 +1,7 @@
+import torch
+import torch_geometric.graphgym.register as register
+from torch_geometric.graphgym.config import cfg
+
 class FeatureEncoder(torch.nn.Module):
     """
     Encoding node and edge features
