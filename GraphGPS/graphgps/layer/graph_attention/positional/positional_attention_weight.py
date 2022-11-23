@@ -53,12 +53,11 @@ class AdjStackAttentionWeights(torch.nn.Module):
             layers.append(torch.nn.Linear(input_dim, dim_out))
             self.weight = torch.nn.Sequential(*layers)
         elif ffn == 'res-net':
-            layers = [torch.nn.BatchNorm1d(input_dim)]
+            layers = []
             for _ in range(ffn_layers):
-                linear_bn = [torch.nn.Linear(input_dim, hidden_dim), torch.nn.BatchNorm1d(hidden_dim), torch.nn.ReLU(),
-                             torch.nn.Linear(hidden_dim, input_dim), torch.nn.BatchNorm1d(input_dim)]
+                linear_bn = [torch.nn.BatchNorm1d(input_dim), torch.nn.ReLU(), torch.nn.Linear(input_dim, input_dim),
+                             torch.nn.BatchNorm1d(input_dim), torch.nn.ReLU(), torch.nn.Linear(input_dim, input_dim)]
                 layers.append(Residual(torch.nn.Sequential(*linear_bn)))
-                layers.append(torch.nn.ReLU())
 
             layers.append(torch.nn.Linear(input_dim, dim_out))
             self.weight = torch.nn.Sequential(*layers)
