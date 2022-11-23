@@ -82,6 +82,20 @@ def Tree_large():
     return graph
 
 
+def star():
+    graph = nx.Graph()
+    graph.name = 'star'
+    graph.add_edges_from([
+        (0, 1), (0, 2), (0, 3), (0, 4)
+    ])
+    graph.positions = {
+        0: (0, 0),
+        1: (-0.5, 0.5), 2: (-0.5, -0.5),
+        3: (0.5, 0.5), 4: (0.5, -0.5)
+    }
+    return graph
+
+
 def Dot():
     graph = nx.Graph()
     graph.add_node(0)
@@ -155,6 +169,10 @@ def get_atom_set(number):
         return [lambda: Cycle(3), lambda: Clique(4), lambda: Cycle(5)]
     if number == 13:
         return [lambda: Cycle(3)]
+    if number == 14:
+        return [lambda: Cycle(3), lambda: Cycle(4), lambda: star(), lambda: ChordCycle(6)]
+    if number == 15:
+        return [lambda: Cycle(3), lambda: Cycle(4), lambda: star(), lambda: Clique(4)]
 
     raise Exception(f'unknown atom set option {number}')
 
