@@ -175,7 +175,6 @@ class GPSLayer(nn.Module):
         if self.self_attn is not None:
             h_dense, mask = to_dense_batch(h, batch.batch)
             if self.global_model_type == 'Transformer':
-                # h_attn, att_weights = self._sa_block(h_dense, None, ~mask)
                 h_attn, att_weights = self.self_attn(h_dense, h_dense, h_dense, attn_mask=~mask, key_padding_mask=None)
                 h_attn = h_attn[mask]
             elif self.global_model_type == 'Nagasaki':
