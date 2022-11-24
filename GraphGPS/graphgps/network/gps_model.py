@@ -90,7 +90,7 @@ class GPSModel(torch.nn.Module):
                 batch = layer(batch)
                 gnn_outputs.append(batch.x)
             if self.nagasaki_config.type == 'vid':
-                batch.x = torch.cat(gnn_outputs, dim=-1)
+                batch.gnn_history = torch.cat(gnn_outputs, dim=-1)
         batch = self.layers(batch)
         batch = self.post_mp(batch)
         return batch
