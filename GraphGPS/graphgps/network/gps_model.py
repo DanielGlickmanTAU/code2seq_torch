@@ -36,8 +36,10 @@ class GPSModel(torch.nn.Module):
             local_gnn_type, global_model_type = cfg.gt.layer_type.split('+')
         except:
             raise ValueError(f"Unexpected layer type: {cfg.gt.layer_type}")
-
+        self.nagasaki_config = cfg.nagasaki
         layers = []
+        if n_layers_gnn_only:
+            self.local_layers = torch.nn.ModuleList()
         n_gt_layers = cfg.gt.layers
         for i, _ in enumerate(range(n_gt_layers)):
             layer_gnn_type = local_gnn_type
@@ -67,18 +69,30 @@ class GPSModel(torch.nn.Module):
                                  batch_norm=cfg.gt.batch_norm, bigbird_cfg=cfg.gt.bigbird,
                                  nagasaki_config=cfg.nagasaki, ffn_multiplier=cfg.gt.ffn_multiplier)
             gps_layer.layer_index = (i, n_gt_layers)
-            layers.append(gps_layer)
+            if i < n_layers_gnn_only:
+                self.local_layers.append(gps_layer)
+            else:
+                layers.append(gps_layer)
         self.layers = torch.nn.Sequential(*layers)
         if cfg.nagasaki.add_cls and not cfg.nagasaki.skip_cls_pooling and cfg.gnn.head != 'inductive_edge' and cfg.dataset.name != 'ogbg-code2':
-            self.cls_head = CLSHead(dim_in=cfg.gnn.dim_inner, dim_out=dim_out, task=cfg.dataset.task)
+            self.post_mp = CLSHead(dim_in=cfg.gnn.dim_inner, dim_out=dim_out, task=cfg.dataset.task)
         else:
             GNNHead = register.head_dict[cfg.gnn.head]
             self.post_mp = GNNHead(dim_in=cfg.gnn.dim_inner, dim_out=dim_out)
 
     def forward(self, batch):
-
-        for module in self.children():
-            batch = module(batch)
+        batch = self.encoder(batch)
+        if cfg.gnn.layers_pre_mp > 0:
+            batch = self.pre_mp(batch)
+        if self.local_layers:
+            gnn_outputs = []
+            for layer in self.local_layers:
+                batch = layer(batch)
+                gnn_outputs.append(batch.x)
+            if self.nagasaki_config.type == 'vid':
+                batch.x = torch.cat(gnn_outputs, dim=-1)
+        batch = self.layers(batch)
+        batch = self.post_mp(batch)
         return batch
 
 

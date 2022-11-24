@@ -114,6 +114,94 @@ class LocalModule(nn.Module):
             return h_local
 
 
+class AttentionLayer(nn.Module):
+    """Local MPNN + full graph attention x-former layer.
+    """
+
+    def __init__(self, dim_h,
+                 local_gnn_type, global_model_type, num_heads,
+                 pna_degrees=None, equivstable_pe=False, dropout=0.0,
+                 attn_dropout=0.0, layer_norm=False, batch_norm=True,
+                 bigbird_cfg=None, nagasaki_config=None, ffn_multiplier=2):
+        super().__init__()
+        self.dim_h = dim_h
+        self.num_heads = num_heads
+        self.attn_dropout = attn_dropout
+        self.layer_norm = layer_norm
+        self.batch_norm = batch_norm
+        self.equivstable_pe = equivstable_pe
+
+        self.nagasaki_config = nagasaki_config
+
+        # Global attention transformer-style model.
+        if global_model_type == 'None' or global_model_type is None:
+            self.self_attn = None
+        elif global_model_type == 'Transformer':
+            # self.self_attn = torch.nn.MultiheadAttention(
+            #     dim_h, num_heads, dropout=self.attn_dropout, batch_first=True)
+            self.self_attn = ContentMultiheadAttention(dim_h, num_heads, self.attn_dropout, batch_first=True)
+        elif global_model_type == 'Nagasaki':
+            self.self_attn = Nagasaki(dim_h, num_heads, self.attn_dropout, nagasaki_config)
+        elif global_model_type == 'Performer':
+            self.self_attn = SelfAttention(
+                dim=dim_h, heads=num_heads,
+                dropout=self.attn_dropout, causal=False)
+        elif global_model_type == "BigBird":
+            bigbird_cfg.dim_hidden = dim_h
+            bigbird_cfg.n_heads = num_heads
+            bigbird_cfg.dropout = dropout
+            self.self_attn = SingleBigBirdLayer(bigbird_cfg)
+        else:
+            raise ValueError(f"Unsupported global x-former model: "
+                             f"{global_model_type}")
+        self.global_model_type = global_model_type
+
+        # Normalization for MPNN and Self-Attention representations.
+        if self.layer_norm:
+            self.norm1_attn = pygnn.norm.GraphNorm(dim_h)
+        if self.batch_norm:
+            self.norm1_attn = nn.BatchNorm1d(dim_h)
+        self.dropout_attn = nn.Dropout(dropout)
+
+    def forward(self, batch, h):
+        # Multi-head attention.
+        if self.self_attn is not None:
+            h_dense, mask = to_dense_batch(h, batch.batch)
+            if self.global_model_type == 'Transformer':
+                h_attn, att_weights = self.self_attn(h_dense, h_dense, h_dense, attn_mask=~mask, key_padding_mask=None)
+                h_attn = h_attn[mask]
+            elif self.global_model_type == 'Nagasaki':
+                # Diffuser forward sets this and saves in batch.
+                dense_mask = batch.mask
+                h_attn, att_weights = self.self_attn(batch, h_dense, dense_mask)
+                h_attn = h_attn[mask]
+
+            elif self.global_model_type == 'Performer':
+                h_attn = self.self_attn(h_dense, mask=mask)[mask]
+            elif self.global_model_type == 'BigBird':
+                h_attn = self.self_attn(h_dense, attention_mask=mask)
+            else:
+                raise RuntimeError(f"Unexpected {self.global_model_type}")
+            # from examples.graphproppred.mol import visualization
+            # index_in_batch = 0
+            # node_id = 1
+            # visualization.draw_attention(batch[index_in_batch].graph, node_id, att_weights[index_in_batch])
+            h_attn = self.dropout_attn(h_attn)
+            h_attn = h + h_attn  # Residual connection.
+            if self.layer_norm:
+                h_attn = self.norm1_attn(h_attn, batch.batch)
+            if self.batch_norm:
+                h_attn = self.norm1_attn(h_attn)
+            return h_attn
+
+    def _sa_block(self, x, attn_mask, key_padding_mask):
+        x, att_weights = self.self_attn(x, x, x,
+                                        attn_mask=attn_mask,
+                                        key_padding_mask=key_padding_mask,
+                                        need_weights=True)
+        return x, att_weights
+
+
 class GPSLayer(nn.Module):
     """Local MPNN + full graph attention x-former layer.
     """
@@ -141,35 +229,12 @@ class GPSLayer(nn.Module):
         # Global attention transformer-style model.
         if global_model_type == 'None' or global_model_type is None:
             self.self_attn = None
-        elif global_model_type == 'Transformer':
-            # self.self_attn = torch.nn.MultiheadAttention(
-            #     dim_h, num_heads, dropout=self.attn_dropout, batch_first=True)
-            self.self_attn = ContentMultiheadAttention(dim_h, num_heads, self.attn_dropout, batch_first=True)
-        elif global_model_type == 'Nagasaki':
-            self.self_attn = Nagasaki(dim_h, num_heads, self.attn_dropout, nagasaki_config)
-        elif global_model_type == 'Performer':
-            self.self_attn = SelfAttention(
-                dim=dim_h, heads=num_heads,
-                dropout=self.attn_dropout, causal=False)
-        elif global_model_type == "BigBird":
-            bigbird_cfg.dim_hidden = dim_h
-            bigbird_cfg.n_heads = num_heads
-            bigbird_cfg.dropout = dropout
-            self.self_attn = SingleBigBirdLayer(bigbird_cfg)
         else:
-            raise ValueError(f"Unsupported global x-former model: "
-                             f"{global_model_type}")
-        self.global_model_type = global_model_type
-
-        if self.layer_norm and self.batch_norm:
-            raise ValueError("Cannot apply two types of normalization together")
-
-        # Normalization for MPNN and Self-Attention representations.
-        if self.layer_norm:
-            self.norm1_attn = pygnn.norm.GraphNorm(dim_h)
-        if self.batch_norm:
-            self.norm1_attn = nn.BatchNorm1d(dim_h)
-        self.dropout_attn = nn.Dropout(dropout)
+            self.self_attn = AttentionLayer(dim_h,
+                                            local_gnn_type, global_model_type, num_heads,
+                                            pna_degrees, equivstable_pe, dropout,
+                                            attn_dropout, layer_norm, batch_norm,
+                                            bigbird_cfg, nagasaki_config, ffn_multiplier)
 
         # Feed Forward block.
         if self.self_attn is not None:
@@ -186,10 +251,7 @@ class GPSLayer(nn.Module):
             self.ff_dropout2 = nn.Dropout(dropout)
 
     def forward(self, batch):
-        if self.nagasaki_config.type == 'vid' and self.local_model is None:
-            h = batch.activation_history
-        else:
-            h = batch.x
+        h = batch.x
         h_in1 = h  # for first residual connection
 
         h_out_list = []
@@ -200,33 +262,7 @@ class GPSLayer(nn.Module):
 
         # Multi-head attention.
         if self.self_attn is not None:
-            h_dense, mask = to_dense_batch(h, batch.batch)
-            if self.global_model_type == 'Transformer':
-                h_attn, att_weights = self.self_attn(h_dense, h_dense, h_dense, attn_mask=~mask, key_padding_mask=None)
-                h_attn = h_attn[mask]
-            elif self.global_model_type == 'Nagasaki':
-                # Diffuser forward sets this and saves in batch.
-                dense_mask = batch.mask
-
-                h_attn, att_weights = self.self_attn(batch, h_dense, dense_mask)
-                h_attn = h_attn[mask]
-
-            elif self.global_model_type == 'Performer':
-                h_attn = self.self_attn(h_dense, mask=mask)[mask]
-            elif self.global_model_type == 'BigBird':
-                h_attn = self.self_attn(h_dense, attention_mask=mask)
-            else:
-                raise RuntimeError(f"Unexpected {self.global_model_type}")
-            # from examples.graphproppred.mol import visualization
-            # index_in_batch = 0
-            # node_id = 1
-            # visualization.draw_attention(batch[index_in_batch].graph, node_id, att_weights[index_in_batch])
-            h_attn = self.dropout_attn(h_attn)
-            h_attn = h_in1 + h_attn  # Residual connection.
-            if self.layer_norm:
-                h_attn = self.norm1_attn(h_attn, batch.batch)
-            if self.batch_norm:
-                h_attn = self.norm1_attn(h_attn)
+            h_attn = self.self_attn(batch, h)
             h_out_list.append(h_attn)
 
             # Combine local and global outputs.
@@ -243,22 +279,7 @@ class GPSLayer(nn.Module):
             h = h_out_list[0]
 
         batch.x = h
-        # if we are in vid mode and currently running only gnn
-        if self.nagasaki_config.type == 'vid' and self.local_model is not None:
-            assert self.self_attn is None, 'in vid mode do not mix gnn and attn'
-            if 'activation_history' not in batch:
-                batch.activation_history = []
-            batch.activation_history.append(h)
         return batch
-
-    def _sa_block(self, x, attn_mask, key_padding_mask):
-        """Self-attention block.
-        """
-        x, att_weights = self.self_attn(x, x, x,
-                                        attn_mask=attn_mask,
-                                        key_padding_mask=key_padding_mask,
-                                        need_weights=True)
-        return x, att_weights
 
     def _ff_block(self, x):
         """Feed Forward block.
@@ -269,6 +290,6 @@ class GPSLayer(nn.Module):
     def extra_repr(self):
         s = f'summary: dim_h={self.dim_h}, ' \
             f'local_gnn_type={self.local_gnn_type}, ' \
-            f'global_model_type={self.global_model_type}, ' \
+            f'global_model_type={self.self_attn}, ' \
             f'heads={self.num_heads}'
         return s
