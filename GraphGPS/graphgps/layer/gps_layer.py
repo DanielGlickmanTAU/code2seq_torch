@@ -175,16 +175,9 @@ class AttentionLayer(nn.Module):
                 dense_mask = batch.mask
                 h_attn, att_weights = self.self_attn(batch, h_dense, dense_mask)
                 h_attn = h_attn[mask]
-
-            elif self.global_model_type == 'Performer':
-                h_attn = self.self_attn(h_dense, mask=mask)[mask]
-            elif self.global_model_type == 'BigBird':
-                h_attn = self.self_attn(h_dense, attention_mask=mask)
             else:
                 raise RuntimeError(f"Unexpected {self.global_model_type}")
             # from examples.graphproppred.mol import visualization
-            # index_in_batch = 0
-            # node_id = 1
             # visualization.draw_attention(batch[index_in_batch].graph, node_id, att_weights[index_in_batch])
             h_attn = self.dropout_attn(h_attn)
             h_attn = h + h_attn  # Residual connection.
@@ -193,13 +186,6 @@ class AttentionLayer(nn.Module):
             if self.batch_norm:
                 h_attn = self.norm1_attn(h_attn)
             return h_attn
-
-    def _sa_block(self, x, attn_mask, key_padding_mask):
-        x, att_weights = self.self_attn(x, x, x,
-                                        attn_mask=attn_mask,
-                                        key_padding_mask=key_padding_mask,
-                                        need_weights=True)
-        return x, att_weights
 
 
 class GPSLayer(nn.Module):
