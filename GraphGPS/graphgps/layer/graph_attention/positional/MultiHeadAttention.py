@@ -141,7 +141,7 @@ class PositionAttention(Module):
         attention_weights = self.positional_bias(stacks=adj_stack, mask=attn_mask)
         b, n1, n2, heads = attention_weights.shape
         assert heads == self.num_heads
-        attention_weights = attention_weights.reshape(b * self.num_heads, n1, n1)
+        attention_weights = attention_weights.reshape(b * self.num_heads, n1, n2)
         if self.scale:
             attention_weights = attention_weights / math.sqrt(self.edge_dim)
         return attention_weights
