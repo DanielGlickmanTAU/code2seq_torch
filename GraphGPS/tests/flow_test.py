@@ -12,7 +12,7 @@ class MyTestCase(TestCase):
 
         last_train, best_test = main()
         print(last_train, best_test)
-        assert 0.22 <= last_train <= 0.24
+        assert 0.23 <= last_train <= 0.235
         assert 0.24 <= best_test <= 0.27
 
     def test_base(self):

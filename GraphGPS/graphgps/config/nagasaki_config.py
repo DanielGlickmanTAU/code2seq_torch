@@ -21,6 +21,7 @@ def set_cfg_nagasaki(cfg):
     cfg.nagasaki.bn_out = False
     cfg.nagasaki.nhead = 1
     cfg.nagasaki.merge_attention = None
+    cfg.nagasaki.content_attention_only = False
     cfg.nagasaki.add_cls = False
     cfg.nagasaki.project_diagonal = False
     cfg.nagasaki.scale_attention = False

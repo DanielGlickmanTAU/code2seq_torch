@@ -4,10 +4,11 @@ from unittest import TestCase
 from torch_geometric.datasets import FakeDataset
 import torch
 
-import pygraph_utils
-from model.positional.positional_attention_weight import AdjStack
-from tests import test_utils
-from tests.test_utils import as_pyg_batch
+from examples.graphproppred.mol import pygraph_utils
+from examples.graphproppred.mol.pygraph_utils import concat_layer_activations
+from graphgps.layer.graph_attention.positional.positional_attention_weight import AdjStack
+
+import test_utils
 
 
 class Test(TestCase):
@@ -19,7 +20,7 @@ class Test(TestCase):
         dataset = FakeDataset(num_graphs=4, avg_num_nodes=100, num_channels=embed_dim,
                               transform=AdjStack(args))
 
-        first_batch = as_pyg_batch(dataset, batch_size)
+        first_batch = test_utils.as_pyg_batch(dataset, batch_size)
 
         x, mask = pygraph_utils.get_dense_x_and_mask(first_batch.x, first_batch.batch)
 
@@ -71,16 +72,67 @@ class Test(TestCase):
         args = test_utils.get_args_with_adj_stack(num_stacks)
 
         dataset = FakeDataset(num_graphs=4, avg_num_nodes=100, num_channels=embed_dim,
-                              transform=AdjStack(args))
+                              # transform=AdjStack(steps=[1, 2, 3, 4]))
+                              )
 
-        first_batch = as_pyg_batch(dataset, batch_size)
+        first_batch = test_utils.as_pyg_batch(dataset, batch_size)
 
         prev_x = first_batch.x
         x, mask = pygraph_utils.get_dense_x_and_mask(prev_x, first_batch.batch)
-
-        x_restored = pygraph_utils.get_spare_x(x, mask)
+        x_restored = pygraph_utils.get_spare_x(x, ~mask)
+        print(x_restored.shape, prev_x.shape)
         self.assertTrue((x_restored == prev_x).all())
+
+    def test_concat_layer_activations(self):
+        # 2 nodes with hidden dim 3
+        graph1 = torch.tensor([
+            [1, 2, 3],
+            [4, 5, 6]
+        ]
+        )
+        graph2 = torch.tensor([
+            [10, 20, 30],
+            [40, 50, 60]
+        ]
+        )
+        result = concat_layer_activations([graph1, graph2], join_dims=True)
+        print(result)
+        assert (result == torch.tensor(
+            torch.tensor([
+                [1, 2, 3],
+                [10, 20, 30],
+                [4, 5, 6],
+                [40, 50, 60]
+            ]
+            )
+        )).all()
+
+    def test_to_dense_joined_batch(self):
+        embed_dim = 300
+        batch_size = 2
+        num_stacks = 4
+        num_graphs = 4
+        dataset = FakeDataset(num_graphs=num_graphs, avg_num_nodes=100, num_channels=embed_dim)
+        first_batch = test_utils.as_pyg_batch(dataset)
+
+        layer_one_output = first_batch.x
+        layer_two_output = torch.full_like(layer_one_output, 1)
+        layer_theree_output = torch.full_like(layer_one_output, 2)
+
+        layers = [layer_one_output, layer_two_output, layer_theree_output]
+        layer_history = pygraph_utils.concat_layer_activations(activations=layers)
+
+        x, mask = pygraph_utils.to_dense_joined_batch(layer_history, first_batch.batch,
+                                                      joined_graphs=len(layers))
+
+        print(layer_history.shape)
+        print(layer_one_output.shape)
+        print(x.shape)
+        print(x[mask].shape)
+        self.assertTrue((x[mask] == layer_history).all())
 
 
 if __name__ == '__main__':
-    unittest.main()
+    # unittest.main()
+    Test().test_to_dense_joined_batch()
+    # Test().test_concat_layer_activations()

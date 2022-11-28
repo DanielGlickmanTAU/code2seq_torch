@@ -9,6 +9,7 @@ from torch_geometric.nn import Linear as Linear_pyg
 from torch_geometric.utils import to_dense_batch
 
 from examples.graphproppred.mol import pygraph_utils
+from examples.graphproppred.mol.pygraph_utils import to_dense_joined_batch
 from graphgps.layer.bigbird_layer import SingleBigBirdLayer
 from graphgps.layer.gatedgcn_layer import GatedGCNLayer
 from graphgps.layer.gine_conv_layer import GINEConvESLapPE, GINEConvLayer
@@ -21,7 +22,7 @@ class LocalModule(nn.Module):
     def __init__(self, dim_h,
                  local_gnn_type, num_heads,
                  pna_degrees=None, equivstable_pe=False, dropout=0.0,
-                 layer_norm=False, batch_norm=True):
+                 layer_norm=False, batch_norm=True, gnn_residual=True):
         super().__init__()
         self.dim_h = dim_h
         self.num_heads = num_heads
@@ -29,6 +30,7 @@ class LocalModule(nn.Module):
         self.batch_norm = batch_norm
         self.equivstable_pe = equivstable_pe
         self.local_gnn_type = local_gnn_type
+        self.residual = gnn_residual
 
         # Local message-passing model.
         if local_gnn_type == 'None':
@@ -67,7 +69,7 @@ class LocalModule(nn.Module):
         elif local_gnn_type == 'CustomGatedGCN':
             self.local_model = GatedGCNLayer(dim_h, dim_h,
                                              dropout=dropout,
-                                             residual=True,
+                                             residual=gnn_residual,
                                              equivstable_pe=equivstable_pe)
         else:
             raise ValueError(f"Unsupported local GNN model: {local_gnn_type}")
@@ -104,7 +106,8 @@ class LocalModule(nn.Module):
                 else:
                     h_local = self.local_model(h, batch.edge_index, batch.edge_attr)
                 h_local = self.dropout_local(h_local)
-                h_local = h_in1 + h_local  # Residual connection.
+                if self.residual:
+                    h_local = h_in1 + h_local  # Residual connection.
 
             if self.layer_norm:
                 h_local = self.norm1_local(h_local, batch.batch)
@@ -122,7 +125,7 @@ class AttentionLayer(nn.Module):
                  local_gnn_type, global_model_type, num_heads,
                  pna_degrees=None, equivstable_pe=False, dropout=0.0,
                  attn_dropout=0.0, layer_norm=False, batch_norm=True,
-                 bigbird_cfg=None, nagasaki_config=None, ffn_multiplier=2):
+                 bigbird_cfg=None, nagasaki_config=None, input_stacks=1):
         super().__init__()
         self.dim_h = dim_h
         self.num_heads = num_heads
@@ -132,6 +135,7 @@ class AttentionLayer(nn.Module):
         self.equivstable_pe = equivstable_pe
 
         self.nagasaki_config = nagasaki_config
+        self.input_stacks = input_stacks
 
         # Global attention transformer-style model.
         if global_model_type == 'None' or global_model_type is None:
@@ -166,14 +170,12 @@ class AttentionLayer(nn.Module):
     def forward(self, batch, h):
         # Multi-head attention.
         if self.self_attn is not None:
-            h_dense, mask = to_dense_batch(h, batch.batch)
+            h_dense, mask = to_dense_joined_batch(h, batch.batch, self.input_stacks)
             if self.global_model_type == 'Transformer':
                 h_attn, att_weights = self.self_attn(h_dense, h_dense, h_dense, attn_mask=~mask, key_padding_mask=None)
                 h_attn = h_attn[mask]
             elif self.global_model_type == 'Nagasaki':
-                # Diffuser forward sets this and saves in batch.
-                dense_mask = batch.mask
-                h_attn, att_weights = self.self_attn(batch, h_dense, dense_mask)
+                h_attn, att_weights = self.self_attn(batch, h_dense, mask)
                 h_attn = h_attn[mask]
             else:
                 raise RuntimeError(f"Unexpected {self.global_model_type}")
@@ -196,7 +198,7 @@ class GPSLayer(nn.Module):
                  local_gnn_type, global_model_type, num_heads,
                  pna_degrees=None, equivstable_pe=False, dropout=0.0,
                  attn_dropout=0.0, layer_norm=False, batch_norm=True,
-                 bigbird_cfg=None, nagasaki_config=None, ffn_multiplier=2):
+                 bigbird_cfg=None, nagasaki_config=None, ffn_multiplier=2, gnn_residual=True, input_stacks=1):
         super().__init__()
         self.dim_h = dim_h
         self.num_heads = num_heads
@@ -205,10 +207,11 @@ class GPSLayer(nn.Module):
         self.batch_norm = batch_norm
         self.equivstable_pe = equivstable_pe
         self.local_model = None
+        self.input_stacks = input_stacks
         if local_gnn_type and local_gnn_type != 'None':
             self.local_model = LocalModule(dim_h, local_gnn_type, num_heads,
                                            pna_degrees=pna_degrees, equivstable_pe=equivstable_pe, dropout=dropout,
-                                           layer_norm=layer_norm, batch_norm=batch_norm)
+                                           layer_norm=layer_norm, batch_norm=batch_norm, gnn_residual=gnn_residual)
         self.local_gnn_type = local_gnn_type
         self.nagasaki_config = nagasaki_config
 
@@ -220,7 +223,7 @@ class GPSLayer(nn.Module):
                                             local_gnn_type, global_model_type, num_heads,
                                             pna_degrees, equivstable_pe, dropout,
                                             attn_dropout, layer_norm, batch_norm,
-                                            bigbird_cfg, nagasaki_config, ffn_multiplier)
+                                            bigbird_cfg, nagasaki_config, input_stacks)
 
         # Feed Forward block.
         if self.self_attn is not None:
@@ -238,7 +241,6 @@ class GPSLayer(nn.Module):
 
     def forward(self, batch):
         h = batch.x
-        h_in1 = h  # for first residual connection
 
         h_out_list = []
         # Local MPNN with edge attributes.

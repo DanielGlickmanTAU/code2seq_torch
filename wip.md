@@ -1526,3 +1526,9 @@ shape 15, 6x6 2 colors..
 3 ffn nagasaki layers train: 0.6 test 0.537
 
 stopped because got max epoch . maybe more epoch would be better..
+
+
+### 25/11
+model init to the same weights.. 
+end of training, same train results, different test results..
+maybe randomness in batch statistics??

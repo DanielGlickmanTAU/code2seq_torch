@@ -5,7 +5,7 @@ import torch_geometric
 from torch import Tensor
 from torch_geometric.data import Batch
 import torch.nn.functional as F
-
+from torch_geometric.utils import to_dense_batch
 # gets tensor in shape (n,batch_size,d) and num_heads
 # returns tensor in shape (batch_size*num_heads, n ,d/num_head)
 from torch_scatter import scatter_add
@@ -122,3 +122,42 @@ def get_dense_adjstack(stack_list: list, batch):
         padded_stack = F.pad(stack, (padding_left, padding_right, padding_top, padding_bottom))
         padded_stacks.append(padded_stack)
     return torch.stack(padded_stacks).to(batch.device)
+
+
+def concat_layer_activations(activations, join_dims=True):
+    stack = torch.stack(activations, dim=1)
+    # .view(-1,hidden_dim)
+    if join_dims:
+        hiddem_dim = activations[0].shape[-1]
+        return stack.view(-1, hiddem_dim)
+    return stack
+
+
+def joined_graph_to_stacked_graphs(graph, graphs_joined):
+    hidden_dim = graph.shape[-1]
+    return graph.view(-1, graphs_joined, hidden_dim)
+
+
+def dense_stacked_graphs_to_dense_joined_graphs(graphs):
+    assert graphs.dim() == 4, 'graphs needs to be (Batch(graph number),n nodes, n stacks(T), dim'
+    batch, dim = graphs.shape[0], graphs.shape[-1],
+    return graphs.view(batch, -1, dim)
+
+
+def repeat_attn_mask(mask, T):
+    assert mask.dim() == 2, f'this repeats a (B,n_nodes) mask, but got {mask}'
+    return mask.repeat_interleave(T, dim=1)
+
+
+def to_dense_joined_batch(h, batch, joined_graphs=1):
+    if joined_graphs <= 1:
+        return to_dense_batch(h, batch)
+
+    dense_x, mask = to_dense_batch(joined_graph_to_stacked_graphs(h, joined_graphs), batch)
+    dense_x = dense_stacked_graphs_to_dense_joined_graphs(dense_x)
+    mask = repeat_attn_mask(mask, joined_graphs)
+    return dense_x, mask
+    # dense_graphs = [to_dense_batch(subgraph, batch) for subgraph in h.split(len(h) // joined_graphs)]
+    # dense_x = torch.cat([a for (a, b) in dense_graphs], dim=1)
+    # mask = torch.cat([b for (a, b) in dense_graphs], dim=1)
+    # return dense_x, mask

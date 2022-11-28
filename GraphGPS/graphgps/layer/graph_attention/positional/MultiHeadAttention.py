@@ -55,8 +55,6 @@ class MultiHeadAttention(torch.nn.Module):
         else:
             self.bias_k = self.bias_v = None
 
-        self._pos_attention = PositionAttention(edge_dim=edge_dim, num_heads=num_heads, edge_reduction=edge_reduction,
-                                                scale=scale)
         self.content_attention = ContentAttention(embed_dim, num_heads, bias=True, kdim=None, vdim=None, device=None,
                                                   dtype=None) if merge_attention else None
         self.normalizer = AttentionWeightNormalizer(False)
@@ -76,13 +74,34 @@ class MultiHeadAttention(torch.nn.Module):
         if self.bias_v is not None:
             xavier_normal_(self.bias_v)
 
-    def forward(self, value: Tensor, adj_stack: Tensor, key_padding_mask: Optional[Tensor] = None,
+    def forward(self, value: Tensor, position_attention_weights, key_padding_mask: Optional[Tensor] = None,
                 need_weights: bool = True, attn_mask: Optional[Tensor] = None) -> Tuple[Tensor, Optional[Tensor]]:
         if self.batch_first:
             value = value.transpose(1, 0)
 
-        position_attention_weights = self._pos_attention(adj_stack, attn_mask)
+        if position_attention_weights is not None:
+            attention_weights, value = self.merge_positional_and_content_attention(position_attention_weights, value)
+        else:
+            attention_weights, value = self.content_attention(value, value, value)
+        # (n,batch,d)
+        # attn_mask = pygraph_utils.dense_mask_to_attn_mask(attn_mask)
+        # attn_mask = ~attn_mask
+        attn_mask = pygraph_utils.reshape_attention_mask_to_multihead(attn_mask, self.num_heads)
+        attn_output, attn_output_weights = multi_head_positional_attention(
+            value, attention_weights, self.embed_dim, self.num_heads,
+            self.bias_k, self.bias_v,
+            self.dropout, self.out_proj.weight, self.out_proj.bias,
 
+            training=self.training,
+            key_padding_mask=key_padding_mask, need_weights=need_weights,
+            attn_mask=attn_mask, normalizer=self.normalizer)
+
+        if self.batch_first:
+            return attn_output.transpose(1, 0), attn_output_weights
+        else:
+            return attn_output, attn_output_weights
+
+    def merge_positional_and_content_attention(self, position_attention_weights, value):
         if self.merge_attention:
             content_attention_weights, value = self.content_attention(value, value, value)
             content_attention_weights = torch.clamp(content_attention_weights, min=-10, max=10)
@@ -101,23 +120,7 @@ class MultiHeadAttention(torch.nn.Module):
             #                                                                                      keepdim=True)).max() < 1e-4
         else:
             attention_weights = position_attention_weights
-        # (n,batch,d)
-        attn_mask = pygraph_utils.dense_mask_to_attn_mask(attn_mask)
-        attn_mask = ~attn_mask
-        attn_mask = pygraph_utils.reshape_attention_mask_to_multihead(attn_mask, self.num_heads)
-        attn_output, attn_output_weights = multi_head_positional_attention(
-            value, attention_weights, self.embed_dim, self.num_heads,
-            self.bias_k, self.bias_v,
-            self.dropout, self.out_proj.weight, self.out_proj.bias,
-
-            training=self.training,
-            key_padding_mask=key_padding_mask, need_weights=need_weights,
-            attn_mask=attn_mask, normalizer=self.normalizer)
-
-        if self.batch_first:
-            return attn_output.transpose(1, 0), attn_output_weights
-        else:
-            return attn_output, attn_output_weights
+        return attention_weights, value
 
 
 class PositionAttention(Module):

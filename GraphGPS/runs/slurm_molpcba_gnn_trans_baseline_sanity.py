@@ -17,15 +17,10 @@ params = {
 params_for_exp = {
     'train.batch_size': int(512 / batch_acc),
     'optim.batch_accumulation': batch_acc,
-    'optim.base_lr': [0.0002, 0.0003],
+    'optim.base_lr': [0.0005, 0.001],
     'seed': [2],
     'gt.layers': [8],
     'gt.n_layers_gnn_only': [4],
-
-    # 'nagasaki.type': 'vid',
-    # 'nagasaki.content_attention_only': True,
-    # 'gnn.residual': [True, False],
-    # 'nagasaki.edge_model_type': ['mlp', 'res-net']
 }
 
 os.chdir('..')
