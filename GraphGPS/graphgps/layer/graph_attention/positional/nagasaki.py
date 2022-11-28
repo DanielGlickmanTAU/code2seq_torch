@@ -17,7 +17,7 @@ class Nagasaki(torch.nn.Module):
                                                     scale=nagasaki_config.scale_attention)
         self.att = MultiHeadAttention(dim_h, num_heads, edge_dim=edge_dim, dropout=dropout,
                                       batch_first=True, edge_reduction=nagasaki_config.edge_reduction,
-                                      merge_attention=nagasaki_config.merge_attention,
+                                      merge_attention=nagasaki_config.merge_attention or nagasaki_config.content_attention_only,
                                       scale=nagasaki_config.scale_attention)
 
     def forward(self, batch, h, mask):
