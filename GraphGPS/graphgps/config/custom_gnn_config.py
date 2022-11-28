@@ -7,7 +7,7 @@ def custom_gnn_cfg(cfg):
     """
 
     # Use residual connections between the GNN layers.
-    cfg.gnn.residual = False
+    cfg.gnn.residual = True
 
 
 register_config('custom_gnn', custom_gnn_cfg)
