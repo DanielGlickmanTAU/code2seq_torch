@@ -40,6 +40,7 @@ class GPSModel(torch.nn.Module):
             raise ValueError(f"Unexpected layer type: {cfg.gt.layer_type}")
         self.nagasaki_config = cfg.nagasaki
         transformer_layers = []
+        self.local_layers = []
         if n_layers_gnn_only:
             self.local_layers = torch.nn.ModuleList()
         # layers between gnn and transformers
