@@ -142,7 +142,7 @@ class PositionAttention(Module):
         b, n1, n2, heads = attention_weights.shape
         assert heads == self.num_heads
         # stack attention matrixes first by batch then by head
-        attention_weights = attention_weights.transpose(1, 3)
+        attention_weights = attention_weights.permute(0, 3, 1, 2)
         attention_weights = attention_weights.reshape(b * self.num_heads, n1, n2)
         if self.scale:
             attention_weights = attention_weights / math.sqrt(self.edge_dim)
