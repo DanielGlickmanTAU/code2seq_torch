@@ -72,7 +72,8 @@ class GPSModel(torch.nn.Module):
                                  dropout=cfg.gt.dropout, attn_dropout=cfg.gt.attn_dropout, layer_norm=cfg.gt.layer_norm,
                                  batch_norm=cfg.gt.batch_norm, bigbird_cfg=cfg.gt.bigbird,
                                  nagasaki_config=cfg.nagasaki, ffn_multiplier=cfg.gt.ffn_multiplier,
-                                 gnn_residual=cfg.gnn.residual, input_stacks=n_layers_gnn_only)
+                                 gnn_residual=cfg.gnn.residual,
+                                 input_stacks=n_layers_gnn_only if self.nagasaki_config.type == 'vid' else 1)
             gps_layer.layer_index = (i, n_gt_layers)
             if i < n_layers_gnn_only:
                 self.local_layers.append(gps_layer)

@@ -6,8 +6,9 @@ import os
 
 
 class MyTestCase(TestCase):
+    os.chdir('..')
+
     def test_gnn_trans(self):
-        os.chdir('..')
         _append_params({'gt.layers': 4, 'gt.n_layers_gnn_only': 2})
 
         last_train, best_test = main()
@@ -16,7 +17,7 @@ class MyTestCase(TestCase):
         assert 0.24 <= best_test <= 0.27
 
     def test_base(self):
-        os.chdir('..')
+        # os.chdir('..')
         _append_params()
 
         last_train, best_test = main()
@@ -25,7 +26,7 @@ class MyTestCase(TestCase):
         assert 0.27 <= last_train <= 0.28
 
     def test_cls(self):
-        os.chdir('..')
+        # os.chdir('..')
         _append_params()
 
         sys.argv.append('nagasaki.add_cls')

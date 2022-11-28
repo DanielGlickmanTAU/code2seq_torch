@@ -24,7 +24,8 @@ params_for_exp = {
 
     'gt.dropout': [0.2],
     'gt.attn_dropout': [0.2],
-    'nagasaki.steps': '[1, 2, 3, 4, 5,6, 7, 8, 9, 10, 11, 12, 13, 14, 15,16,17,18,19,20]',
+    # 'nagasaki.steps': '[1, 2, 3, 4, 5,6, 7, 8, 9, 10, 11, 12, 13, 14, 15,16,17,18,19,20]',
+    'nagasaki.steps': '[1, 2]',
 
     'nagasaki.ffn_layers': [2, 3],
     'nagasaki.edge_reduction': ['linear'],
@@ -48,7 +49,7 @@ params = {
 }
 
 params_for_grid_search = [
-    # baseline_config.get_nagasaki_config(total_layers=5, gnn_layers=3),
+    baseline_config.get_nagasaki_config(total_layers=5, gnn_layers=3),
     # baseline_config.get_nagasaki_config(total_layers=4, gnn_layers=2),
     # baseline_config.get_RWSE_GNN_config(layers=16)
 ]
