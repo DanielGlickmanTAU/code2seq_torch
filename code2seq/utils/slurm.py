@@ -10,7 +10,14 @@ python = os.sys.executable
 slurm_file = 'my_slurm.slurm'
 
 
-def get_partition_and_time_limit():
+def get_partition_and_time_limit(partition=None):
+    if partition is not None:
+        if 'batch' in partition:
+            return 'studentbatch', 'infinite'
+        if 'kill' in partition:
+            return 'studentkillable', 'infinite'
+        raise RuntimeError('partition needs to be either kill or batch')
+
     num_jobs_in_student_batch = os.popen('squeue | grep glick | grep studentba | wc -l').read()
     num_jobs_in_student_batch = int(num_jobs_in_student_batch) if num_jobs_in_student_batch else 0
     # if 'studentb' in os.popen('squeue | grep glickman').read():
