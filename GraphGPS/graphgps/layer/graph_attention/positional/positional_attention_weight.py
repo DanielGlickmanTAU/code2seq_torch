@@ -78,7 +78,6 @@ class AdjStackAttentionWeights(torch.nn.Module):
 
         adj_weights = torch.zeros((b, n, n1, self.num_heads), device=stacks.device)
         adj_weights[mask] = self.weight(stacks[mask].view(-1, num_stacks))
-        assert adj_weights.shape == (b, n, n1, self.num_heads)
         return adj_weights
 
 
