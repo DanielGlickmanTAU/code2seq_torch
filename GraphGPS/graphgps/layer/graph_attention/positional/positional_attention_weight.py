@@ -68,7 +68,7 @@ class AdjStackAttentionWeights(torch.nn.Module):
             raise ValueError(f'nagasaki does not support edge forward model of type {ffn}')
 
     # stacks shape is (batch,n,n,num_adj_stacks)
-    # mask shape is (batch,n).
+    # mask shape is (batch,n,n).
     # returns (batch,n,n,num_heads)
     @record_function('AdjStackAttentionWeights')
     def forward(self, stacks: torch.Tensor, mask):
@@ -76,7 +76,7 @@ class AdjStackAttentionWeights(torch.nn.Module):
         assert num_stacks == self.num_adj_stacks
         assert mask.dim() == 3
 
-        adj_weights = torch.zeros((b, n1, n, self.num_heads), device=stacks.device)
+        adj_weights = torch.zeros((b, n, n1, self.num_heads), device=stacks.device)
         adj_weights[mask] = self.weight(stacks[mask].view(-1, num_stacks))
         assert adj_weights.shape == (b, n, n1, self.num_heads)
         return adj_weights
