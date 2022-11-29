@@ -85,17 +85,17 @@ class Test(TestCase):
 
     def test_concat_layer_activations(self):
         # 2 nodes with hidden dim 3
-        graph1 = torch.tensor([
+        layer1 = torch.tensor([
             [1, 2, 3],
             [4, 5, 6]
         ]
         )
-        graph2 = torch.tensor([
+        layer2 = torch.tensor([
             [10, 20, 30],
             [40, 50, 60]
         ]
         )
-        result = concat_layer_activations([graph1, graph2], join_dims=True)
+        result = concat_layer_activations([layer1, layer2], join_dims=True)
         print(result)
         assert (result == torch.tensor(
             torch.tensor([
