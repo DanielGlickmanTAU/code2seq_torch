@@ -145,7 +145,7 @@ class AttentionLayer(nn.Module):
             #     dim_h, num_heads, dropout=self.attn_dropout, batch_first=True)
             self.self_attn = ContentMultiheadAttention(dim_h, num_heads, self.attn_dropout, batch_first=True)
         elif global_model_type == 'Nagasaki':
-            self.self_attn = Nagasaki(dim_h, num_heads, self.attn_dropout, nagasaki_config)
+            self.self_attn = Nagasaki(dim_h, num_heads, self.attn_dropout, nagasaki_config,input_stacks)
         elif global_model_type == 'Performer':
             self.self_attn = SelfAttention(
                 dim=dim_h, heads=num_heads,

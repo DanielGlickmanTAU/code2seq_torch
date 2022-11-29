@@ -28,7 +28,8 @@ class TestMultiHeadAttention(TestCase):
                      [oo, ot, oo]
                  ]
         stack = self.stack_lists_to_tensor(stacks)
-        pos_attn_weights = pos_attention(stack, torch.full((num_heads, 3, 3), True))
+        B = 2
+        pos_attn_weights = pos_attention(stack, torch.full((B, 3, 3), True))
 
         one = torch.full((hidden_dim,), 1)
         two = torch.full((hidden_dim,), 2)
@@ -67,6 +68,54 @@ class TestMultiHeadAttention(TestCase):
 
     def stack_lists_to_tensor(self, stacks):
         return torch.stack([torch.stack([torch.stack(y) for y in x]) for x in (stacks)])
+
+    def test_shaping_position_attention_to_joined_graph_attention(self):
+        T = 4
+        B = 2
+        N = 3
+        num_heads = 3
+
+        edge_dim = 10
+        project_dim = num_heads * (T ** 2)
+        pos_attention = PositionAttention(edge_dim=edge_dim, num_heads=project_dim)
+
+        oo = torch.full((edge_dim,), 1.)
+        ot = torch.full((edge_dim,), 2.)
+        to = torch.full((edge_dim,), 3.)
+        tt = torch.full((edge_dim,), 4.)
+
+        stacks = [
+                     [oo, oo, ot],
+                     [oo, tt, ot],
+                     [to, to, tt]], \
+                 [
+                     [oo, ot, oo],
+                     [to, tt, to],
+                     [oo, ot, oo]
+                 ]
+        stack = self.stack_lists_to_tensor(stacks)
+
+        mask = torch.full((B, 3, 3), True)
+        pos_attn_weights = pos_attention(stack, mask)
+
+        pos_attn_weights = PositionAttention.reshape_positional_attention_to_joined_graph_attention(pos_attn_weights, T)
+
+        assert pos_attn_weights.shape == (B * num_heads, N * T, N * T)
+
+        batch1_head1 = 0
+        """pos attention should look like:
+         <oo_1,oo1>  <oo_1,oo2> ..<oo_1,oo_T> <oo_1, oo1>, <oo_1,oo_2> ..<oo_1,oo_T> <ot_1,ot_1> <ot_1,ot_2> ..<ot_1,ot_t>
+         <oo_2,oo1>  <oo_2,oo2> ..<oo_2,oo_T> <oo_2, oo1>, <oo_1,oo_2> ..<oo_2,oo_T> <ot_2,ot_1> <ot_2,ot_2> ..<ot_2,ot_t>
+        """
+        assert pos_attn_weights[batch1_head1][0][0] != pos_attn_weights[batch1_head1][0][1], \
+            'expect <oo_l1,oo_l1> !=<oo_l1,oo_l2>'
+        assert pos_attn_weights[batch1_head1][0][0] != pos_attn_weights[batch1_head1][1][0], \
+            'expect <oo_l1,oo_l1> != <oo_l2,oo_l1>'
+
+        assert pos_attn_weights[batch1_head1][0][0] == pos_attn_weights[batch1_head1][0][T], \
+            'expect <oo_l1,oo_l1> ==<oo_l1,oo_l1>'
+        assert pos_attn_weights[batch1_head1][0][0] == pos_attn_weights[batch1_head1][T][0], \
+            'expect <oo_l1,oo_l1> ==<oo_l1,oo_l1>'
 
 
 TestMultiHeadAttention().test_content_attention_matches_position_attention()
