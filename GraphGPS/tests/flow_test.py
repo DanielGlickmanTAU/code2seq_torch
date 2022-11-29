@@ -13,8 +13,8 @@ class MyTestCase(TestCase):
 
         last_train, best_test = main()
         print(last_train, best_test)
-        assert 0.23 <= last_train <= 0.235
-        assert 0.24 <= best_test <= 0.27
+        assert 0.22 <= last_train <= 0.24
+        assert 0.21 <= best_test <= 0.22
 
     def test_base(self):
         # os.chdir('..')
@@ -22,8 +22,8 @@ class MyTestCase(TestCase):
 
         last_train, best_test = main()
         print(last_train, best_test)
-        assert 0.23 <= best_test <= 0.25
         assert 0.27 <= last_train <= 0.28
+        assert 0.31 <= best_test <= 0.32
 
     def test_cls(self):
         # os.chdir('..')
