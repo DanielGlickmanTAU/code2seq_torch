@@ -15,10 +15,9 @@ class Nagasaki(torch.nn.Module):
             self._pos_attention = PositionAttention(edge_dim=edge_dim, num_heads=num_heads,
                                                     edge_reduction=nagasaki_config.edge_reduction,
                                                     scale=nagasaki_config.scale_attention)
-        self.att = MultiHeadAttention(dim_h, num_heads, edge_dim=edge_dim, dropout=dropout,
-                                      batch_first=True, edge_reduction=nagasaki_config.edge_reduction,
-                                      merge_attention=nagasaki_config.merge_attention or nagasaki_config.content_attention_only,
-                                      scale=nagasaki_config.scale_attention)
+        self.att = MultiHeadAttention(dim_h, num_heads, dropout=dropout,
+                                      batch_first=True, merge_attention=nagasaki_config.merge_attention,
+                                      content_only=nagasaki_config.content_attention_only)
 
     def forward(self, batch, h, mask):
         # Diffuser forward sets this and saves in batch.

@@ -20,9 +20,9 @@ class MultiHeadAttention(torch.nn.Module):
     bias_k: Optional[torch.Tensor]
     bias_v: Optional[torch.Tensor]
 
-    def __init__(self, embed_dim, num_heads, edge_dim, dropout=0., bias=True, add_bias_kv=False,
+    def __init__(self, embed_dim, num_heads, dropout=0., bias=True, add_bias_kv=False,
                  kdim=None, vdim=None, batch_first=False, device=None, dtype=None,
-                 edge_reduction='bn-mlp', merge_attention=None, scale=False
+                 merge_attention=None, content_only=False
                  ) -> None:
         factory_kwargs = {'device': device, 'dtype': dtype}
         super(MultiHeadAttention, self).__init__()
@@ -56,7 +56,7 @@ class MultiHeadAttention(torch.nn.Module):
             self.bias_k = self.bias_v = None
 
         self.content_attention = ContentAttention(embed_dim, num_heads, bias=True, kdim=None, vdim=None, device=None,
-                                                  dtype=None) if merge_attention else None
+                                                  dtype=None) if (merge_attention or content_only) else None
         self.normalizer = AttentionWeightNormalizer(False)
 
         self._reset_parameters()
@@ -128,7 +128,7 @@ class PositionAttention(Module):
     bias_k: Optional[torch.Tensor]
     bias_v: Optional[torch.Tensor]
 
-    def __init__(self, num_heads, edge_dim, edge_reduction='bn-mlp', scale=False) -> None:
+    def __init__(self, num_heads, edge_dim, edge_reduction='linear', scale=False) -> None:
         self.scale = scale
         self.num_heads = num_heads
         self.edge_dim = edge_dim
