@@ -11,7 +11,7 @@ def set_cfg_nagasaki(cfg):
     cfg.nagasaki.ffn_layers = 1
     cfg.nagasaki.edge_reducer_hidden_dim = 2
 
-    cfg.nagasaki.edge_reduction = 'bn-mlp'
+    cfg.nagasaki.edge_reduction = 'linear'
     cfg.nagasaki.learn_edges_weight = False
     cfg.nagasaki.skip_stacking_ratio = 0.
     cfg.nagasaki.symmetric_edge_reduce = False
