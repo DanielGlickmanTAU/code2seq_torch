@@ -3,14 +3,11 @@ from random import random
 import torch
 import torch_geometric
 from torch import nn
-# import global_config
-# from arg_parse_utils import bool_
 from torch_geometric.utils import to_dense_adj
 from examples.graphproppred.mol.pygraph_utils import get_dense_x_and_mask
 
 from examples.graphproppred.mol import pygraph_utils
 from graphgps.layer.graph_attention.positional import positional_utils
-from torch.profiler import record_function
 
 
 class Residual(nn.Module):
@@ -80,7 +77,6 @@ class AdjStackAttentionWeights(torch.nn.Module):
     # stacks shape is (batch,n,n,num_adj_stacks)
     # mask shape is (batch,n,n).
     # returns (batch,n,n,num_heads)
-    @record_function('AdjStackAttentionWeights')
     def forward(self, stacks: torch.Tensor, mask):
         b, n, n1, num_stacks = stacks.shape
         assert num_stacks == self.num_adj_stacks
@@ -105,12 +101,10 @@ def _calc_power(adj, steps):
     powers = []
     # assert steps == list(range(min(steps), max(steps) + 1)), f'only consecutive sequences of power, got {steps}'
     assert len(steps) == len(set(steps)), 'found duplicate power'
-    # Efficient way if ksteps are a consecutive sequence (most of the time the case)
-    first_power = min(steps)
-    Pk = adj.clone().detach().matrix_power(first_power)
-    # Pk = adj.matrix_power(min(steps))
+    Pk = adj.matrix_power(min(steps))
     powers.append(Pk)
-    for i, k in enumerate(steps[1:]):
+    for i in range(1, len(steps)):
+        k = steps[i]
         prev_k = steps[i - 1]
         if prev_k + 1 == k:
             Pk = Pk @ adj
@@ -126,14 +120,13 @@ def _calc_power(adj, steps):
 class AdjStack(torch.nn.Module):
 
     def __init__(self, steps: list, nhead=1, kernel=None, normalize: bool = True):
-        super().__init__()
+        super(AdjStack, self).__init__()
         self.normalize = normalize
         self.steps = steps
         self.kernel = kernel
         self.nhead = nhead
         assert len(self.steps) == len(set(self.steps)), f'duplicate power in {self.steps}'
 
-    @record_function('adj_stack')
     def forward(self, batch, mask, edge_weights=None):
         if edge_weights is not None:
             if self.kernel:
@@ -191,7 +184,7 @@ class AdjStackGIN(torch.nn.Module):
 
 class MultiHeadAdjStackWeight(nn.Module):
     def __init__(self, input_dim, hidden_dim, dim_out, edge_model_type, ffn_layers, nhead, reduce):
-        super().__init__()
+        super(MultiHeadAdjStackWeight, self).__init__()
         self.nhead = nhead
         self.reduce = reduce
         self.hidden_reducer_list = torch.nn.ModuleList([
@@ -226,7 +219,7 @@ class MultiHeadAdjStackWeight(nn.Module):
 
 class Diffuser(nn.Module):
     def __init__(self, dim_in, nagasaki_config):
-        super().__init__()
+        super(Diffuser, self).__init__()
         self.nhead = nagasaki_config.nhead
         self.kernel = nagasaki_config.kernel
         self.two_diffusion = nagasaki_config.two_diffusion
@@ -283,23 +276,22 @@ class Diffuser(nn.Module):
 
 class EdgeReducer(torch_geometric.nn.conv.MessagePassing):
     def __init__(self, in_dim, hidden_dim, dim_out, dropout, symmetric):
-        super().__init__()
+        super(EdgeReducer, self).__init__()
 
         self.symmetric = symmetric
         self.A = torch_geometric.nn.Linear(in_dim, hidden_dim, bias=True)
         if not self.symmetric:
             self.B = torch_geometric.nn.Linear(in_dim, hidden_dim, bias=True)
         self.C = torch_geometric.nn.Linear(in_dim, hidden_dim, bias=True)
-        self.edge_out_proj = torch_geometric.nn.Linear(hidden_dim, dim_out, bias=True)
+        self.edge_out_proj = torch_geometric.nn.Linear(hidden_dim, dim_out, bias=False)
 
         self.bn = nn.BatchNorm1d(hidden_dim)
         self.dropout = dropout
 
-    @record_function('edge_reducer')
     def forward(self, batch):
         x, e, edge_index = batch.x, batch.edge_attr, batch.edge_index
         if e is None:
-            e = torch.zeros(edge_index.shape[-1], x.shape[-1], device=x.device)
+            e = torch.zeros(edge_index.shape[-1], x.shape[-1], device=x.device, requires_grad=True)
 
         Ax = self.A(x)
         Bx = Ax if self.symmetric else self.B(x)
@@ -307,8 +299,7 @@ class EdgeReducer(torch_geometric.nn.conv.MessagePassing):
 
         e = self.propagate(edge_index,
                            Ce=Ce,
-                           e=e, Ax=Ax, Bx=Bx
-                           )
+                           e=e, Ax=Ax, Bx=Bx)
 
         return e
 
