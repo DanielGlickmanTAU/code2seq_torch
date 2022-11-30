@@ -22,11 +22,21 @@ class Residual(nn.Module):
         return self.module(inputs) + inputs
 
 
+class Identity(nn.Module):
+    def __init__(self):
+        super(Identity, self).__init__(Identity, self).__init__()
+
+    def forward(self, inputs):
+        return inputs
+
+
 class AdjStackAttentionWeights(torch.nn.Module):
     def __init__(self, input_dim, dim_out, hidden_dim, ffn, ffn_layers=1):
         super(AdjStackAttentionWeights, self).__init__()
         self.num_adj_stacks = input_dim
         self.num_heads = dim_out
+        if not ffn:
+            self.weight = Identity()
         if ffn == 'bn-linear':
             self.weight = torch.nn.Sequential(
                 torch.nn.BatchNorm1d(input_dim),
@@ -91,13 +101,23 @@ def to_P_matrix(A: torch.Tensor):
 
 
 def _calc_power(adj, steps):
+    steps = sorted(steps)
     powers = []
-    assert steps == list(range(min(steps), max(steps) + 1)), f'only consecutive sequences of power, got {steps}'
+    # assert steps == list(range(min(steps), max(steps) + 1)), f'only consecutive sequences of power, got {steps}'
+    assert len(steps) == len(set(steps)), 'found duplicate power'
     # Efficient way if ksteps are a consecutive sequence (most of the time the case)
-    Pk = adj.clone().detach().matrix_power(min(steps))
+    first_power = min(steps)
+    Pk = adj.clone().detach().matrix_power(first_power)
+    # Pk = adj.matrix_power(min(steps))
     powers.append(Pk)
-    for k in range(min(steps), max(steps)):
-        Pk = Pk @ adj
+    for i, k in enumerate(steps[1:]):
+        prev_k = steps[i - 1]
+        if prev_k + 1 == k:
+            Pk = Pk @ adj
+        elif prev_k * 2 == k:
+            Pk = Pk @ Pk
+        else:
+            raise Exception('powers need to increase by one or doubled')
         powers.append(Pk)
 
     return powers
