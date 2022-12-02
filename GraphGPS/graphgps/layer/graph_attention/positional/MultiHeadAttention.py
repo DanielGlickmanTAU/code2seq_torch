@@ -102,23 +102,23 @@ class MultiHeadAttention(torch.nn.Module):
             return attn_output, attn_output_weights
 
     def merge_positional_and_content_attention(self, position_attention_weights, value):
-        if self.merge_attention:
-            content_attention_weights, value = self.content_attention(value, value, value)
-            content_attention_weights = torch.clamp(content_attention_weights, min=-10, max=10)
-            position_attention_weights = torch.clamp(position_attention_weights, min=-10, max=10)
-        else:
-            content_attention_weights, value = None, linear(value, self.in_proj_weight, self.in_proj_bias)
-        # visualization.draw_attention(self.hack[batch_index].graph, node_index, position_attention_weights.view(-1,self.num_heads,position_attention_weights.size(1),position_attention_weights.size(1))[batch_index][head_number])
+        if not self.merge_attention:
+            value = linear(value, self.in_proj_weight, self.in_proj_bias)
+            return position_attention_weights, value
+
+        content_attention_weights, value = self.content_attention(value, value, value)
+        content_attention_weights = torch.clamp(content_attention_weights, min=-10, max=10)
+        position_attention_weights = torch.clamp(position_attention_weights, min=-10, max=10)
+
         if self.merge_attention == 'plus':
             attention_weights = position_attention_weights + content_attention_weights
-        elif self.merge_attention == 'gate':
-            attention_weights = torch.log(torch.sigmoid(position_attention_weights)) + content_attention_weights
-            # self.sanity_check_exp_sigmoid(content_attention_weights, position_attention_weights)
         else:
-            attention_weights = position_attention_weights
+            attention_weights = torch.log(torch.sigmoid(position_attention_weights)) + content_attention_weights
+            # self.sanity_check_log_sigmoid(content_attention_weights, position_attention_weights)
+
         return attention_weights, value
 
-    def sanity_check_exp_sigmoid(self, content_attention_weights, position_attention_weights, attention_weights):
+    def sanity_check_log_sigmoid(self, content_attention_weights, position_attention_weights, attention_weights):
         print('sanity check')
         exp_sigmoid = torch.exp(content_attention_weights) * torch.sigmoid(position_attention_weights)
         assert (torch.softmax(attention_weights, dim=-1) - (exp_sigmoid) / (exp_sigmoid).sum(dim=-1,
