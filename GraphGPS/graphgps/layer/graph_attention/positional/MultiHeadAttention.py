@@ -83,9 +83,7 @@ class MultiHeadAttention(torch.nn.Module):
             attention_weights, value = self.merge_positional_and_content_attention(position_attention_weights, value)
         else:
             attention_weights, value = self.content_attention(value, value, value)
-        # (n,batch,d)
-        # attn_mask = pygraph_utils.dense_mask_to_attn_mask(attn_mask)
-        # attn_mask = ~attn_mask
+
         attn_mask = pygraph_utils.reshape_attention_mask_to_multihead(attn_mask, self.num_heads)
         attn_output, attn_output_weights = multi_head_positional_attention(
             value, attention_weights, self.embed_dim, self.num_heads,
