@@ -9,6 +9,7 @@ python = os.sys.executable
 
 slurm_file = 'my_slurm.slurm'
 
+num_jobs_that_can_run_on_studentbatch_at_one_time = 6
 
 def get_partition_and_time_limit(partition=None):
     if partition is not None:
@@ -21,7 +22,7 @@ def get_partition_and_time_limit(partition=None):
     num_jobs_in_student_batch = os.popen('squeue | grep glick | grep studentba | wc -l').read()
     num_jobs_in_student_batch = int(num_jobs_in_student_batch) if num_jobs_in_student_batch else 0
     # if 'studentb' in os.popen('squeue | grep glickman').read():
-    num_jobs_that_can_run_on_studentbatch_at_one_time = 6
+
     if num_jobs_in_student_batch >= num_jobs_that_can_run_on_studentbatch_at_one_time:
         return 'studentkillable', 'infinite'
 
