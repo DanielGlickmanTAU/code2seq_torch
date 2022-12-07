@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 from typing import Dict, List, Union
 from itertools import product
+import random
 
 
 @dataclass
@@ -9,7 +10,8 @@ class ListArgument:
     argument: list
 
 
-def gridsearch(default_params: Dict, params_to_grid_search: Union[Dict[object, List], List[Dict[object, List]]]) -> \
+def gridsearch(default_params: Dict, params_to_grid_search: Union[Dict[object, List], List[Dict[object, List]]],
+               shuffle=True) -> \
         List[Dict]:
     if isinstance(params_to_grid_search, List) and len(params_to_grid_search) > 0:
         return sum([gridsearch(default_params, d) for d in params_to_grid_search], [])
@@ -50,4 +52,6 @@ def gridsearch(default_params: Dict, params_to_grid_search: Union[Dict[object, L
         ret = default_params.copy()
         ret.update(d)
         rets.append(ret)
+    if shuffle:
+        random.shuffle(rets)
     return rets
