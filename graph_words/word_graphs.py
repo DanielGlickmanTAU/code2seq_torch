@@ -173,6 +173,11 @@ def get_atom_set(number):
         return [lambda: Cycle(3), lambda: Cycle(4), lambda: star(), lambda: ChordCycle(6)]
     if number == 15:
         return [lambda: Cycle(3), lambda: Cycle(4), lambda: star(), lambda: Clique(4)]
+    if number == 16:
+        return [lambda: Cycle(3), lambda: Cycle(4), lambda: star(), lambda: Cycle(6)]
+    if number == 17:
+        return [lambda: Cycle(3), lambda: Cycle(4), lambda: star(), lambda: Cycle(6),
+                lambda: ChordCycle(5), lambda: Clique(4), lambda: Tree_small(), lambda: Tree_large()]
 
     raise Exception(f'unknown atom set option {number}')
 
