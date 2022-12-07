@@ -15,10 +15,6 @@ params_for_exp = {
 
     'dataset.only_color': False,
 
-    # 'gt.dim_hidden': 64,
-    # 'gnn.dim_inner': 64,
-
-    'nagasaki.edge_model_type': ['res-net'],
     'nagasaki.ffn_hidden_multiplier': [1],
     'nagasaki.ffn_layers': [1],
 
@@ -29,17 +25,22 @@ params_for_exp = {
     'nagasaki.steps': '[1, 2, 3, 4, 5,6, 7, 8, 9, 10, 11, 12, 13, 14, 15,16,17,18,19,20]',
 
     'nagasaki.edge_reduction': ['linear'],
-    'nagasaki.kernel': ['softmax'],
-    'nagasaki.merge_attention': ['plus'],
+    # 'nagasaki.kernel': ['softmax'],
+    # 'nagasaki.merge_attention': ['plus'],
 
-    # 'optim.early_stop_patience': 100,
+    'optim.early_stop_patience': 100,
 
-    # STUFF JUST FOR OVERFIT
-    'gt.dim_hidden': 128,
-    'gnn.dim_inner': 128,
-    'gt.dropout': [0.],
-    'optim.early_stop_patience': 10000,
-    'optim.max_epoch': 5000
+    'nagasaki.edge_model_type': ['bn-mlp'],
+    ('nagasaki.kernel', 'nagasaki.merge_attention'): [('sigmoid', 'gate'), ('softmax', 'plus')],
+    # ('nagasaki.kernel', 'nagasaki.merge_attention'): [('softmax', 'plus')],
+    # 'nagasaki.scale_attention': [True],
+    # 'nagasaki.type': ['vid', 'transformer'],
+    # 'nagasaki.content_attention_only': False,
+    # 'nagasaki.steps': '[1, 2, 3, 4, 5, 6, 7, 8]',
+    'gt.layer_type': 'CustomGatedGCN+Nagasaki',
+    # 'nagasaki.learn_edges_weight': [True],
+    # 'nagasaki.edge_model_type': ['bn-mlp'],
+    'gnn.residual': [False, True],
 
 }
 
@@ -58,8 +59,10 @@ params = {
 
 params_for_grid_search = [
     # baseline_config.get_nagasaki_config(total_layers=5, gnn_layers=3),
+    baseline_config.get_nagasaki_config(total_layers=5),
+    baseline_config.get_nagasaki_config(total_layers=3),
     # baseline_config.get_nagasaki_config(total_layers=4, gnn_layers=2),
-    baseline_config.get_RWSE_GNN_config(layers=22)
+    # baseline_config.get_RWSE_GNN_config(layers=22)
 ]
 
 assert len(params_for_grid_search) > 0

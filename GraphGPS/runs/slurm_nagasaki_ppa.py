@@ -6,7 +6,7 @@ from code2seq.utils.gridsearch import gridsearch, ListArgument
 from code2seq.utils.slurm import run_on_slurm
 import os
 
-batch_acc = 2
+batch_acc = 4
 params = {
     '--cfg': 'configs/GPS/ogbg-ppa-GPS.yaml',
     '--ogb_eval': True,
@@ -17,7 +17,8 @@ params = {
 params_for_exp = {
     'train.batch_size': int(32 / batch_acc),
     'optim.batch_accumulation': batch_acc,
-    'seed': [5, 6, 7, 8, 9, 10],
+    # 'seed': [5, 6, 7, 8, 9, 10],
+    'seed': [5],
 
     'nagasaki.learn_edges_weight': [True],
 
@@ -35,6 +36,13 @@ params_for_exp = {
     ('nagasaki.kernel', 'nagasaki.merge_attention'): [('sigmoid', 'gate')],
     'gt.layer_type': 'CustomGatedGCN+Nagasaki',
     'nagasaki.project_diagonal': [True],
+
+    'nagasaki.content_attention_only': [False, True],
+    'nagasaki.type': 'vid',
+    # 'nagasaki.edge_model_type': ['bn-mlp'],
+    'gnn.residual': [False],
+    'gt.n_layers_gnn_only': [3, 4],
+    'gt.layers': [8],
 
 }
 

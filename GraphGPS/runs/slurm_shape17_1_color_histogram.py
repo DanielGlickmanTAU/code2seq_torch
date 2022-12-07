@@ -7,8 +7,7 @@ import os
 import sys
 
 params_for_exp = {
-    'optim.base_lr': [0.0003],
-    'seed': [6],
+    'optim.base_lr': [0.0004],
     'posenc_RWSE.kernel.times_func': "range(1, 21)",
     'posenc_RWSE.model': "Linear",
     'posenc_RWSE.dim_pe': 24,
@@ -16,58 +15,46 @@ params_for_exp = {
 
     'dataset.only_color': False,
 
-    'gt.dim_hidden': 32,
-    'gnn.dim_inner': 32,
+    'nagasaki.ffn_hidden_multiplier': [1],
+    'nagasaki.ffn_layers': [1],
 
-    # 'gt.dropout': [0.0, 0.2],
-    # 'nagasaki.content_attention_only': [False, True],
-    'nagasaki.fuck_positional': [False, True],
+    'nagasaki.learn_edges_weight': [True],
 
-    'gt.dropout': [0.2],
-    'gt.attn_dropout': [0.5],
+    # 'gt.dropout': [0.2],
+    'gt.attn_dropout': [0.2],
+    'nagasaki.steps': '[1, 2, 3, 4, 5,6, 7, 8, 9, 10, 11, 12, 13, 14, 15,16,17,18,19,20]',
 
-    # 'nagasaki.nhead': 2,
-    'optim.early_stop_patience': 50
+    'nagasaki.edge_reduction': ['linear'],
+
+    'optim.early_stop_patience': 250,
+
+    'nagasaki.edge_model_type': ['bn-mlp'],
+    ('nagasaki.kernel', 'nagasaki.merge_attention'): [('sigmoid', 'gate')],
+    'gt.layer_type': 'CustomGatedGCN+Nagasaki',
+    'gnn.residual': [False],
+    'nagasaki.type': ['vid', 'transformer'],
+    'nagasaki.content_attention_only': [False, True],
 
 }
 
 params = {
-
     '--cfg': 'tests/configs/graph/color-histogram.yaml',
 
-    '--num_rows': 10,
-    '--row_sizes': '"[10,11,12,13]"',
-    # '--num_rows': 12,
-    '--words_per_row': 10,
-    # '--words_per_row': 2,
-    '--atom_set': 8,
-    '--num_unique_atoms': 1,
-    '--num_unique_colors': 20,
+    '--num_rows': 6,
+    '--words_per_row': 6,
+    '--atom_set': 17,
+    '--num_unique_atoms': 3,
+    '--num_unique_colors': 1,
 
     '--row_color_mode': 'histogram',
 
 }
 
 params_for_grid_search = [
-    # brown
-    # baseline_config.get_RWSE_gps_config(6),
-
-    # red
-    # baseline_config.get_RWSE_GNN_config(12),
-
-    # baseline_config.get_signet_transformer_config(),
-
-    # baseline_config.get_vanilla_transformer_config(2),
-    # baseline_config.get_vanilla_transformer_config(1),
-
-    # green
-    # baseline_config.get_rwse_transformer_config(),
-
-    # orange
-    # baseline_config.get_gnn_transformer_config(),
-
-    baseline_config.get_nagasaki_config(total_layers=2, gnn_layers=0),
-
+    baseline_config.get_nagasaki_config(total_layers=5, gnn_layers=3),
+    baseline_config.get_nagasaki_config(total_layers=3),
+    # baseline_config.get_nagasaki_config(total_layers=4, gnn_layers=2),
+    # baseline_config.get_RWSE_GNN_config(layers=22)
 ]
 
 assert len(params_for_grid_search) > 0

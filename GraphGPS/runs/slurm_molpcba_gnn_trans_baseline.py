@@ -24,21 +24,46 @@ params_for_exp = {
     'gt.layers': [8],
     'gt.n_layers_gnn_only': [4],
 
-    # 'nagasaki.edge_model_type': ['res-net'],
-
-    # positional
-    'nagasaki.steps': '[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]',
+    # GNN -> Transformer + positional
     'gt.layer_type': 'CustomGatedGCN+Nagasaki',
+    'gnn.residual': [False, True],
 
-    # JK
+    # GNN -> Transformer + positional
+    # 'nagasaki.steps': '[1, 2, 3, 4, 5, 6, 7, 8]',
+    # 'gt.layer_type': 'CustomGatedGCN+Nagasaki',
+    # 'nagasaki.learn_edges_weight': [True],
+    # 'nagasaki.edge_model_type': ['bn-mlp', 'res-net'],
+
+    # GNN -> Transformer + positional + JK
+    # 'nagasaki.steps': '[1, 2, 3, 4, 5, 6, 7, 8]',
+    # 'gt.layer_type': 'CustomGatedGCN+Nagasaki',
+    # 'nagasaki.learn_edges_weight': [True],
+    # 'nagasaki.edge_model_type': ['bn-mlp'],
     # 'nagasaki.type': 'jk',
     # 'gnn.residual': [True, False],
 
     # vid, content attention only
-    'nagasaki.edge_model_type': ['bn-mlp', 'res-net'],
-    'nagasaki.type': 'vid',
-    'nagasaki.content_attention_only': True,
-    'gnn.residual': [True, False],
+    # 'nagasaki.edge_model_type': ['bn-mlp', 'res-net'],
+    # 'nagasaki.type': 'vid',
+    # 'nagasaki.content_attention_only': True,
+    # 'nagasaki.steps': '[1, 2, 3, 4, 5, 6, 7, 8]',
+    # 'gt.layer_type': 'CustomGatedGCN+Nagasaki',
+    # 'nagasaki.learn_edges_weight': [True],
+    # # 'nagasaki.edge_model_type': ['bn-mlp'],
+    # 'gnn.residual': [False],
+
+    # Vid
+    # 'nagasaki.edge_model_type': ['bn-mlp', 'res-mlp'],
+    # # ('nagasaki.kernel', 'nagasaki.merge_attention'): [('sigmoid', 'gate'), ('softmax', 'plus')],
+    # ('nagasaki.kernel', 'nagasaki.merge_attention'): [('softmax', 'plus')],
+    # # 'nagasaki.scale_attention': [True],
+    # 'nagasaki.type': 'vid',
+    # 'nagasaki.content_attention_only': False,
+    # 'nagasaki.steps': '[1, 2, 3, 4, 5, 6, 7, 8]',
+    # 'gt.layer_type': 'CustomGatedGCN+Nagasaki',
+    # 'nagasaki.learn_edges_weight': [True],
+    # # 'nagasaki.edge_model_type': ['bn-mlp'],
+    # 'gnn.residual': [False],
 }
 
 os.chdir('..')
