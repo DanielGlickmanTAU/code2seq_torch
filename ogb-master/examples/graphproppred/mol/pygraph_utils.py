@@ -157,7 +157,3 @@ def to_dense_joined_batch(h, batch, joined_graphs=1):
     dense_x = dense_stacked_graphs_to_dense_joined_graphs(dense_x)
     mask = repeat_attn_mask(mask, joined_graphs)
     return dense_x, mask
-    # dense_graphs = [to_dense_batch(subgraph, batch) for subgraph in h.split(len(h) // joined_graphs)]
-    # dense_x = torch.cat([a for (a, b) in dense_graphs], dim=1)
-    # mask = torch.cat([b for (a, b) in dense_graphs], dim=1)
-    # return dense_x, mask
