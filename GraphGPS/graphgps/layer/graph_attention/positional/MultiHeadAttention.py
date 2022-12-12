@@ -159,3 +159,10 @@ class PositionAttention(Module):
         return positional_attention.view(-1, T, T, N, N) \
             .permute(0, 3, 1, 4, 2) \
             .reshape(-1, N * T, N * T)
+
+    @staticmethod
+    def reshape_positional_attention_to_cross_graph_attention(positional_attention, T: int):
+        N = positional_attention.shape[-1]
+        return positional_attention.view(-1, T, N, N) \
+            .permute(0, 2, 3, 1) \
+            .reshape(-1, N, T * N)

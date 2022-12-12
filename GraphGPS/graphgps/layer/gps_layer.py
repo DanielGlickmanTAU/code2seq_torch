@@ -6,9 +6,7 @@ import torch_geometric.nn as pygnn
 # from performer_pytorch import SelfAttention
 from torch_geometric.data import Batch
 from torch_geometric.nn import Linear as Linear_pyg
-from torch_geometric.utils import to_dense_batch
 
-from examples.graphproppred.mol import pygraph_utils
 from examples.graphproppred.mol.pygraph_utils import to_dense_joined_batch
 from graphgps.layer.bigbird_layer import SingleBigBirdLayer
 from graphgps.layer.gatedgcn_layer import GatedGCNLayer
@@ -228,7 +226,15 @@ class GPSLayer(nn.Module):
                                             local_gnn_type, global_model_type, num_heads,
                                             pna_degrees, equivstable_pe, dropout,
                                             attn_dropout, layer_norm, batch_norm,
-                                            bigbird_cfg, nagasaki_config, input_stacks, cross_stacks)
+                                            bigbird_cfg, nagasaki_config, input_stacks, 1)
+            if cross_stacks:
+                self.cross_attn = AttentionLayer(dim_h,
+                                                 local_gnn_type, global_model_type, num_heads,
+                                                 pna_degrees, equivstable_pe, dropout,
+                                                 attn_dropout, layer_norm, batch_norm,
+                                                 bigbird_cfg, nagasaki_config, input_stacks, cross_stacks)
+            else:
+                self.cross_attn = None
 
         # Feed Forward block.
         if self.self_attn is not None:
@@ -257,6 +263,10 @@ class GPSLayer(nn.Module):
         if self.self_attn is not None:
             h_attn = self.self_attn(batch, h)
             h_out_list.append(h_attn)
+
+            if self.cross_attn:
+                h_attn = self.cross_attn(batch, h)
+                h_out_list.append(h_attn)
 
             # Combine local and global outputs.
             h = sum(h_out_list)

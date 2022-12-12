@@ -70,13 +70,12 @@ class PatternAttention(torch.nn.Module):
         if self._pos_attention:
             position_attention_weights = self._pos_attention(stacks, dense_mask)
             if self.input_stacks > 1:
-                # todo reshape properly..
-                position_attention_weights = PositionAttention.reshape_positional_attention_to_joined_graph_attention(
+                position_attention_weights = PositionAttention.reshape_positional_attention_to_cross_graph_attention(
                     position_attention_weights, self.input_stacks)
 
-        # todo do not None
-        position_attention_weights = None
-        atten_out, atten_weights = self.att(h, batch.history[0], batch.history[0], position_attention_weights,
-                                            attn_mask=~batch.history[1])
+        history = batch.history[0]
+        history_mask = batch.history[1]
+        atten_out, atten_weights = self.att(h, history, history, position_attention_weights,
+                                            attn_mask=~history_mask)
 
         return atten_out, atten_weights
