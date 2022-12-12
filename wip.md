@@ -1472,63 +1472,72 @@ Molpcba : transformer
 Ppa : performer
 Code: performer
 
-
-
 loading code2 trained model works
 
-
-
 ### 4/9
-for loading subset of dataset: 
+
+for loading subset of dataset:
 DOES NOT WORK:::!!
 dataset = DownloadPygGraphPropPredDataset(name=name, root=dataset_dir, limit=2000)
-    dataset = dataset[:2000]
-
+dataset = dataset[:2000]
 
 ### 9/11
+
 how to plot hist of graphs per batch
 plt.hist([x.item() for x in max(batch.ptr[1:] - batch.ptr[0:-1]) - (batch.ptr[1:] - batch.ptr[0:-1])],bins=10)
 
-
-
 ### 21/11
+
 custom_gated_gcn edge dim is not 1, is it same as node dim.
 
-running histogram task with shapes 4x4  | label is number of same SHAPES in same row/col
+running histogram task with shapes 4x4 | label is number of same SHAPES in same row/col
 
 ### 22/11
+
 shape coloring: LESS num unique colors(2) and larger graph makes the task harder
 
-
 class dist 4 shapes, 2 colors, 4 unique shapes:
-                                                                    
+
 class distribution(first 1k nodes only):
-       [[  0,   1,   2,   3,   4],
-        [310, 372, 223,  87,   8]])
+[[  0, 1, 2, 3, 4],
+[310, 372, 223, 87, 8]])
 
 3 unique shapes per instanse:
-[138, 333, 286, 169,  59,  15]])
-
+[138, 333, 286, 169, 59, 15]])
 
 back prop with param sharing:
-it will calculate gradient w.r.t every activation, so probabliy will hold memory proportional to input size temporarly while updating.
+it will calculate gradient w.r.t every activation, so probabliy will hold memory proportional to input size temporarly
+while updating.
 but the gradient memory afterwards is proprtional to the #weights
 
 batch norm:
 provides a "check pointing" mechanism for neural activations.
-imagine a network a->b->c->d. grad of a is depands on b,c,d. so even if one of them is close to zero, grad will be close to zero.
+imagine a network a->b->c->d. grad of a is depands on b,c,d. so even if one of them is close to zero, grad will be close
+to zero.
 by batch norming, it decouples that and let sgd optimize better
 
-
 ### 23/11
+
 shape 15, 6x6 2 colors..
 2 ffn nagasaki layers train: 0.625 test 0.6
 3 ffn nagasaki layers train: 0.6 test 0.537
 
 stopped because got max epoch . maybe more epoch would be better..
 
-
 ### 25/11
-model init to the same weights.. 
+
+model init to the same weights..
 end of training, same train results, different test results..
 maybe randomness in batch statistics??
+
+### 12/12
+
+Way edge construciton works
+Diffuser#reducer: logit(times nhead) -> Diffuser#stacker: logits to prob and stack(times nhead needs fixing?)
+-> MultiAdjWeight: stack to edge in dim d(if nhead, first transformer each stack to dim, then add them).
+
+possible way to extend this:
+again reduce etc..
+input edge dim d(initally, by Diffuser#reducer, will return dim d)
+(reduce to edge weight-> stack(expand)  -> edge-mlp(mix)) .. possibly with mutiple graphs(reduce to nhead and sum after
+mlp)
