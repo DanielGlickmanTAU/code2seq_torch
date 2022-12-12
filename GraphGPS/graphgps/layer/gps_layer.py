@@ -14,7 +14,7 @@ from graphgps.layer.bigbird_layer import SingleBigBirdLayer
 from graphgps.layer.gatedgcn_layer import GatedGCNLayer
 from graphgps.layer.gine_conv_layer import GINEConvESLapPE, GINEConvLayer
 from graphgps.layer.graph_attention.ContentMultiHeadAttention import ContentMultiheadAttention
-from graphgps.layer.graph_attention.positional.nagasaki import Nagasaki
+from graphgps.layer.graph_attention.positional.nagasaki import Nagasaki, PatternAttention
 from graphgps.layer.performer_layer import SelfAttention
 
 
@@ -125,7 +125,7 @@ class AttentionLayer(nn.Module):
                  local_gnn_type, global_model_type, num_heads,
                  pna_degrees=None, equivstable_pe=False, dropout=0.0,
                  attn_dropout=0.0, layer_norm=False, batch_norm=True,
-                 bigbird_cfg=None, nagasaki_config=None, input_stacks=1):
+                 bigbird_cfg=None, nagasaki_config=None, input_stacks=1, cross_stacks=1):
         super().__init__()
         self.dim_h = dim_h
         self.num_heads = num_heads
@@ -145,7 +145,10 @@ class AttentionLayer(nn.Module):
             #     dim_h, num_heads, dropout=self.attn_dropout, batch_first=True)
             self.self_attn = ContentMultiheadAttention(dim_h, num_heads, self.attn_dropout, batch_first=True)
         elif global_model_type == 'Nagasaki':
-            self.self_attn = Nagasaki(dim_h, num_heads, self.attn_dropout, nagasaki_config,input_stacks)
+            if cross_stacks > 1:
+                self.self_attn = PatternAttention(dim_h, num_heads, self.attn_dropout, nagasaki_config, cross_stacks)
+            else:
+                self.self_attn = Nagasaki(dim_h, num_heads, self.attn_dropout, nagasaki_config, input_stacks)
         elif global_model_type == 'Performer':
             self.self_attn = SelfAttention(
                 dim=dim_h, heads=num_heads,
@@ -198,7 +201,9 @@ class GPSLayer(nn.Module):
                  local_gnn_type, global_model_type, num_heads,
                  pna_degrees=None, equivstable_pe=False, dropout=0.0,
                  attn_dropout=0.0, layer_norm=False, batch_norm=True,
-                 bigbird_cfg=None, nagasaki_config=None, ffn_multiplier=2, gnn_residual=True, input_stacks=1):
+                 bigbird_cfg=None, nagasaki_config=None, ffn_multiplier=2, gnn_residual=True, input_stacks=1,
+                 cross_stacks=1):
+        assert not (cross_stacks > 1 and input_stacks > 1), 'cant do both cross attention and history attention'
         super().__init__()
         self.dim_h = dim_h
         self.num_heads = num_heads
@@ -223,7 +228,7 @@ class GPSLayer(nn.Module):
                                             local_gnn_type, global_model_type, num_heads,
                                             pna_degrees, equivstable_pe, dropout,
                                             attn_dropout, layer_norm, batch_norm,
-                                            bigbird_cfg, nagasaki_config, input_stacks)
+                                            bigbird_cfg, nagasaki_config, input_stacks, cross_stacks)
 
         # Feed Forward block.
         if self.self_attn is not None:

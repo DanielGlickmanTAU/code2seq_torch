@@ -5,6 +5,7 @@ from torch_geometric.graphgym.models.gnn import GNNPreMP
 from torch_geometric.graphgym.register import register_network
 
 from examples.graphproppred.mol import pygraph_utils
+from examples.graphproppred.mol.pygraph_utils import to_dense_joined_batch
 from graphgps.layer.gps_layer import GPSLayer
 from graphgps.layer.graph_attention.positional.cls import CLSNode, CLSHead
 from graphgps.layer.graph_attention.positional.positional_attention_weight import Diffuser
@@ -74,7 +75,8 @@ class GPSModel(torch.nn.Module):
                                  batch_norm=cfg.gt.batch_norm, bigbird_cfg=cfg.gt.bigbird,
                                  nagasaki_config=cfg.nagasaki, ffn_multiplier=cfg.gt.ffn_multiplier,
                                  gnn_residual=cfg.gnn.residual,
-                                 input_stacks=n_layers_gnn_only if self.nagasaki_config.type == 'vid' else 1)
+                                 input_stacks=n_layers_gnn_only if self.nagasaki_config.type == 'vid' else 1,
+                                 cross_stacks=n_layers_gnn_only if self.nagasaki_config.type == 'cross' else 1)
             gps_layer.layer_index = (i, n_gt_layers)
             if i < n_layers_gnn_only:
                 self.local_layers.append(gps_layer)
@@ -94,6 +96,8 @@ class GPSModel(torch.nn.Module):
         batch = self.encoder(batch)
         if cfg.gnn.layers_pre_mp > 0:
             batch = self.pre_mp(batch)
+        if self.nagasaki_config.type == 'cross':
+            initial_x = batch.x
         if self.local_layers:
             for layer in self.local_layers:
                 batch = layer(batch)
@@ -103,6 +107,11 @@ class GPSModel(torch.nn.Module):
 
         if self.nagasaki_config.type == 'vid':
             batch.x = pygraph_utils.concat_layer_activations(gnn_outputs)
+        if self.nagasaki_config.type == 'cross':
+            history = pygraph_utils.concat_layer_activations(gnn_outputs)
+            batch.history = to_dense_joined_batch(history, batch.batch, len(gnn_outputs))
+            batch.x = initial_x
+
         if self.nagasaki_config.type.lower() == 'jk':
             batch.x = sum(gnn_outputs)
 

@@ -28,15 +28,14 @@ def multi_head_positional_attention(
 ) -> Tuple[Tensor, Optional[Tensor]]:
     # set up shape vars
     tgt_len, bsz, embed_dim = value.shape
-    src_len = tgt_len
+    src_len = attention_weights.shape[1]
     head_dim = embed_dim // num_heads
     _assertions(bias_k, bias_v, embed_dim, embed_dim_to_check, head_dim, num_heads,
                 use_separate_proj_weight, key_padding_mask)
 
     "expect attention weights to be of shape (batch *num_head,tgt_len,tgt_len)"
-    assert attention_weights.shape == (bsz * num_heads, src_len, src_len)
-    attn_mask = prep_attention_mask(attn_mask, bsz, num_heads, src_len, tgt_len)
-
+    # assert attention_weights.shape == (bsz * num_heads, src_len, src_len)
+    attn_mask = prep_attention_mask(attn_mask, bsz, num_heads, tgt_len, tgt_len)
 
     # (batch*num_head, n , d/head)
     v = pygraph_utils.reshape_to_multihead(value, num_heads)
@@ -46,7 +45,7 @@ def multi_head_positional_attention(
     assert embed_dim == out_proj_weight.shape[-1]
 
     attn, attn_output = weighted_average(v, attention_weights, attn_mask, training, dropout_p, normalizer)
-    attn_output = project_heads(attn_output, bsz, embed_dim, out_proj_bias, out_proj_weight, tgt_len)
+    attn_output = project_heads(attn_output, bsz, embed_dim, out_proj_bias, out_proj_weight, src_len)
 
     if need_weights:
         # average attention weights over heads
