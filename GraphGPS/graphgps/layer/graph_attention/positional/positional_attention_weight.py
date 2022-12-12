@@ -222,9 +222,7 @@ class Diffuser(nn.Module):
         super(Diffuser, self).__init__()
         self.nhead = nagasaki_config.nhead
         self.kernel = nagasaki_config.kernel
-        self.two_diffusion = nagasaki_config.two_diffusion
         self.edge_dim = positional_utils.get_edge_dim(nagasaki_config)
-        assert self.two_diffusion is False, 'not supported for now'
 
         steps = nagasaki_config.steps
         if isinstance(steps, str):

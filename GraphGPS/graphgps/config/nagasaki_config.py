@@ -15,7 +15,6 @@ def set_cfg_nagasaki(cfg):
     cfg.nagasaki.learn_edges_weight = False
     cfg.nagasaki.skip_stacking_ratio = 0.
     cfg.nagasaki.symmetric_edge_reduce = False
-    cfg.nagasaki.two_diffusion = False
     cfg.nagasaki.normalize = True
     cfg.nagasaki.kernel = 'sigmoid'
     cfg.nagasaki.bn_out = False
