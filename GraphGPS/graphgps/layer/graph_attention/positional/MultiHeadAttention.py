@@ -74,15 +74,18 @@ class MultiHeadAttention(torch.nn.Module):
         if self.bias_v is not None:
             xavier_normal_(self.bias_v)
 
-    def forward(self, value: Tensor, position_attention_weights, key_padding_mask: Optional[Tensor] = None,
+    def forward(self, query, key, value: Tensor, position_attention_weights, key_padding_mask: Optional[Tensor] = None,
                 need_weights: bool = True, attn_mask: Optional[Tensor] = None) -> Tuple[Tensor, Optional[Tensor]]:
         if self.batch_first:
             value = value.transpose(1, 0)
+            query = query.transpose(1, 0)
+            key = key.transpose(1, 0)
 
         if position_attention_weights is not None:
-            attention_weights, value = self.merge_positional_and_content_attention(position_attention_weights, value)
+            attention_weights, value = self.merge_positional_and_content_attention(position_attention_weights, query,
+                                                                                   key, value)
         else:
-            attention_weights, value = self.content_attention(value, value, value)
+            attention_weights, value = self.content_attention(query, key, value)
 
         attn_mask = pygraph_utils.reshape_attention_mask_to_multihead(attn_mask, self.num_heads)
         attn_output, attn_output_weights = multi_head_positional_attention(
@@ -99,12 +102,12 @@ class MultiHeadAttention(torch.nn.Module):
         else:
             return attn_output, attn_output_weights
 
-    def merge_positional_and_content_attention(self, position_attention_weights, value):
+    def merge_positional_and_content_attention(self, position_attention_weights, query, key, value):
         if not self.merge_attention:
             value = linear(value, self.in_proj_weight, self.in_proj_bias)
             return position_attention_weights, value
 
-        content_attention_weights, value = self.content_attention(value, value, value)
+        content_attention_weights, value = self.content_attention(query, key, value)
         content_attention_weights = torch.clamp(content_attention_weights, min=-10, max=10)
         position_attention_weights = torch.clamp(position_attention_weights, min=-10, max=10)
 

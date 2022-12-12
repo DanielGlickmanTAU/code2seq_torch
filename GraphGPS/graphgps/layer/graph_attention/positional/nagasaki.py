@@ -36,6 +36,6 @@ class Nagasaki(torch.nn.Module):
                 position_attention_weights = PositionAttention.reshape_positional_attention_to_joined_graph_attention(
                     position_attention_weights, self.input_stacks)
 
-        atten_out, atten_weights = self.att(h, position_attention_weights, attn_mask=~mask)
+        atten_out, atten_weights = self.att(h, h, h, position_attention_weights, attn_mask=~mask)
 
         return atten_out, atten_weights
