@@ -392,6 +392,7 @@ class WordsCombinationGraphDataset(Dataset):
 
 
 def create_pyg_graph(graph):
+    graph.graph = {}
     pyg_graph = torch_geometric.utils.from_networkx(graph)
     if not hasattr(graph, 'positions'):
         graph.positions = None
