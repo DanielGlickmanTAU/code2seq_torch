@@ -27,12 +27,22 @@ class Identity(nn.Module):
         return inputs
 
 
+class SoftmaxLinear(nn.Module):
+    def __init__(self, input_dim, dim_out):
+        super().__init__()
+        self.weight = nn.Linear(in_features=input_dim, out_features=dim_out).weight
+
+    def forward(self, stacks):
+        weight_softmax = self.weight.softmax(-1)
+        return torch.nn.functional.linear(stacks, weight_softmax)
+
+
 class AdjStackAttentionWeights(torch.nn.Module):
     def __init__(self, input_dim, dim_out, hidden_dim, ffn, ffn_layers=1):
         super(AdjStackAttentionWeights, self).__init__()
         self.num_adj_stacks = input_dim
         self.num_heads = dim_out
-        if not ffn:
+        if not ffn or ffn == 'None':
             self.weight = Identity()
         if ffn == 'bn-linear':
             self.weight = torch.nn.Sequential(
@@ -40,6 +50,8 @@ class AdjStackAttentionWeights(torch.nn.Module):
                 torch.nn.Linear(input_dim, dim_out),
 
             )
+        elif ffn == 'softmax-linear':
+            self.weight = SoftmaxLinear(input_dim, dim_out)
         elif ffn == 'bn-mlp' or ffn == 'mlp':
             if ffn == 'mlp':
                 layers = [torch.nn.Linear(input_dim, hidden_dim), torch.nn.ReLU()]
