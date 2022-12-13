@@ -21,9 +21,9 @@ class Residual(nn.Module):
 
 class Identity(nn.Module):
     def __init__(self):
-        super(Identity, self).__init__(Identity, self).__init__()
+        super(Identity, self).__init__().__init__()
 
-    def forward(self, inputs):
+    def forward(self, inputs, **kwargs):
         return inputs
 
 
@@ -44,7 +44,7 @@ class AdjStackAttentionWeights(torch.nn.Module):
         self.num_heads = dim_out
         if not ffn or ffn == 'None':
             self.weight = Identity()
-        if ffn == 'bn-linear':
+        elif ffn == 'bn-linear':
             self.weight = torch.nn.Sequential(
                 torch.nn.BatchNorm1d(input_dim),
                 torch.nn.Linear(input_dim, dim_out),
