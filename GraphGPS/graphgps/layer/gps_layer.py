@@ -200,8 +200,9 @@ class GPSLayer(nn.Module):
                  pna_degrees=None, equivstable_pe=False, dropout=0.0,
                  attn_dropout=0.0, layer_norm=False, batch_norm=True,
                  bigbird_cfg=None, nagasaki_config=None, ffn_multiplier=2, gnn_residual=True, input_stacks=1,
-                 cross_stacks=1):
+                 cross_stacks=1, self_attn_only=False, cross_attn_only=False):
         assert not (cross_stacks > 1 and input_stacks > 1), 'cant do both cross attention and history attention'
+        assert not (cross_attn_only and self_attn_only)
         super().__init__()
         self.dim_h = dim_h
         self.num_heads = num_heads
@@ -222,19 +223,31 @@ class GPSLayer(nn.Module):
         if global_model_type == 'None' or global_model_type is None:
             self.self_attn = None
         else:
-            self.self_attn = AttentionLayer(dim_h,
-                                            local_gnn_type, global_model_type, num_heads,
-                                            pna_degrees, equivstable_pe, dropout,
-                                            attn_dropout, layer_norm, batch_norm,
-                                            bigbird_cfg, nagasaki_config, input_stacks, 1)
-            if cross_stacks:
-                self.cross_attn = AttentionLayer(dim_h,
-                                                 local_gnn_type, global_model_type, num_heads,
-                                                 pna_degrees, equivstable_pe, dropout,
-                                                 attn_dropout, layer_norm, batch_norm,
-                                                 bigbird_cfg, nagasaki_config, input_stacks, cross_stacks)
+            self.cross_attn = None
+            if self_attn_only:
+                self.self_attn = AttentionLayer(dim_h,
+                                                local_gnn_type, global_model_type, num_heads,
+                                                pna_degrees, equivstable_pe, dropout,
+                                                attn_dropout, layer_norm, batch_norm,
+                                                bigbird_cfg, nagasaki_config, input_stacks, 1)
+            elif cross_attn_only:
+                self.self_attn = AttentionLayer(dim_h,
+                                                local_gnn_type, global_model_type, num_heads,
+                                                pna_degrees, equivstable_pe, dropout,
+                                                attn_dropout, layer_norm, batch_norm,
+                                                bigbird_cfg, nagasaki_config, input_stacks, cross_stacks)
             else:
-                self.cross_attn = None
+                self.self_attn = AttentionLayer(dim_h,
+                                                local_gnn_type, global_model_type, num_heads,
+                                                pna_degrees, equivstable_pe, dropout,
+                                                attn_dropout, layer_norm, batch_norm,
+                                                bigbird_cfg, nagasaki_config, input_stacks, 1)
+                if cross_stacks > 1:
+                    self.cross_attn = AttentionLayer(dim_h,
+                                                     local_gnn_type, global_model_type, num_heads,
+                                                     pna_degrees, equivstable_pe, dropout,
+                                                     attn_dropout, layer_norm, batch_norm,
+                                                     bigbird_cfg, nagasaki_config, input_stacks, cross_stacks)
 
         # Feed Forward block.
         if self.self_attn is not None:

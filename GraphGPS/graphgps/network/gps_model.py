@@ -67,7 +67,8 @@ class GPSModel(torch.nn.Module):
                     self.middle_layers.append(Diffuser(dim_in, cfg.nagasaki))
                 if cfg.nagasaki.add_cls:
                     self.middle_layers.append(CLSNode(dim_in, cfg.nagasaki))
-
+            self_attn_only = self.nagasaki_config.interleave_self_cross_attn and (i % 2 == 0)
+            cross_attn_only = self.nagasaki_config.interleave_self_cross_attn and (i % 2 != 0)
             gps_layer = GPSLayer(dim_h=cfg.gt.dim_hidden, local_gnn_type=layer_gnn_type,
                                  global_model_type=layer_global_model, num_heads=cfg.gt.n_heads,
                                  pna_degrees=cfg.gt.pna_degrees, equivstable_pe=cfg.posenc_EquivStableLapPE.enable,
@@ -76,7 +77,10 @@ class GPSModel(torch.nn.Module):
                                  nagasaki_config=cfg.nagasaki, ffn_multiplier=cfg.gt.ffn_multiplier,
                                  gnn_residual=cfg.gnn.residual,
                                  input_stacks=n_layers_gnn_only if self.nagasaki_config.type == 'vid' else 1,
-                                 cross_stacks=n_layers_gnn_only if self.nagasaki_config.type == 'cross' else 1)
+                                 cross_stacks=n_layers_gnn_only if self.nagasaki_config.type == 'cross' else 1,
+                                 self_attn_only=self_attn_only,
+                                 cross_attn_only=cross_attn_only,
+                                 )
             gps_layer.layer_index = (i, n_gt_layers)
             if i < n_layers_gnn_only:
                 self.local_layers.append(gps_layer)

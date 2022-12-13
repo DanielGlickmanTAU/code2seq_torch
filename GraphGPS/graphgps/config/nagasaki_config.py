@@ -28,6 +28,7 @@ def set_cfg_nagasaki(cfg):
 
     cfg.nagasaki.type = 'transformer'
     cfg.nagasaki.fuck_positional = False
+    cfg.nagasaki.interleave_self_cross_attn = False
 
 
 register_config('cfg_nagasaki', set_cfg_nagasaki)
