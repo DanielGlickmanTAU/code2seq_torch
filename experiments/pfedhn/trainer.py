@@ -16,6 +16,7 @@ from experiments.pfedhn.models import CNNHyper, CNNTarget
 from experiments.pfedhn.node import BaseNodes
 from experiments.utils import get_device, set_logger, set_seed, str2bool
 
+
 def eval_model(nodes, num_nodes, hnet, net, criteria, device, split):
     curr_results = evaluate(nodes, num_nodes, hnet, net, criteria, device, split=split)
     total_correct = sum([val['correct'] for val in curr_results.values()])
@@ -47,12 +48,14 @@ def evaluate(nodes: BaseNodes, num_nodes, hnet, net, criteria, device, split='te
             img, label = tuple(t.to(device) for t in batch)
             id_tensor = torch.tensor([node_id], dtype=torch.long).to(device)
             emd = hnet.embeddings(id_tensor)
-            weights = hnet(emd)
-            net.load_state_dict(weights)
-            pred = net(img)
-            running_loss += criteria(pred, label).item()
-            running_correct += pred.argmax(1).eq(label).sum().item()
-            running_samples += len(label)
+            weights_batched = hnet(emd)
+            for batch_index in range(emd.shape[0]):
+                weights = OrderedDict({k: tensor[batch_index] for k, tensor in weights_batched.items()})
+                net.load_state_dict(weights)
+                pred = net(img)
+                running_loss += criteria(pred, label).item()
+                running_correct += pred.argmax(1).eq(label).sum().item()
+                running_samples += len(label)
 
         results[node_id]['loss'] = running_loss / (batch_count + 1)
         results[node_id]['correct'] = running_correct
@@ -65,7 +68,7 @@ def train(data_name: str, data_path: str, classes_per_node: int, num_nodes: int,
           steps: int, inner_steps: int, optim: str, lr: float, inner_lr: float,
           embed_lr: float, wd: float, inner_wd: float, embed_dim: int, hyper_hid: int,
           n_hidden: int, n_kernels: int, bs: int, device, eval_every: int, save_path: Path,
-          seed: int, run) -> None:
+          seed: int, run, hyper_batch_size) -> None:
     ###############################
     # init nodes, hnet, local net #
     ###############################
@@ -118,17 +121,39 @@ def train(data_name: str, data_path: str, classes_per_node: int, num_nodes: int,
 
     results = defaultdict(list)
     for step in step_iter:
-        hnet.train()
-
         # select client at random
-        node_id = random.choice(range(num_nodes))
-
-        # produce & load local network weights
-        id_tensor = torch.tensor([node_id], dtype=torch.long).to(device)
-        emd = hnet.embeddings(id_tensor)
-        weights = hnet(emd)
-        hnet_grads = compute_grads_of_client_net(criteria, device, hnet, inner_lr, inner_steps, inner_wd, net, node_id,
-                                                 nodes, optimizer, weights)
+        nodes_id = random.sample(range(num_nodes), hyper_batch_size)
+        ids_tensor = torch.tensor([nodes_id], dtype=torch.long, device=device).view(-1)
+        emds = hnet.embeddings(ids_tensor)
+        hnet_grads = None
+        hnet_grads, train_acc = compute_hn_grads(criteria, device, hnet, inner_lr, inner_steps, inner_wd,
+                                                 net,
+                                                 emds,
+                                                 nodes_id, nodes,
+                                                 optimizer)
+        # train_acc = 0.
+        # for node_id, id_tensor, emd in zip(nodes_id, ids_tensor, emds):
+        #     emd = emd.unsqueeze(0)
+        #     if hnet_grads is None:
+        #         hnet_grads, curr_train_acc = compute_hn_grads(criteria, device, hnet, inner_lr, inner_steps, inner_wd,
+        #                                                       net,
+        #                                                       emd,
+        #                                                       node_id, nodes,
+        #                                                       optimizer)
+        #         train_acc += curr_train_acc
+        #     else:
+        #         hnet_grads_new, curr_train_acc = compute_hn_grads(criteria, device, hnet, inner_lr, inner_steps,
+        #                                                           inner_wd,
+        #                                                           net, emd,
+        #                                                           node_id, nodes,
+        #                                                           optimizer)
+        #         # accumulate grad
+        #         hnet_grads = tuple(x + y for x, y in zip(hnet_grads, hnet_grads_new))
+        #         train_acc += curr_train_acc
+        #
+        # # average , divide by hnet batch_size
+        # hnet_grads = tuple(x / hyper_batch_size for x in hnet_grads)
+        # train_acc = train_acc / hyper_batch_size
 
         # update hnet weights
         for p, g in zip(hnet.parameters(), hnet_grads):
@@ -140,7 +165,7 @@ def train(data_name: str, data_path: str, classes_per_node: int, num_nodes: int,
         # step_iter.set_description(
         #     f"Step: {step + 1}, Node ID: {node_id}, Loss: {prvs_loss:.4f},  Acc: {prvs_acc:.4f}"
         # )
-
+        results['train_acc'].append(train_acc)
         if step % eval_every == 0:
             last_eval = step
             step_results, avg_loss, avg_acc, all_acc = eval_model(nodes, num_nodes, hnet, net, criteria, device,
@@ -167,7 +192,8 @@ def train(data_name: str, data_path: str, classes_per_node: int, num_nodes: int,
             results['test_best_min_based_on_step'].append(test_best_min_based_on_step)
             results['test_best_max_based_on_step'].append(test_best_max_based_on_step)
             results['test_best_std_based_on_step'].append(test_best_std_based_on_step)
-            run.log(parse_results_to_wandb_log_format(results), step=step)
+            if run:
+                run.log(parse_results_to_wandb_log_format(results), step=step)
 
     if step != last_eval:
         _, val_avg_loss, val_avg_acc, _ = eval_model(nodes, num_nodes, hnet, net, criteria, device, split="val")
@@ -194,30 +220,57 @@ def train(data_name: str, data_path: str, classes_per_node: int, num_nodes: int,
         results['test_best_min_based_on_step'].append(test_best_min_based_on_step)
         results['test_best_max_based_on_step'].append(test_best_max_based_on_step)
         results['test_best_std_based_on_step'].append(test_best_std_based_on_step)
-        run.log(parse_results_to_wandb_log_format(results), step=step)
+        if run:
+            run.log(parse_results_to_wandb_log_format(results), step=step)
 
     save_path = Path(save_path)
     save_path.mkdir(parents=True, exist_ok=True)
     with open(str(save_path / f"results_{inner_steps}_inner_steps_seed_{seed}.json"), "w") as file:
         json.dump(results, file, indent=4)
+    return best_acc, test_best_based_on_step
 
 
-def compute_grads_of_client_net(criteria, device, hnet, inner_lr, inner_steps, inner_wd, net, node_id, nodes, optimizer,
-                                weights):
-    net.load_state_dict(weights)
-    # storing theta_i for later calculating delta theta
-    inner_state = OrderedDict({k: tensor.data for k, tensor in weights.items()})
-    # NOTE: evaluation on sent model
-    eval_client_model(criteria, device, net, node_id, nodes)
-    final_state = get_trained_network_state(criteria, device, inner_lr, inner_steps, inner_wd, net, node_id, nodes,
-                                            optimizer)
-    # calculating delta theta
-    delta_theta = OrderedDict({k: inner_state[k] - final_state[k] for k in weights.keys()})
+def compute_hn_grads(criteria, device, hnet, inner_lr, inner_steps, inner_wd, net, emd, nodes_id, nodes, optimizer):
+    hnet.train()
+    # produce & load local network weights
+
+    weights = hnet(emd)
+
+    hnet_grads, train_acc = compute_grads_of_client_net(criteria, device, hnet, inner_lr, inner_steps, inner_wd, net,
+                                                        nodes_id,
+                                                        nodes, optimizer, weights)
+    return hnet_grads, train_acc
+
+
+def compute_grads_of_client_net(criteria, device, hnet, inner_lr, inner_steps, inner_wd, net, nodes_id, nodes,
+                                optimizer,
+                                weights_batched):
+    acc, loss = 0., 0.
+    deltas = OrderedDict({k: torch.zeros_like(tensor) for k, tensor in weights_batched.items()})
+    for batch_index in range(len(nodes_id)):
+        node_id = nodes_id[batch_index]
+        weights = OrderedDict({k: tensor[batch_index] for k, tensor in weights_batched.items()})
+        net.load_state_dict(weights)
+        # storing theta_i for later calculating delta theta
+        inner_state = OrderedDict({k: tensor.data for k, tensor in weights.items()})
+        # NOTE: evaluation on sent model
+        prvs_acc, prvs_loss = eval_client_model(criteria, device, net, node_id, nodes)
+        final_state = get_trained_network_state(criteria, device, inner_lr, inner_steps, inner_wd, net, node_id, nodes,
+                                                optimizer)
+        # calculating delta theta
+        # delta_theta = OrderedDict({k: inner_state[k] - final_state[k] for k in weights.keys()})
+        for k in weights.keys():
+            deltas[k][batch_index] = inner_state[k] - final_state[k]
+        loss += prvs_loss
+        acc += prvs_acc
     # calculating phi gradient
+    # before here I need to batch the weights and deltas...
     hnet_grads = torch.autograd.grad(
-        list(weights.values()), hnet.parameters(), grad_outputs=list(delta_theta.values())
+        list(weights_batched.values()), hnet.parameters(), grad_outputs=list(deltas.values())
     )
-    return hnet_grads
+    acc = acc / len(nodes_id)
+    loss = loss / len(nodes_id)
+    return hnet_grads, acc
 
 
 def get_trained_network_state(criteria, device, inner_lr, inner_steps, inner_wd, net, node_id, nodes, optimizer):
@@ -282,6 +335,8 @@ if __name__ == '__main__':
     parser.add_argument("--optim", type=str, default='sgd', choices=['adam', 'sgd'], help="learning rate")
     parser.add_argument("--batch-size", type=int, default=64)
     parser.add_argument("--inner-steps", type=int, default=50, help="number of inner steps")
+    parser.add_argument("--hyper-batch-size", type=int, default=1,
+                        help="how much model HN gradients to accumulate before update")
 
     ################################
     #       Model Prop args        #
@@ -342,5 +397,6 @@ if __name__ == '__main__':
         eval_every=args.eval_every,
         save_path=args.save_path,
         seed=args.seed,
-        run=run
+        run=run,
+        hyper_batch_size=args.hyper_batch_size
     )

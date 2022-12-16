@@ -51,21 +51,19 @@ class CNNHyper(nn.Module):
             self.l3_bias = spectral_norm(self.l3_bias)
 
     def forward(self, emd):
-        emd = self.embeddings(emd)
-
         features = self.mlp(emd)
-
+        hyper_bs = emd.shape[0]
         weights = OrderedDict({
-            "conv1.weight": self.c1_weights(features).view(self.n_kernels, self.in_channels, 5, 5),
-            "conv1.bias": self.c1_bias(features).view(-1),
-            "conv2.weight": self.c2_weights(features).view(2 * self.n_kernels, self.n_kernels, 5, 5),
-            "conv2.bias": self.c2_bias(features).view(-1),
-            "fc1.weight": self.l1_weights(features).view(120, 2 * self.n_kernels * 5 * 5),
-            "fc1.bias": self.l1_bias(features).view(-1),
-            "fc2.weight": self.l2_weights(features).view(84, 120),
-            "fc2.bias": self.l2_bias(features).view(-1),
-            "fc3.weight": self.l3_weights(features).view(self.out_dim, 84),
-            "fc3.bias": self.l3_bias(features).view(-1),
+            "conv1.weight": self.c1_weights(features).view(hyper_bs, self.n_kernels, self.in_channels, 5, 5),
+            "conv1.bias": self.c1_bias(features).view(hyper_bs, -1),
+            "conv2.weight": self.c2_weights(features).view(hyper_bs, 2 * self.n_kernels, self.n_kernels, 5, 5),
+            "conv2.bias": self.c2_bias(features).view(hyper_bs, -1),
+            "fc1.weight": self.l1_weights(features).view(hyper_bs, 120, 2 * self.n_kernels * 5 * 5),
+            "fc1.bias": self.l1_bias(features).view(hyper_bs, -1),
+            "fc2.weight": self.l2_weights(features).view(hyper_bs, 84, 120),
+            "fc2.bias": self.l2_bias(features).view(hyper_bs, -1),
+            "fc3.weight": self.l3_weights(features).view(hyper_bs, self.out_dim, 84),
+            "fc3.bias": self.l3_bias(features).view(hyper_bs, -1),
         })
         return weights
 
