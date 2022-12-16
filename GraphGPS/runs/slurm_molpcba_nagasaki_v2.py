@@ -29,7 +29,7 @@ params_for_exp = {
     # 'nagasaki.edge_model_type': ['bn-mlp'],
     # 'nagasaki.edge_model_type': ['res-mlp'],
     # 'nagasaki.edge_model_type': ['bn-mlp'],
-    'nagasaki.edge_model_type': ['', None],
+    # 'nagasaki.edge_model_type': ['', None],
     # 'nagasaki.edge_reduction': ['bn-mlp', 'linear'],
     # 'nagasaki.edge_reduction': ['bn-mlp'],
     'nagasaki.edge_reduction': ['linear'],
