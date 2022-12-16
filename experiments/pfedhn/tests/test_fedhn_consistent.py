@@ -186,5 +186,5 @@ class PFedHnTest(TestCase):
             run=None,
             hyper_batch_size=args.hyper_batch_size)
         print(val_best, test_best)
-        self.assertAlmostEqual(val_best, 0.24422442244224424, delta=0.01)
-        self.assertAlmostEqual(test_best, 0.2342436974789916, delta=0.01)
+        self.assertAlmostEqual(val_best, 0.3256825682568257, delta=0.01)
+        self.assertAlmostEqual(test_best, 0.32593037214885956, delta=0.01)
