@@ -1541,3 +1541,7 @@ again reduce etc..
 input edge dim d(initally, by Diffuser#reducer, will return dim d)
 (reduce to edge weight-> stack(expand)  -> edge-mlp(mix)) .. possibly with mutiple graphs(reduce to nhead and sum after
 mlp)
+
+### 14/12
+
+grpah gps does not overfit as much as cross atten.. may be the main issue why results are not as good
