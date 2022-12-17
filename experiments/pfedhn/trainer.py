@@ -31,32 +31,34 @@ def eval_model(nodes, num_nodes, hnet, net, criteria, device, split):
 
 @torch.no_grad()
 def evaluate(nodes: BaseNodes, num_nodes, hnet, net, criteria, device, split='test'):
+    def get_loader_for_node(node_id):
+        if split == 'test':
+            return nodes.test_loaders[node_id]
+        elif split == 'val':
+            return nodes.val_loaders[node_id]
+        else:
+            return nodes.train_loaders[node_id]
+
     hnet.eval()
     results = defaultdict(lambda: defaultdict(list))
 
+    ids_tensor = torch.tensor(list(range(num_nodes)), dtype=torch.long, device=device).view(-1)
+    emds = hnet.embeddings(ids_tensor)
+    weights_batched = hnet(emds)
     for node_id in range(num_nodes):  # iterating over nodes
 
         running_loss, running_correct, running_samples = 0., 0., 0.
-        if split == 'test':
-            curr_data = nodes.test_loaders[node_id]
-        elif split == 'val':
-            curr_data = nodes.val_loaders[node_id]
-        else:
-            curr_data = nodes.train_loaders[node_id]
 
+        curr_data = get_loader_for_node(node_id)
+        weights = OrderedDict({k: tensor[node_id] for k, tensor in weights_batched.items()})
+        net.load_state_dict(weights)
         for batch_count, batch in enumerate(curr_data):
             img, label = tuple(t.to(device) for t in batch)
-            id_tensor = torch.tensor([node_id], dtype=torch.long).to(device)
-            emd = hnet.embeddings(id_tensor)
-            weights_batched = hnet(emd)
-            for batch_index in range(emd.shape[0]):
-                weights = OrderedDict({k: tensor[batch_index] for k, tensor in weights_batched.items()})
-                net.load_state_dict(weights)
-                pred = net(img)
-                running_loss += criteria(pred, label).item()
-                running_correct += pred.argmax(1).eq(label).sum().item()
-                running_samples += len(label)
+            pred = net(img)
 
+            running_loss += criteria(pred, label).item()
+            running_correct += pred.argmax(1).eq(label).sum().item()
+            running_samples += len(label)
         results[node_id]['loss'] = running_loss / (batch_count + 1)
         results[node_id]['correct'] = running_correct
         results[node_id]['total'] = running_samples
@@ -68,7 +70,7 @@ def train(data_name: str, data_path: str, classes_per_node: int, num_nodes: int,
           steps: int, inner_steps: int, optim: str, lr: float, inner_lr: float,
           embed_lr: float, wd: float, inner_wd: float, embed_dim: int, hyper_hid: int,
           n_hidden: int, n_kernels: int, bs: int, device, eval_every: int, save_path: Path,
-          seed: int, run, hyper_batch_size, embedding_type) -> None:
+          seed: int, run, hyper_batch_size, embedding_type='') -> None:
     ###############################
     # init nodes, hnet, local net #
     ###############################
