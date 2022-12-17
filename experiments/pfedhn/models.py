@@ -8,13 +8,16 @@ from torch.nn.utils import spectral_norm
 class CNNHyper(nn.Module):
     def __init__(
             self, n_nodes, embedding_dim, in_channels=3, out_dim=10, n_kernels=16, hidden_dim=100,
-            spec_norm=False, n_hidden=1):
+            spec_norm=False, n_hidden=1, embedding_type=''):
         super().__init__()
 
         self.in_channels = in_channels
         self.out_dim = out_dim
         self.n_kernels = n_kernels
         self.embeddings = nn.Embedding(num_embeddings=n_nodes, embedding_dim=embedding_dim)
+
+        self.attn = nn.MultiheadAttention(embedding_dim, num_heads=1,
+                                          batch_first=True) if embedding_type == 'attention' else None
 
         layers = [
             spectral_norm(nn.Linear(embedding_dim, hidden_dim)) if spec_norm else nn.Linear(embedding_dim, hidden_dim),
@@ -51,6 +54,10 @@ class CNNHyper(nn.Module):
             self.l3_bias = spectral_norm(self.l3_bias)
 
     def forward(self, emd):
+        if self.attn:
+            attn_output, attn_output_weights = self.attn(emd, emd, emd)
+            emd = emd + attn_output
+
         features = self.mlp(emd)
         hyper_bs = emd.shape[0]
         weights = OrderedDict({

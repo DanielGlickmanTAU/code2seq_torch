@@ -68,7 +68,7 @@ def train(data_name: str, data_path: str, classes_per_node: int, num_nodes: int,
           steps: int, inner_steps: int, optim: str, lr: float, inner_lr: float,
           embed_lr: float, wd: float, inner_wd: float, embed_dim: int, hyper_hid: int,
           n_hidden: int, n_kernels: int, bs: int, device, eval_every: int, save_path: Path,
-          seed: int, run, hyper_batch_size) -> None:
+          seed: int, run, hyper_batch_size, embedding_type) -> None:
     ###############################
     # init nodes, hnet, local net #
     ###############################
@@ -81,7 +81,8 @@ def train(data_name: str, data_path: str, classes_per_node: int, num_nodes: int,
         embed_dim = int(1 + num_nodes / 4)
 
     if data_name == "cifar10":
-        hnet = CNNHyper(num_nodes, embed_dim, hidden_dim=hyper_hid, n_hidden=n_hidden, n_kernels=n_kernels)
+        hnet = CNNHyper(num_nodes, embed_dim, hidden_dim=hyper_hid, n_hidden=n_hidden, n_kernels=n_kernels,
+                        embedding_type=embedding_type)
         net = CNNTarget(n_kernels=n_kernels)
     elif data_name == "cifar100":
         hnet = CNNHyper(num_nodes, embed_dim, hidden_dim=hyper_hid,
@@ -125,35 +126,11 @@ def train(data_name: str, data_path: str, classes_per_node: int, num_nodes: int,
         nodes_id = random.sample(range(num_nodes), hyper_batch_size)
         ids_tensor = torch.tensor([nodes_id], dtype=torch.long, device=device).view(-1)
         emds = hnet.embeddings(ids_tensor)
-        hnet_grads = None
         hnet_grads, train_acc = compute_hn_grads(criteria, device, hnet, inner_lr, inner_steps, inner_wd,
                                                  net,
                                                  emds,
                                                  nodes_id, nodes,
                                                  optimizer)
-        # train_acc = 0.
-        # for node_id, id_tensor, emd in zip(nodes_id, ids_tensor, emds):
-        #     emd = emd.unsqueeze(0)
-        #     if hnet_grads is None:
-        #         hnet_grads, curr_train_acc = compute_hn_grads(criteria, device, hnet, inner_lr, inner_steps, inner_wd,
-        #                                                       net,
-        #                                                       emd,
-        #                                                       node_id, nodes,
-        #                                                       optimizer)
-        #         train_acc += curr_train_acc
-        #     else:
-        #         hnet_grads_new, curr_train_acc = compute_hn_grads(criteria, device, hnet, inner_lr, inner_steps,
-        #                                                           inner_wd,
-        #                                                           net, emd,
-        #                                                           node_id, nodes,
-        #                                                           optimizer)
-        #         # accumulate grad
-        #         hnet_grads = tuple(x + y for x, y in zip(hnet_grads, hnet_grads_new))
-        #         train_acc += curr_train_acc
-        #
-        # # average , divide by hnet batch_size
-        # hnet_grads = tuple(x / hyper_batch_size for x in hnet_grads)
-        # train_acc = train_acc / hyper_batch_size
 
         # update hnet weights
         for p, g in zip(hnet.parameters(), hnet_grads):
@@ -351,6 +328,7 @@ if __name__ == '__main__':
     parser.add_argument("--hyper-hid", type=int, default=100, help="hypernet hidden dim")
     parser.add_argument("--spec-norm", type=str2bool, default=False, help="hypernet hidden dim")
     parser.add_argument("--nkernels", type=int, default=16, help="number of kernels for cnn model")
+    parser.add_argument("--embedding_type", type=str, default='', help="mix embeddings with attention")
 
     #############################
     #       General args        #
@@ -398,5 +376,6 @@ if __name__ == '__main__':
         save_path=args.save_path,
         seed=args.seed,
         run=run,
-        hyper_batch_size=args.hyper_batch_size
+        hyper_batch_size=args.hyper_batch_size,
+        embedding_type=args.embedding_type,
     )
