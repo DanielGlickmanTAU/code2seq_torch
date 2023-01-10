@@ -1545,3 +1545,9 @@ mlp)
 ### 14/12
 
 grpah gps does not overfit as much as cross atten.. may be the main issue why results are not as good
+
+
+
+### 2/1/23
+
+location on c-002 : /specific/disk1/home/gamir/achiya .. py interperter is in graphgps env

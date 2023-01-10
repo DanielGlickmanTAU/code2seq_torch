@@ -10,26 +10,31 @@ batch_acc = 8
 params = {
     # '--cfg': 'configs/GPS/ogbg-code2-sat.yaml',
     '--cfg': 'configs/GPS/ogbg-code2-GPS.yaml',
-    'optim.max_epoch':40
+    'optim.max_epoch': 40
 }
 
 params_for_exp = {
     'train.batch_size': int(32 / batch_acc),
     'optim.batch_accumulation': batch_acc,
-    'seed': [7, 8, 9, 10, 1, 1],
+    'seed': [2],
     'gt.ffn_multiplier': 4,
     # 'nagasaki.ffn_hidden_multiplier': 1,
 
     'nagasaki.learn_edges_weight': [True],
-    'nagasaki.steps': '[1, 2, 3, 4, 5,6, 7, 8, 9, 10,11,12,13,14,15,16,17,18,19,20]',
-    # 'nagasaki.edge_model_type': ['bn-mlp'],
-    'nagasaki.edge_model_type': ['res-mlp'],
-    'nagasaki.edge_reduction': ['linear'],
+    # 'nagasaki.steps': '[1, 2, 3, 4, 5,6, 7, 8, 9, 10,11,12,13,14,15,16,17,18,19,20]',
+    # ('nagasaki.kernel', 'nagasaki.merge_attention',): [('sigmoid', 'gate')],
+    # # 'nagasaki.edge_model_type': ['bn-mlp'],
+    # 'nagasaki.edge_model_type': ['res-mlp'],
+    # 'nagasaki.edge_reduction': ['linear'],
 
     'dataset.node_encoder_name': 'ASTNode',
     'posenc_RWSE.enable': False,
 
-    ('nagasaki.kernel', 'nagasaki.merge_attention',): [('sigmoid', 'gate')],
+    'nagasaki.steps': '[1, 2, 3, 4, 5,6, 7, 8, 16,32,64,128,256]',
+    # 'nagasaki.edge_model_type': ['bn-mlp'],
+    'nagasaki.edge_model_type': ['None'],
+    'nagasaki.edge_reduction': ['softmax-linear'],
+    ('nagasaki.kernel', 'nagasaki.merge_attention',): [('softmax', 'plus')],
 
     # ('nagasaki.kernel', 'nagasaki.merge_attention',): [('softmax', 'plus')],
     # 'nagasaki.scale_attention': [True],

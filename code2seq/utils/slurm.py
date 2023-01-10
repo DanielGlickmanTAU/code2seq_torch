@@ -11,6 +11,7 @@ slurm_file = 'my_slurm.slurm'
 
 num_jobs_that_can_run_on_studentbatch_at_one_time = 6
 
+
 def get_partition_and_time_limit(partition=None):
     if partition is not None:
         if 'batch' in partition:
@@ -75,7 +76,9 @@ def run_on_slurm(job_name, params, no_flag_param='', slurm=None, gpu=True, sleep
         return job_id
 
     else:
-        res_file = f'res_{time.time()}.txt'
+        time_time = time.time()
+        res_file = f'res_{time_time}.txt'
         print(f'saving to {res_file}')
+        os.system(f'echo {command} > command_{time_time}.txt')
         os.system(f"nohup sh -c ' {command} > {res_file} 2>&1 &'&")
     # os.system('chmod 700 slurm.py')

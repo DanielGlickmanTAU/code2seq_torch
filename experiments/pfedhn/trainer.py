@@ -70,7 +70,8 @@ def train(data_name: str, data_path: str, classes_per_node: int, num_nodes: int,
           steps: int, inner_steps: int, optim: str, lr: float, inner_lr: float,
           embed_lr: float, wd: float, inner_wd: float, embed_dim: int, hyper_hid: int,
           n_hidden: int, n_kernels: int, bs: int, device, eval_every: int, save_path: Path,
-          seed: int, run, hyper_batch_size, embedding_type='') -> None:
+          seed: int, run, hyper_batch_size, embedding_type='', normalization=None, project_per_layer=False,
+          decode_parts=False, args=None) -> None:
     ###############################
     # init nodes, hnet, local net #
     ###############################
@@ -84,12 +85,15 @@ def train(data_name: str, data_path: str, classes_per_node: int, num_nodes: int,
 
     if data_name == "cifar10":
         hnet = CNNHyper(num_nodes, embed_dim, hidden_dim=hyper_hid, n_hidden=n_hidden, n_kernels=n_kernels,
-                        embedding_type=embedding_type)
-        net = CNNTarget(n_kernels=n_kernels)
+                        embedding_type=embedding_type, normalization=normalization, project_per_layer=project_per_layer,
+                        decode_parts=decode_parts, args=args)
+        net = CNNTarget(n_kernels=n_kernels, connectivity=args.connectivity)
     elif data_name == "cifar100":
         hnet = CNNHyper(num_nodes, embed_dim, hidden_dim=hyper_hid,
-                        n_hidden=n_hidden, n_kernels=n_kernels, out_dim=100)
-        net = CNNTarget(n_kernels=n_kernels, out_dim=100)
+                        n_hidden=n_hidden, n_kernels=n_kernels, out_dim=100, embedding_type=embedding_type,
+                        normalization=normalization, project_per_layer=project_per_layer, decode_parts=decode_parts,
+                        args=args)
+        net = CNNTarget(n_kernels=n_kernels, out_dim=100, connectivity=args.connectivity)
     else:
         raise ValueError("choose data_name from ['cifar10', 'cifar100']")
 
@@ -243,7 +247,6 @@ def compute_grads_of_client_net(criteria, device, hnet, inner_lr, inner_steps, i
         loss += prvs_loss
         acc += prvs_acc
     # calculating phi gradient
-    # before here I need to batch the weights and deltas...
     hnet_grads = torch.autograd.grad(
         list(weights_batched.values()), hnet.parameters(), grad_outputs=list(deltas.values())
     )
@@ -329,8 +332,15 @@ if __name__ == '__main__':
     parser.add_argument("--embed-lr", type=float, default=None, help="embedding learning rate")
     parser.add_argument("--hyper-hid", type=int, default=100, help="hypernet hidden dim")
     parser.add_argument("--spec-norm", type=str2bool, default=False, help="hypernet hidden dim")
+    parser.add_argument("--decode_parts", type=str2bool, default=False)
     parser.add_argument("--nkernels", type=int, default=16, help="number of kernels for cnn model")
     parser.add_argument("--embedding_type", type=str, default='', help="mix embeddings with attention")
+    parser.add_argument("--project_per_layer", type=str2bool, default=False)
+    parser.add_argument("--causal_attn_decoder", type=str2bool, default=True)
+    parser.add_argument("--decoder_layers", type=int, default=2)
+    parser.add_argument("--connectivity", type=float, default=0.)
+    parser.add_argument("--normalization", type=str, default=None,
+                        help="normalize hn activation(before creating weights)")
 
     #############################
     #       General args        #
@@ -380,4 +390,8 @@ if __name__ == '__main__':
         run=run,
         hyper_batch_size=args.hyper_batch_size,
         embedding_type=args.embedding_type,
+        normalization=args.normalization,
+        project_per_layer=args.project_per_layer,
+        decode_parts=args.decode_parts,
+        args=args
     )

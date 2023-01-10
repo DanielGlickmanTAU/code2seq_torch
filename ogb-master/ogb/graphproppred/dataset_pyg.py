@@ -177,7 +177,7 @@ class PygGraphPropPredDataset(InMemoryDataset):
 
 
 if __name__ == '__main__':
-    # pyg_dataset = PygGraphPropPredDataset(name = 'ogbg-molpcba')
+    pyg_dataset = PygGraphPropPredDataset(name = 'ogbg-molpcba')
     # print(pyg_dataset.num_classes)
     # split_index = pyg_dataset.get_idx_split()
     # print(pyg_dataset)

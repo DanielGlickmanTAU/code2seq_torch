@@ -10,9 +10,9 @@ batch_acc = 2
 
 params_for_exp = {
     '--cfg': [
-        'configs/GPS/ogbg-ppa-GPS-ablation.yaml',
-        'configs/GPS/ogbg-ppa-GraphTrans-ablation.yaml',
-        'configs/GPS/ogbg-ppa-Transformer-ablation.yaml'
+        # 'configs/GPS/ogbg-ppa-GPS-ablation.yaml',
+        # 'configs/GPS/ogbg-ppa-GraphTrans-ablation.yaml',
+        # 'configs/GPS/ogbg-ppa-Transformer-ablation.yaml'
     ],
     'optim.early_stop_patience': 9999,
 
@@ -20,7 +20,8 @@ params_for_exp = {
 
     'train.batch_size': int(32 / batch_acc),
     'optim.batch_accumulation': batch_acc,
-    'seed': [1, 2, 3, 4],
+    # 'seed': [1, 2, 3, 4],
+    'seed': [1, 2],
 
     'nagasaki.steps': '[1, 2, 3, 4, 5,6, 7, 8, 9, 10]',
     'nagasaki.edge_model_type': ['res-mlp'],
@@ -51,9 +52,9 @@ diffuser_no_projection = {
 }
 
 params_for_grid_search = [
-    baseline,
-    diffuser
-    , diffuser_not_learned,
+    # baseline,
+    # diffuser
+    # , diffuser_not_learned,
     diffuser_no_projection
 ]
 
