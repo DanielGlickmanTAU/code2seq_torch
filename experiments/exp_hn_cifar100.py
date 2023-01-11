@@ -10,7 +10,7 @@ params = {
     '--eval-every': 15,
     '--lr': 5e-3,
     # '--hyper-batch-size': 64,
-    # '--hyper-batch-size': 8,
+    '--hyper-batch-size': 8,
     # '--hyper-batch-size': 16,
     '--num-nodes': 500,
     # '--num-nodes': 500,
@@ -26,7 +26,8 @@ params = {
     # '--project_per_layer': True,
     # '--causal_attn_decoder': False,
     # '--decoder_layers': 1
-    '--connectivity': 0.5
+    # '--connectivity': 0.5
+    # '--layer_normalize_loss': True
 }
 
 params_for_exp = {

@@ -9,7 +9,7 @@ import os
 params = {
     '--eval-every': 15,
     # '--hyper-batch-size': 64,
-    '--hyper-batch-size': 8,
+    # '--hyper-batch-size': 8,
     # '--hyper-batch-size': 16,
     # '--num-nodes': 4000,
     '--num-nodes': 500,
@@ -18,9 +18,9 @@ params = {
     # '--normalization': 'softmax',
     # '--normalization': 'sigmoid',
     # '--normalization': run above then comment above
-    '--n-hidden': 0,
+    # '--n-hidden': 0,
     '--decode_parts': True,
-    # '--project_per_layer': True
+    '--project_per_layer': True
     # '--normalization': 'norm'
 }
 

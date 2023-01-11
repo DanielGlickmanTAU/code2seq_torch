@@ -136,7 +136,7 @@ def train(data_name: str, data_path: str, classes_per_node: int, num_nodes: int,
                                                  net,
                                                  emds,
                                                  nodes_id, nodes,
-                                                 optimizer)
+                                                 optimizer, args.layer_normalize_loss)
 
         # update hnet weights
         for p, g in zip(hnet.parameters(), hnet_grads):
@@ -213,7 +213,8 @@ def train(data_name: str, data_path: str, classes_per_node: int, num_nodes: int,
     return best_acc, test_best_based_on_step
 
 
-def compute_hn_grads(criteria, device, hnet, inner_lr, inner_steps, inner_wd, net, emd, nodes_id, nodes, optimizer):
+def compute_hn_grads(criteria, device, hnet, inner_lr, inner_steps, inner_wd, net, emd, nodes_id, nodes, optimizer,
+                     layer_normalize_loss):
     hnet.train()
     # produce & load local network weights
 
@@ -221,13 +222,13 @@ def compute_hn_grads(criteria, device, hnet, inner_lr, inner_steps, inner_wd, ne
 
     hnet_grads, train_acc = compute_grads_of_client_net(criteria, device, hnet, inner_lr, inner_steps, inner_wd, net,
                                                         nodes_id,
-                                                        nodes, optimizer, weights)
+                                                        nodes, optimizer, weights, layer_normalize_loss)
     return hnet_grads, train_acc
 
 
 def compute_grads_of_client_net(criteria, device, hnet, inner_lr, inner_steps, inner_wd, net, nodes_id, nodes,
                                 optimizer,
-                                weights_batched):
+                                weights_batched, layer_normalize_loss):
     acc, loss = 0., 0.
     deltas = OrderedDict({k: torch.zeros_like(tensor) for k, tensor in weights_batched.items()})
     for batch_index in range(len(nodes_id)):
@@ -244,6 +245,8 @@ def compute_grads_of_client_net(criteria, device, hnet, inner_lr, inner_steps, i
         # delta_theta = OrderedDict({k: inner_state[k] - final_state[k] for k in weights.keys()})
         for k in weights.keys():
             deltas[k][batch_index] = inner_state[k] - final_state[k]
+            if layer_normalize_loss:
+                deltas[k][batch_index] = deltas[k][batch_index] / (final_state[k].std() + 0.001)
         loss += prvs_loss
         acc += prvs_acc
     # calculating phi gradient
@@ -341,6 +344,7 @@ if __name__ == '__main__':
     parser.add_argument("--connectivity", type=float, default=0.)
     parser.add_argument("--normalization", type=str, default=None,
                         help="normalize hn activation(before creating weights)")
+    parser.add_argument('--layer_normalize_loss', type=str2bool, default=False)
 
     #############################
     #       General args        #
