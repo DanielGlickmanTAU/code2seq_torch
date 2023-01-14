@@ -191,19 +191,30 @@ class HyperWrapper(nn.Module):
         self.hypernetwork = hypernetwork
         self.predict_client_grad = args.predict_client_grad
         self.client_network_to_embedding = args.use_client_network_as_embedding
-        self.embeddings = nn.Embedding(num_embeddings=n_nodes, embedding_dim=embedding_dim)
+        if not self.client_network_to_embedding:
+            self.embeddings = nn.Embedding(num_embeddings=n_nodes, embedding_dim=embedding_dim)
         if self.predict_client_grad or self.client_network_to_embedding:
             client_net_state = {k: v.detach().clone() for k, v in client_net.state_dict().items()}
             self.client_id_to_personal_network = {i: client_net_state for i in range(n_nodes)}
+        if self.client_network_to_embedding:
+            client_network_size = len(torch.cat([v.view(-1) for v in self.client_id_to_personal_network[1].values()]))
+            self.network_embedding = nn.Linear(client_network_size, embedding_dim)
 
     def forward(self, node_ids):
         device = next(self.parameters()).device
         ids_tensor = torch.tensor(node_ids, dtype=torch.long, device=device).view(-1)
-        emds = self.embeddings(ids_tensor)
+
+        if self.predict_client_grad or self.client_network_to_embedding:
+            base_weights = self.get_client_network_state_dict_batched(device, node_ids)
+
+        if self.client_network_to_embedding:
+            flat_base_weights = torch.cat([v.view(len(node_ids), -1) for k, v in base_weights.items()], dim=1)
+            emds = self.network_embedding(flat_base_weights)
+        else:
+            emds = self.embeddings(ids_tensor)
+
         weights = self.hypernetwork(emds)
         if self.predict_client_grad:
-            base_weights = self.get_client_network_state_dict_batched(device, node_ids)
-            assert len(weights) == len(base_weights)
             for key in weights:
                 assert weights[key].shape == base_weights[key].shape
                 weights[key] = weights[key] + base_weights[key]

@@ -9,8 +9,8 @@ python = os.sys.executable
 
 slurm_file = 'my_slurm.slurm'
 
-num_jobs_that_can_run_on_studentbatch_at_one_time = 6
-# num_jobs_that_can_run_on_studentbatch_at_one_time = 0
+# num_jobs_that_can_run_on_studentbatch_at_one_time = 60
+num_jobs_that_can_run_on_studentbatch_at_one_time = 0
 
 
 def get_partition_and_time_limit(partition=None):
