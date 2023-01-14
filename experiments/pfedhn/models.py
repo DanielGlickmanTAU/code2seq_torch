@@ -190,8 +190,9 @@ class HyperWrapper(nn.Module):
         super(HyperWrapper, self).__init__()
         self.hypernetwork = hypernetwork
         self.predict_client_grad = args.predict_client_grad
+        self.client_network_to_embedding = args.client_network_to_embedding
         self.embeddings = nn.Embedding(num_embeddings=n_nodes, embedding_dim=embedding_dim)
-        if self.predict_client_grad:
+        if self.predict_client_grad or self.client_network_to_embedding:
             client_net_state = {k: v.detach().clone() for k, v in client_net.state_dict().items()}
             self.client_id_to_personal_network = {i: client_net_state for i in range(n_nodes)}
 
@@ -201,20 +202,25 @@ class HyperWrapper(nn.Module):
         emds = self.embeddings(ids_tensor)
         weights = self.hypernetwork(emds)
         if self.predict_client_grad:
-            base_networks = {layer_name: [] for layer_name in weights}
-            for id in node_ids:
-                for layer_name, client_layer_weights in self.client_id_to_personal_network[id].items():
-                    base_networks[layer_name].append(client_layer_weights)
-            base_weights = OrderedDict(
-                {layer_name: torch.stack(layer_weights).to(device) for layer_name, layer_weights in
-                 base_networks.items()})
+            base_weights = self.get_client_network_state_dict_batched(device, node_ids)
             assert len(weights) == len(base_weights)
             for key in weights:
                 assert weights[key].shape == base_weights[key].shape
                 weights[key] = weights[key] + base_weights[key]
         return weights
 
+    def get_client_network_state_dict_batched(self, device, node_ids):
+        layer_names = self.client_id_to_personal_network[node_ids[0]]
+        base_networks = {layer_name: [] for layer_name in layer_names}
+        for id in node_ids:
+            for layer_name, client_layer_weights in self.client_id_to_personal_network[id].items():
+                base_networks[layer_name].append(client_layer_weights)
+        base_weights = OrderedDict(
+            {layer_name: torch.stack(layer_weights).to(device) for layer_name, layer_weights in
+             base_networks.items()})
+        return base_weights
+
     def client_message(self, node_id, weights):
-        if self.predict_client_grad:
+        if self.predict_client_grad or self.client_network_to_embedding:
             self.client_id_to_personal_network[node_id] = {layer_name: layer_weights.detach().cpu() for
                                                            layer_name, layer_weights in weights.items()}
