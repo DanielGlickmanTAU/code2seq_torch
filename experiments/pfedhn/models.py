@@ -186,15 +186,35 @@ class CNNTarget(nn.Module):
 
 
 class HyperWrapper(nn.Module):
-    def __init__(self, hypernetwork, n_nodes, embedding_dim):
+    def __init__(self, hypernetwork, n_nodes, embedding_dim, client_net, args):
         super(HyperWrapper, self).__init__()
         self.hypernetwork = hypernetwork
+        self.predict_client_grad = args.predict_client_grad
         self.embeddings = nn.Embedding(num_embeddings=n_nodes, embedding_dim=embedding_dim)
+        if self.predict_client_grad:
+            client_net_state = {k: v.detach().clone() for k, v in client_net.state_dict().items()}
+            self.client_id_to_personal_network = {i: client_net_state for i in range(n_nodes)}
 
     def forward(self, node_ids):
-        ids_tensor = torch.tensor(node_ids, dtype=torch.long, device=next(self.parameters()).device).view(-1)
+        device = next(self.parameters()).device
+        ids_tensor = torch.tensor(node_ids, dtype=torch.long, device=device).view(-1)
         emds = self.embeddings(ids_tensor)
-        return self.hypernetwork(emds)
+        weights = self.hypernetwork(emds)
+        if self.predict_client_grad:
+            base_networks = {layer_name: [] for layer_name in weights}
+            for id in node_ids:
+                for layer_name, client_layer_weights in self.client_id_to_personal_network[id].items():
+                    base_networks[layer_name].append(client_layer_weights)
+            base_weights = OrderedDict(
+                {layer_name: torch.stack(layer_weights).to(device) for layer_name, layer_weights in
+                 base_networks.items()})
+            assert len(weights) == len(base_weights)
+            for key in weights:
+                assert weights[key].shape == base_weights[key].shape
+                weights[key] = weights[key] + base_weights[key]
+        return weights
 
     def client_message(self, node_id, weights):
-        pass
+        if self.predict_client_grad:
+            self.client_id_to_personal_network[node_id] = {layer_name: layer_weights.detach().cpu() for
+                                                           layer_name, layer_weights in weights.items()}

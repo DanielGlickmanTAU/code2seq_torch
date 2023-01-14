@@ -96,7 +96,7 @@ def train(data_name: str, data_path: str, classes_per_node: int, num_nodes: int,
     else:
         raise ValueError("choose data_name from ['cifar10', 'cifar100']")
 
-    hnet = HyperWrapper(hnet, num_nodes, embed_dim)
+    hnet = HyperWrapper(hnet, num_nodes, embed_dim, net, args)
     hnet = hnet.to(device)
     net = net.to(device)
 

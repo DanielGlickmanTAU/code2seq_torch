@@ -53,6 +53,8 @@ def get_args():
     parser.add_argument("--normalization", type=str, default=None,
                         help="normalize hn activation(before creating weights)")
     parser.add_argument('--layer_normalize_loss', type=str2bool, default=False)
+    parser.add_argument('--predict_client_grad', type=str2bool, default=False,
+                        help='instead of predicting the client weight, predict the update direction. i.e save W_i, and send to client W_i + HN(client_i)')
 
     #############################
     #       General args        #
