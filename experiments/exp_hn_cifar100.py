@@ -9,8 +9,10 @@ import os
 params = {
     '--eval-every': 15,
     '--lr': 5e-3,
-    # '--hyper-batch-size': 64,
-    '--hyper-batch-size': 8,
+    # '--lr': 1e-3,
+    # '--lr': 0.01,
+    '--hyper-batch-size': 64,
+    # '--hyper-batch-size': 8,
     # '--hyper-batch-size': 16,
     '--num-nodes': 500,
     # '--num-nodes': 500,
@@ -22,10 +24,10 @@ params = {
     '--data-name': "cifar100",
 
     # '--n-hidden': 0,
-    # '--decode_parts': True,
+    '--decode_parts': True,
     # '--project_per_layer': True,
     # '--causal_attn_decoder': False,
-    # '--decoder_layers': 1
+    '--decoder_layers': 2
     # '--connectivity': 0.5
     # '--layer_normalize_loss': True
 }
