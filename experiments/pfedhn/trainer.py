@@ -83,12 +83,12 @@ def train(data_name: str, data_path: str, classes_per_node: int, num_nodes: int,
         embed_dim = int(1 + num_nodes / 4)
 
     if data_name == "cifar10":
-        hnet = CNNHyper(num_nodes, embed_dim, hidden_dim=hyper_hid, n_hidden=n_hidden, n_kernels=n_kernels,
+        hnet = CNNHyper(embed_dim, hidden_dim=hyper_hid, n_hidden=n_hidden, n_kernels=n_kernels,
                         embedding_type=embedding_type, normalization=normalization, project_per_layer=project_per_layer,
                         decode_parts=decode_parts, args=args)
         net = CNNTarget(n_kernels=n_kernels, connectivity=args.connectivity)
     elif data_name == "cifar100":
-        hnet = CNNHyper(num_nodes, embed_dim, hidden_dim=hyper_hid,
+        hnet = CNNHyper(embed_dim, hidden_dim=hyper_hid,
                         n_hidden=n_hidden, n_kernels=n_kernels, out_dim=100, embedding_type=embedding_type,
                         normalization=normalization, project_per_layer=project_per_layer, decode_parts=decode_parts,
                         args=args)
@@ -96,7 +96,7 @@ def train(data_name: str, data_path: str, classes_per_node: int, num_nodes: int,
     else:
         raise ValueError("choose data_name from ['cifar10', 'cifar100']")
 
-    hnet = HyperWrapper(hnet)
+    hnet = HyperWrapper(hnet, num_nodes, embed_dim)
     hnet = hnet.to(device)
     net = net.to(device)
 
@@ -240,6 +240,7 @@ def compute_grads_of_client_net(criteria, device, hnet, inner_lr, inner_steps, i
         prvs_acc, prvs_loss = eval_client_model(criteria, device, net, node_id, nodes)
         final_state = get_trained_network_state(criteria, device, inner_lr, inner_steps, inner_wd, net, node_id, nodes,
                                                 optimizer)
+        hnet.client_message(node_id, final_state)
         # calculating delta theta
         # delta_theta = OrderedDict({k: inner_state[k] - final_state[k] for k in weights.keys()})
         for k in weights.keys():

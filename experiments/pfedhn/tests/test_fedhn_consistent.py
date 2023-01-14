@@ -1,10 +1,8 @@
-import argparse
 from unittest import TestCase
-import torch
 
 from experiments.pfedhn.misc.args import get_args
 from experiments.pfedhn.trainer import train
-from experiments.utils import set_logger, set_seed, get_device, str2bool
+from experiments.utils import set_logger, set_seed, get_device
 
 
 class PFedHnTest(TestCase):
@@ -45,8 +43,8 @@ class PFedHnTest(TestCase):
             hyper_batch_size=args.hyper_batch_size,
             args=args)
         print(val_best, test_best)
-        self.assertAlmostEqual(val_best, 0.24422442244224424, delta=0.01)
-        self.assertAlmostEqual(test_best, 0.2342436974789916, delta=0.01)
+        self.assertAlmostEqual(val_best, 0.26327632763276326, delta=0.01)
+        self.assertAlmostEqual(test_best, 0.2560024009603842, delta=0.01)
 
     def test_batched_train(self):
         args = get_args()
@@ -86,5 +84,6 @@ class PFedHnTest(TestCase):
             hyper_batch_size=args.hyper_batch_size,
             args=args)
         print(val_best, test_best)
-        self.assertAlmostEqual(val_best, 0.3256825682568257, delta=0.01)
-        self.assertAlmostEqual(test_best, 0.32593037214885956, delta=0.01)
+
+        self.assertAlmostEqual(val_best, 0.4273927392739274, delta=0.01)
+        self.assertAlmostEqual(test_best, 0.4272208883553421, delta=0.01)

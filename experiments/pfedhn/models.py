@@ -27,7 +27,7 @@ class ProjectThenApply(nn.Module):
 
 class CNNHyper(nn.Module):
     def __init__(
-            self, n_nodes, embedding_dim, in_channels=3, out_dim=10, n_kernels=16, hidden_dim=100,
+            self, embedding_dim, in_channels=3, out_dim=10, n_kernels=16, hidden_dim=100,
             spec_norm=False, n_hidden=1, embedding_type='', normalization=None, project_per_layer=False,
             decode_parts=False, args=None):
         super().__init__()
@@ -36,7 +36,6 @@ class CNNHyper(nn.Module):
         self.in_channels = in_channels
         self.out_dim = out_dim
         self.n_kernels = n_kernels
-        self.embeddings = nn.Embedding(num_embeddings=n_nodes, embedding_dim=embedding_dim)
 
         self.attn = nn.MultiheadAttention(embedding_dim, num_heads=1,
                                           batch_first=True) if embedding_type == 'attention' else None
@@ -187,11 +186,15 @@ class CNNTarget(nn.Module):
 
 
 class HyperWrapper(nn.Module):
-    def __init__(self, hypernetwork):
+    def __init__(self, hypernetwork, n_nodes, embedding_dim):
         super(HyperWrapper, self).__init__()
         self.hypernetwork = hypernetwork
+        self.embeddings = nn.Embedding(num_embeddings=n_nodes, embedding_dim=embedding_dim)
 
     def forward(self, node_ids):
         ids_tensor = torch.tensor(node_ids, dtype=torch.long, device=next(self.parameters()).device).view(-1)
-        emds = self.hypernetwork.embeddings(ids_tensor)
+        emds = self.embeddings(ids_tensor)
         return self.hypernetwork(emds)
+
+    def client_message(self, node_id, weights):
+        pass
