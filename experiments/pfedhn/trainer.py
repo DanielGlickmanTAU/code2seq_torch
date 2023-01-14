@@ -12,7 +12,7 @@ import torch
 import torch.utils.data
 from tqdm import trange
 
-from experiments.pfedhn.models import CNNHyper, CNNTarget
+from experiments.pfedhn.models import CNNHyper, CNNTarget, HyperWrapper
 from experiments.pfedhn.node import BaseNodes
 from experiments.utils import get_device, set_logger, set_seed
 
@@ -42,9 +42,8 @@ def evaluate(nodes: BaseNodes, num_nodes, hnet, net, criteria, device, split='te
     hnet.eval()
     results = defaultdict(lambda: defaultdict(list))
 
-    ids_tensor = torch.tensor(list(range(num_nodes)), dtype=torch.long, device=device).view(-1)
-    emds = hnet.embeddings(ids_tensor)
-    weights_batched = hnet(emds)
+    node_ids = list(range(num_nodes))
+    weights_batched = hnet(node_ids)
     for node_id in range(num_nodes):  # iterating over nodes
 
         running_loss, running_correct, running_samples = 0., 0., 0.
@@ -97,6 +96,7 @@ def train(data_name: str, data_path: str, classes_per_node: int, num_nodes: int,
     else:
         raise ValueError("choose data_name from ['cifar10', 'cifar100']")
 
+    hnet = HyperWrapper(hnet)
     hnet = hnet.to(device)
     net = net.to(device)
 
@@ -130,11 +130,9 @@ def train(data_name: str, data_path: str, classes_per_node: int, num_nodes: int,
     for step in step_iter:
         # select client at random
         nodes_id = random.sample(range(num_nodes), hyper_batch_size)
-        ids_tensor = torch.tensor([nodes_id], dtype=torch.long, device=device).view(-1)
-        emds = hnet.embeddings(ids_tensor)
+
         hnet_grads, train_acc = compute_hn_grads(criteria, device, hnet, inner_lr, inner_steps, inner_wd,
                                                  net,
-                                                 emds,
                                                  nodes_id, nodes,
                                                  optimizer, args.layer_normalize_loss)
 
@@ -213,12 +211,13 @@ def train(data_name: str, data_path: str, classes_per_node: int, num_nodes: int,
     return best_acc, test_best_based_on_step
 
 
-def compute_hn_grads(criteria, device, hnet, inner_lr, inner_steps, inner_wd, net, emd, nodes_id, nodes, optimizer,
+def compute_hn_grads(criteria, device, hnet, inner_lr, inner_steps, inner_wd, net,
+                     nodes_id, nodes, optimizer,
                      layer_normalize_loss):
     hnet.train()
     # produce & load local network weights
 
-    weights = hnet(emd)
+    weights = hnet(nodes_id)
 
     hnet_grads, train_acc = compute_grads_of_client_net(criteria, device, hnet, inner_lr, inner_steps, inner_wd, net,
                                                         nodes_id,

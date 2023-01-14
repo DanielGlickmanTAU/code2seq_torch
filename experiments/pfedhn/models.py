@@ -184,3 +184,14 @@ class CNNTarget(nn.Module):
         x = self.connect(x)
         x = self.fc3(x)
         return x
+
+
+class HyperWrapper(nn.Module):
+    def __init__(self, hypernetwork):
+        super(HyperWrapper, self).__init__()
+        self.hypernetwork = hypernetwork
+
+    def forward(self, node_ids):
+        ids_tensor = torch.tensor(node_ids, dtype=torch.long, device=next(self.parameters()).device).view(-1)
+        emds = self.hypernetwork.embeddings(ids_tensor)
+        return self.hypernetwork(emds)
