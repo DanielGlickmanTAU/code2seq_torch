@@ -190,7 +190,7 @@ class HyperWrapper(nn.Module):
         super(HyperWrapper, self).__init__()
         self.hypernetwork = hypernetwork
         self.predict_client_grad = args.predict_client_grad
-        self.client_network_to_embedding = args.client_network_to_embedding
+        self.client_network_to_embedding = args.use_client_network_as_embedding
         self.embeddings = nn.Embedding(num_embeddings=n_nodes, embedding_dim=embedding_dim)
         if self.predict_client_grad or self.client_network_to_embedding:
             client_net_state = {k: v.detach().clone() for k, v in client_net.state_dict().items()}
