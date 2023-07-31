@@ -1,11 +1,9 @@
 import args_parse
-from code2seq.utils import compute
 from exp_utils import start_exp
 from gnn import GNN
 from DistanceCalculator import DistanceCalculator
 from pytorch_lightning.loggers import CometLogger
 
-compute.get_torch()
 import torch
 from torch_geometric.loader import DataLoader
 import torch.optim as optim
@@ -157,7 +155,7 @@ def main():
     # 3. node depth
     node_encoder = ASTNodeEncoder(args.emb_dim, num_nodetypes=len(nodetypes_mapping['type']),
                                   num_nodeattributes=len(nodeattributes_mapping['attr']), max_depth=20)
-    #for later
+    # for later
     model_utils.get_model()
 
     exp = start_exp(args.exp_name, args, model)

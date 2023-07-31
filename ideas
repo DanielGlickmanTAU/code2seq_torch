@@ -1,6 +1,0 @@
-
-
-
-optimize compression:
-1)running tokenization in a more memory efficient way:implement dataset loader
-2) limit dataset size(~20k train)
