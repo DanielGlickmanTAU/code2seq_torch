@@ -24,7 +24,7 @@ pip install wandb
 conda clean --all
 ```
 
-### Running GraphGPS
+### Training
 
 ```bash
 
