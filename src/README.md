@@ -29,18 +29,11 @@ conda clean --all
 
 ```bash
 
-# Running GPS with RWSE and tuned hyperparameters for ZINC.
-python main.py --cfg configs/GPS/zinc-GPS+RWSE.yaml  wandb.use False
+# Running Graph Diffuser on ZINC.
+python main.py --cfg configs/GPS/zinc-diffuser.yaml  wandb.use False
+#molpcba
+python main.py --cfg configs/GPS/ogbg-molpcba-diffuser.yaml  wandb.use False
+#ppa
+python main.py --cfg configs/GPS/ogbg-ppa-diffuser.yaml  wandb.use False
 
-# Running config with tuned SAN hyperparams for ZINC.
-python main.py --cfg configs/SAN/zinc-SAN.yaml  wandb.use False
-
-# Running a debug/dev config for ZINC.
-python main.py --cfg tests/configs/graph/zinc.yaml  wandb.use False
 ```
-
-### W&B logging
-
-To use W&B logging, set `wandb.use True` and have a `gtransformers` entity set-up in your W&B account (or change it to
-whatever else you like by setting `wandb.entity`).
-
