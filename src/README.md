@@ -7,7 +7,6 @@
 
 This repo is based on [GraphGPS](https://arxiv.org/abs/2205.12454), which is built using [PyG](https://www.pyg.org/)
 and [GraphGym from PyG2](https://pytorch-geometric.readthedocs.io/en/2.0.0/notes/graphgym.html).
-Specifically PyG v2.0.2 is required.
 
 ### Conda environment setup
 

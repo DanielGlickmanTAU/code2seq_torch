@@ -1319,7 +1319,7 @@ batch norm on stacks ffn makes the difference between being able to fit 100 exam
 
 ### 28/7
 
-most time of nagasaki goes to torch.cat ....
+most time of gd goes to torch.cat ....
 
 ### 2/8
 
@@ -1441,7 +1441,7 @@ I fail to solve, or do better than GPS on this problem.
 I am thinking of moving to a constant graph structure, e.g only triangle that are connected in a determinstic way(always
 same node selected).
 The reasoning, is that I would not need a flexible way of jumping between shapes.
-The diffusion distance/pattern will always be the same, and in that way nagasaki could memorize it, the same way it did
+The diffusion distance/pattern will always be the same, and in that way gd could memorize it, the same way it did
 for dot grid.
 
 + This is simple, and I think has a good chance of improving over GPS etc on REAL benchmarks.
@@ -1519,8 +1519,8 @@ by batch norming, it decouples that and let sgd optimize better
 ### 23/11
 
 shape 15, 6x6 2 colors..
-2 ffn nagasaki layers train: 0.625 test 0.6
-3 ffn nagasaki layers train: 0.6 test 0.537
+2 ffn gd layers train: 0.625 test 0.6
+3 ffn gd layers train: 0.6 test 0.537
 
 stopped because got max epoch . maybe more epoch would be better..
 

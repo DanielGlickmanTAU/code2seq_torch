@@ -36,7 +36,7 @@ class OGBCodeGraphHead(nn.Module):
         return batch.pred_list, {'y_arr': batch.y_arr, 'y': batch.y}
 
     def forward(self, batch):
-        if 'cls_mask' in batch and cfg.nagasaki.add_cls:
+        if 'cls_mask' in batch and cfg.gd.add_cls:
             graph_emb = batch.x[batch.cls_mask]
         else:
             graph_emb = self.pooling_fun(batch.x, batch.batch)

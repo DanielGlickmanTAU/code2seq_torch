@@ -12,7 +12,7 @@ from graphgps.layer.bigbird_layer import SingleBigBirdLayer
 from graphgps.layer.gatedgcn_layer import GatedGCNLayer
 from graphgps.layer.gine_conv_layer import GINEConvESLapPE, GINEConvLayer
 from graphgps.layer.graph_attention.ContentMultiHeadAttention import ContentMultiheadAttention
-from graphgps.layer.graph_attention.positional.nagasaki import Nagasaki, PatternAttention
+from graphgps.layer.graph_attention.positional.gd import GD, PatternAttention
 from graphgps.layer.performer_layer import SelfAttention
 
 
@@ -123,7 +123,7 @@ class AttentionLayer(nn.Module):
                  local_gnn_type, global_model_type, num_heads,
                  pna_degrees=None, equivstable_pe=False, dropout=0.0,
                  attn_dropout=0.0, layer_norm=False, batch_norm=True,
-                 bigbird_cfg=None, nagasaki_config=None, input_stacks=1, cross_stacks=1):
+                 bigbird_cfg=None, gd_config=None, input_stacks=1, cross_stacks=1):
         super().__init__()
         self.dim_h = dim_h
         self.num_heads = num_heads
@@ -132,7 +132,7 @@ class AttentionLayer(nn.Module):
         self.batch_norm = batch_norm
         self.equivstable_pe = equivstable_pe
 
-        self.nagasaki_config = nagasaki_config
+        self.gd_config = gd_config
         self.input_stacks = input_stacks
 
         # Global attention transformer-style model.
@@ -142,11 +142,11 @@ class AttentionLayer(nn.Module):
             # self.self_attn = torch.nn.MultiheadAttention(
             #     dim_h, num_heads, dropout=self.attn_dropout, batch_first=True)
             self.self_attn = ContentMultiheadAttention(dim_h, num_heads, self.attn_dropout, batch_first=True)
-        elif global_model_type == 'Nagasaki':
+        elif global_model_type == 'GD':
             if cross_stacks > 1:
-                self.self_attn = PatternAttention(dim_h, num_heads, self.attn_dropout, nagasaki_config, cross_stacks)
+                self.self_attn = PatternAttention(dim_h, num_heads, self.attn_dropout, gd_config, cross_stacks)
             else:
-                self.self_attn = Nagasaki(dim_h, num_heads, self.attn_dropout, nagasaki_config, input_stacks)
+                self.self_attn = GD(dim_h, num_heads, self.attn_dropout, gd_config, input_stacks)
         elif global_model_type == 'Performer':
             self.self_attn = SelfAttention(
                 dim=dim_h, heads=num_heads,
@@ -175,7 +175,7 @@ class AttentionLayer(nn.Module):
             if self.global_model_type == 'Transformer':
                 h_attn, att_weights = self.self_attn(h_dense, h_dense, h_dense, attn_mask=~mask, key_padding_mask=None)
                 h_attn = h_attn[mask]
-            elif self.global_model_type == 'Nagasaki':
+            elif self.global_model_type == 'GD':
                 h_attn, att_weights = self.self_attn(batch, h_dense, mask)
                 h_attn = h_attn[mask]
             else:
@@ -199,7 +199,7 @@ class GPSLayer(nn.Module):
                  local_gnn_type, global_model_type, num_heads,
                  pna_degrees=None, equivstable_pe=False, dropout=0.0,
                  attn_dropout=0.0, layer_norm=False, batch_norm=True,
-                 bigbird_cfg=None, nagasaki_config=None, ffn_multiplier=2, gnn_residual=True, input_stacks=1,
+                 bigbird_cfg=None, gd_config=None, ffn_multiplier=2, gnn_residual=True, input_stacks=1,
                  cross_stacks=1, self_attn_only=False, cross_attn_only=False):
         assert not (cross_stacks > 1 and input_stacks > 1), 'cant do both cross attention and history attention'
         assert not (cross_attn_only and self_attn_only)
@@ -217,7 +217,7 @@ class GPSLayer(nn.Module):
                                            pna_degrees=pna_degrees, equivstable_pe=equivstable_pe, dropout=dropout,
                                            layer_norm=layer_norm, batch_norm=batch_norm, gnn_residual=gnn_residual)
         self.local_gnn_type = local_gnn_type
-        self.nagasaki_config = nagasaki_config
+        self.gd_config = gd_config
 
         # Global attention transformer-style model.
         if global_model_type == 'None' or global_model_type is None:
@@ -229,25 +229,25 @@ class GPSLayer(nn.Module):
                                                 local_gnn_type, global_model_type, num_heads,
                                                 pna_degrees, equivstable_pe, dropout,
                                                 attn_dropout, layer_norm, batch_norm,
-                                                bigbird_cfg, nagasaki_config, input_stacks, 1)
+                                                bigbird_cfg, gd_config, input_stacks, 1)
             elif cross_attn_only:
                 self.self_attn = AttentionLayer(dim_h,
                                                 local_gnn_type, global_model_type, num_heads,
                                                 pna_degrees, equivstable_pe, dropout,
                                                 attn_dropout, layer_norm, batch_norm,
-                                                bigbird_cfg, nagasaki_config, input_stacks, cross_stacks)
+                                                bigbird_cfg, gd_config, input_stacks, cross_stacks)
             else:
                 self.self_attn = AttentionLayer(dim_h,
                                                 local_gnn_type, global_model_type, num_heads,
                                                 pna_degrees, equivstable_pe, dropout,
                                                 attn_dropout, layer_norm, batch_norm,
-                                                bigbird_cfg, nagasaki_config, input_stacks, 1)
+                                                bigbird_cfg, gd_config, input_stacks, 1)
                 if cross_stacks > 1:
                     self.cross_attn = AttentionLayer(dim_h,
                                                      local_gnn_type, global_model_type, num_heads,
                                                      pna_degrees, equivstable_pe, dropout,
                                                      attn_dropout, layer_norm, batch_norm,
-                                                     bigbird_cfg, nagasaki_config, input_stacks, cross_stacks)
+                                                     bigbird_cfg, gd_config, input_stacks, cross_stacks)
 
         # Feed Forward block.
         if self.self_attn is not None:

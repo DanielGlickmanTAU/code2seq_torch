@@ -39,7 +39,7 @@ class GPSModel(torch.nn.Module):
             local_gnn_type, global_model_type = cfg.gt.layer_type.split('+')
         except:
             raise ValueError(f"Unexpected layer type: {cfg.gt.layer_type}")
-        self.nagasaki_config = cfg.nagasaki
+        self.gd_config = cfg.gd
         transformer_layers = []
         self.local_layers = []
         if n_layers_gnn_only:
@@ -63,21 +63,21 @@ class GPSModel(torch.nn.Module):
                     self.middle_layers.append(FeatureEncoder(dim_in, cfg.dataset.transformer_node_encoder_name,
                                                              None, contract=True))
 
-                if global_model_type == 'Nagasaki':
-                    self.middle_layers.append(Diffuser(dim_in, cfg.nagasaki))
-                if cfg.nagasaki.add_cls:
-                    self.middle_layers.append(CLSNode(dim_in, cfg.nagasaki))
-            self_attn_only = self.nagasaki_config.interleave_self_cross_attn and (i % 2 == 0)
-            cross_attn_only = self.nagasaki_config.interleave_self_cross_attn and (i % 2 != 0)
+                if global_model_type == 'GD':
+                    self.middle_layers.append(Diffuser(dim_in, cfg.gd))
+                if cfg.gd.add_cls:
+                    self.middle_layers.append(CLSNode(dim_in, cfg.gd))
+            self_attn_only = self.gd_config.interleave_self_cross_attn and (i % 2 == 0)
+            cross_attn_only = self.gd_config.interleave_self_cross_attn and (i % 2 != 0)
             gps_layer = GPSLayer(dim_h=cfg.gt.dim_hidden, local_gnn_type=layer_gnn_type,
                                  global_model_type=layer_global_model, num_heads=cfg.gt.n_heads,
                                  pna_degrees=cfg.gt.pna_degrees, equivstable_pe=cfg.posenc_EquivStableLapPE.enable,
                                  dropout=cfg.gt.dropout, attn_dropout=cfg.gt.attn_dropout, layer_norm=cfg.gt.layer_norm,
                                  batch_norm=cfg.gt.batch_norm, bigbird_cfg=cfg.gt.bigbird,
-                                 nagasaki_config=cfg.nagasaki, ffn_multiplier=cfg.gt.ffn_multiplier,
+                                 gd_config=cfg.gd, ffn_multiplier=cfg.gt.ffn_multiplier,
                                  gnn_residual=cfg.gnn.residual,
-                                 input_stacks=n_layers_gnn_only if self.nagasaki_config.type == 'vid' else 1,
-                                 cross_stacks=n_layers_gnn_only if self.nagasaki_config.type == 'cross' else 1,
+                                 input_stacks=n_layers_gnn_only if self.gd_config.type == 'vid' else 1,
+                                 cross_stacks=n_layers_gnn_only if self.gd_config.type == 'cross' else 1,
                                  self_attn_only=self_attn_only,
                                  cross_attn_only=cross_attn_only,
                                  )
@@ -87,7 +87,7 @@ class GPSModel(torch.nn.Module):
             else:
                 transformer_layers.append(gps_layer)
         self.transformer_layers = torch.nn.Sequential(*transformer_layers)
-        self.cls_pool = cfg.nagasaki.add_cls and not cfg.nagasaki.skip_cls_pooling and cfg.gnn.head != 'inductive_edge' and cfg.dataset.name != 'ogbg-code2'
+        self.cls_pool = cfg.gd.add_cls and not cfg.gd.skip_cls_pooling and cfg.gnn.head != 'inductive_edge' and cfg.dataset.name != 'ogbg-code2'
         if self.cls_pool:
             self.post_mp = CLSHead(dim_in=dim_inner, dim_out=dim_out, task=cfg.dataset.task)
         else:
@@ -100,7 +100,7 @@ class GPSModel(torch.nn.Module):
         batch = self.encoder(batch)
         if cfg.gnn.layers_pre_mp > 0:
             batch = self.pre_mp(batch)
-        if self.nagasaki_config.type == 'cross':
+        if self.gd_config.type == 'cross':
             initial_x = batch.x
         if self.local_layers:
             for layer in self.local_layers:
@@ -109,18 +109,18 @@ class GPSModel(torch.nn.Module):
         for layer in self.middle_layers:
             batch = layer(batch)
 
-        if self.nagasaki_config.type == 'vid':
+        if self.gd_config.type == 'vid':
             batch.x = pygraph_utils.concat_layer_activations(gnn_outputs)
-        if self.nagasaki_config.type == 'cross':
+        if self.gd_config.type == 'cross':
             history = pygraph_utils.concat_layer_activations(gnn_outputs)
             batch.history = to_dense_joined_batch(history, batch.batch, len(gnn_outputs))
             batch.x = initial_x
 
-        if self.nagasaki_config.type.lower() == 'jk':
+        if self.gd_config.type.lower() == 'jk':
             batch.x = sum(gnn_outputs)
 
         batch = self.transformer_layers(batch)
-        if self.nagasaki_config.type == 'vid' and not self.cls_pool:
+        if self.gd_config.type == 'vid' and not self.cls_pool:
             # pooling works with graph structure, so need batch.x now to have back the original number of nodes..
             # solve this by summing up nodes from different time steps..
             batch.x = batch.x.view(-1, len(gnn_outputs), self.dim_inner).sum(1)

@@ -50,7 +50,7 @@ gt:
   layer_norm: False
   batch_norm: True
 
-nagasaki:
+gd:
   steps: range(1,17)
 
 gnn:

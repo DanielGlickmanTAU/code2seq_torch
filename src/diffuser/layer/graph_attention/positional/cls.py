@@ -6,9 +6,9 @@ from graphgps.layer.graph_attention.positional import positional_utils
 
 
 class CLSNode(nn.Module):
-    def __init__(self, dim_in, nagasaki_config):
+    def __init__(self, dim_in, gd_config):
         super().__init__()
-        self.edge_dim = positional_utils.get_edge_dim(nagasaki_config)
+        self.edge_dim = positional_utils.get_edge_dim(gd_config)
         self.cls = nn.Parameter(torch.randn([1, 1, dim_in], requires_grad=True))
         self.cls_edge = nn.Parameter(torch.randn([1, 1, 1, self.edge_dim], requires_grad=True))
 

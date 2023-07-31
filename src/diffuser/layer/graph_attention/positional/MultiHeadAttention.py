@@ -131,7 +131,7 @@ class PositionAttention(Module):
     bias_k: Optional[torch.Tensor]
     bias_v: Optional[torch.Tensor]
 
-    def __init__(self, num_heads, edge_dim, edge_reduction='linear', scale=False, fuck_positional=False) -> None:
+    def __init__(self, num_heads, edge_dim, edge_reduction='linear', scale=False, ignore_positional=False) -> None:
         self.scale = scale
         self.num_heads = num_heads
         self.edge_dim = edge_dim
@@ -139,14 +139,14 @@ class PositionAttention(Module):
         self.positional_bias = AdjStackAttentionWeights(edge_dim, dim_out=num_heads, ffn=edge_reduction,
                                                         hidden_dim=edge_dim * 1,
                                                         ffn_layers=0)
-        self.fuck_positional = fuck_positional
+        self.ignore_positional = ignore_positional
 
     def forward(self, adj_stack, attn_mask):
         attention_weights = self.positional_bias(stacks=adj_stack, mask=attn_mask)
         b, n1, n2, heads = attention_weights.shape
         assert heads == self.num_heads
         # stack attention matrixes first by batch then by head
-        if not self.fuck_positional:
+        if not self.ignore_positional:
             attention_weights = attention_weights.permute(0, 3, 1, 2)
         attention_weights = attention_weights.reshape(b * self.num_heads, n1, n2)
         if self.scale:

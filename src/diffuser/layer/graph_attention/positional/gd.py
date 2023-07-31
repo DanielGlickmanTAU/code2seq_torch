@@ -4,22 +4,22 @@ from graphgps.layer.graph_attention.positional.MultiHeadAttention import MultiHe
 import torch
 
 
-class Nagasaki(torch.nn.Module):
-    def __init__(self, dim_h, num_heads, dropout, nagasaki_config, input_stacks=1):
+class GD(torch.nn.Module):
+    def __init__(self, dim_h, num_heads, dropout, gd_config, input_stacks=1):
         super().__init__()
 
-        edge_dim = positional_utils.get_edge_dim(nagasaki_config)
-        if nagasaki_config.content_attention_only:
+        edge_dim = positional_utils.get_edge_dim(gd_config)
+        if gd_config.content_attention_only:
             self._pos_attention = None
         else:
             position_attention_heads = num_heads * (input_stacks ** 2)
             self._pos_attention = PositionAttention(edge_dim=edge_dim, num_heads=position_attention_heads,
-                                                    edge_reduction=nagasaki_config.edge_reduction,
-                                                    scale=nagasaki_config.scale_attention,
-                                                    fuck_positional=nagasaki_config.fuck_positional)
+                                                    edge_reduction=gd_config.edge_reduction,
+                                                    scale=gd_config.scale_attention,
+                                                    ignore_positional=gd_config.ignore_positional)
         self.att = MultiHeadAttention(dim_h, num_heads, dropout=dropout,
-                                      batch_first=True, merge_attention=nagasaki_config.merge_attention,
-                                      content_only=nagasaki_config.content_attention_only)
+                                      batch_first=True, merge_attention=gd_config.merge_attention,
+                                      content_only=gd_config.content_attention_only)
         self.input_stacks = input_stacks
 
     def forward(self, batch, h, mask):
@@ -42,21 +42,21 @@ class Nagasaki(torch.nn.Module):
 
 
 class PatternAttention(torch.nn.Module):
-    def __init__(self, dim_h, num_heads, dropout, nagasaki_config, input_stacks=1):
+    def __init__(self, dim_h, num_heads, dropout, gd_config, input_stacks=1):
         super().__init__()
 
-        edge_dim = positional_utils.get_edge_dim(nagasaki_config)
-        if nagasaki_config.content_attention_only:
+        edge_dim = positional_utils.get_edge_dim(gd_config)
+        if gd_config.content_attention_only:
             self._pos_attention = None
         else:
             position_attention_heads = num_heads * input_stacks
             self._pos_attention = PositionAttention(edge_dim=edge_dim, num_heads=position_attention_heads,
-                                                    edge_reduction=nagasaki_config.edge_reduction,
-                                                    scale=nagasaki_config.scale_attention,
-                                                    fuck_positional=nagasaki_config.fuck_positional)
+                                                    edge_reduction=gd_config.edge_reduction,
+                                                    scale=gd_config.scale_attention,
+                                                    ignore_positional=gd_config.ignore_positional)
         self.att = MultiHeadAttention(dim_h, num_heads, dropout=dropout,
-                                      batch_first=True, merge_attention=nagasaki_config.merge_attention,
-                                      content_only=nagasaki_config.content_attention_only)
+                                      batch_first=True, merge_attention=gd_config.merge_attention,
+                                      content_only=gd_config.content_attention_only)
         self.input_stacks = input_stacks
 
     def forward(self, batch, h, mask):

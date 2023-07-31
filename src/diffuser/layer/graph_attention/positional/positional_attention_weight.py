@@ -84,7 +84,7 @@ class AdjStackAttentionWeights(torch.nn.Module):
         elif ffn == 'linear':
             self.weight = nn.Linear(in_features=input_dim, out_features=dim_out)
         else:
-            raise ValueError(f'nagasaki does not support edge forward model of type {ffn}')
+            raise ValueError(f'gd does not support edge forward model of type {ffn}')
 
     # stacks shape is (batch,n,n,num_adj_stacks)
     # mask shape is (batch,n,n).
@@ -230,38 +230,38 @@ class MultiHeadAdjStackWeight(nn.Module):
 
 
 class Diffuser(nn.Module):
-    def __init__(self, dim_in, nagasaki_config):
+    def __init__(self, dim_in, gd_config):
         super(Diffuser, self).__init__()
-        self.nhead = nagasaki_config.nhead
-        self.kernel = nagasaki_config.kernel
-        self.edge_dim = positional_utils.get_edge_dim(nagasaki_config)
+        self.nhead = gd_config.nhead
+        self.kernel = gd_config.kernel
+        self.edge_dim = positional_utils.get_edge_dim(gd_config)
 
-        steps = nagasaki_config.steps
+        steps = gd_config.steps
         if isinstance(steps, str):
             steps = list(eval(steps))
-        num_stack = positional_utils.get_stacks_dim(nagasaki_config)
+        num_stack = positional_utils.get_stacks_dim(gd_config)
 
-        if nagasaki_config.type == 'gin':
-            assert not nagasaki_config.learn_edges_weight, 'should not learn weights with gin right now'
-        if nagasaki_config.learn_edges_weight:
-            self.edge_reducer = EdgeReducer(dim_in, hidden_dim=nagasaki_config.edge_reducer_hidden_dim * dim_in,
+        if gd_config.type == 'gin':
+            assert not gd_config.learn_edges_weight, 'should not learn weights with gin right now'
+        if gd_config.learn_edges_weight:
+            self.edge_reducer = EdgeReducer(dim_in, hidden_dim=gd_config.edge_reducer_hidden_dim * dim_in,
                                             dim_out=self.nhead, dropout=0.,
-                                            symmetric=nagasaki_config.symmetric_edge_reduce)
+                                            symmetric=gd_config.symmetric_edge_reduce)
         else:
             self.edge_reducer = None
-        self.skip_stacking_ratio = nagasaki_config.skip_stacking_ratio
+        self.skip_stacking_ratio = gd_config.skip_stacking_ratio
 
-        self.adj_stacker = AdjStack(steps, nhead=nagasaki_config.nhead, kernel=nagasaki_config.kernel,
-                                    normalize=nagasaki_config.normalize) if nagasaki_config.type != 'gin' else AdjStackGIN(
-            steps, nagasaki_config.nhead)
+        self.adj_stacker = AdjStack(steps, nhead=gd_config.nhead, kernel=gd_config.kernel,
+                                    normalize=gd_config.normalize) if gd_config.type != 'gin' else AdjStackGIN(
+            steps, gd_config.nhead)
 
         self.edge_mlp = MultiHeadAdjStackWeight(input_dim=num_stack,
                                                 hidden_dim=self.edge_dim,
                                                 dim_out=self.edge_dim,
-                                                edge_model_type=nagasaki_config.edge_model_type,
-                                                ffn_layers=nagasaki_config.ffn_layers,
+                                                edge_model_type=gd_config.edge_model_type,
+                                                ffn_layers=gd_config.ffn_layers,
                                                 reduce=False, nhead=self.nhead)
-        self.positional_embedding = nagasaki_config.project_diagonal
+        self.positional_embedding = gd_config.project_diagonal
         if self.positional_embedding:
             num_stacks = len(steps) + 1
             self.positional_projection = nn.Sequential(
