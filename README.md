@@ -1,11 +1,11 @@
-# TITLE
+# Graph Diffuser
 
 [//]: # ([![arXiv]&#40;https://img.shields.io/badge/arXiv-2205.12454-b31b1b.svg&#41;]&#40;https://arxiv.org/abs/2205.12454&#41;)
 
 [//]: # ([![PWC]&#40;https://img.shields.io/endpoint.svg?url=https://paperswithcode.com/badge/recipe-for-a-general-powerful-scalable-graph/graph-regression-on-zinc&#41;]&#40;https://paperswithcode.com/sota/graph-regression-on-zinc?p=recipe-for-a-general-powerful-scalable-graph&#41;)
 
 
-This repo is based on [GraphGPS](https://arxiv.org/abs/2205.12454), which is built using [PyG](https://www.pyg.org/)
+This repo is based on [GraphGPS](https://github.com/rampasek/GraphGPS), which is built using [PyG](https://www.pyg.org/)
 and [GraphGym from PyG2](https://pytorch-geometric.readthedocs.io/en/2.0.0/notes/graphgym.html).
 
 ### Conda environment setup
